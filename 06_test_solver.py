@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=200.0e9, nu=0.3)
 
-    model = mf.model.NonLinearFE(
+    model = mf.models.NonLinearFE(
         mesh,
         material
     )
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
     
     fig, ax = plt.subplots()
-    mf.mesh.plot_mesh(mesh, ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    mf.mesh.plot_mesh(mesh, ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
     ax = mf.post.vector.plot_2d_field(model, model.U[-1], component="mag", ax=ax, label='Displacement field')
     
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
 
     sigma = model.sigma(averaged=True)
-    mf.mesh.plot_mesh(mesh, ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    mf.mesh.plot_mesh(mesh, ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
     
     mf.post.tensor.plot_2d_field(model, sigma[-1, :, :], ax=ax, component="vm", label='VM Stress')
     

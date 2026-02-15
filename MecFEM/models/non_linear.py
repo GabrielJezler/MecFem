@@ -3,9 +3,9 @@ import numpy as np
 import copy
 import datetime
 
-from .mesh import Mesh
-from .element import NonLinearFiniteElement
-from .boundary_conditions import BCStep
+from ..mesh import Mesh
+from ..elements import NonLinearFiniteElement
+from ..boundary_conditions import BCStep
 
 class NonLinearFE:
     """

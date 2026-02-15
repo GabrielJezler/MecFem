@@ -2,6 +2,8 @@ import MecFEM as mf
 import matplotlib.pyplot as plt
 import numpy as np
 
+from test_selector import RectangleSelector
+
 plt.rcParams.update({
     "figure.figsize": (10, 8),
     "figure.titlesize": 24,
@@ -95,6 +97,8 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
 
     mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+
+    selector = RectangleSelector(ax)
 
     plt.show()
 

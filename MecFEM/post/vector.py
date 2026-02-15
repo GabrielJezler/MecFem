@@ -3,9 +3,9 @@ import matplotlib.animation as animation
 import matplotlib.cm as cm
 import numpy as np
 
-from MecFEM.model import NonLinearFE
+from ..models import NonLinearFE
 
-def plot_2d_arrows(model, F_nodes: np.ndarray, ax=None, scale:float=1.0, label:str='Field'):
+def plot_2d_arrows(model, F_nodes: np.ndarray, ax=None, scale:float=1.0, label:str='Field', color:str | None=None):
     """
     Plots the Field vectors on the mesh.
 
@@ -32,20 +32,33 @@ def plot_2d_arrows(model, F_nodes: np.ndarray, ax=None, scale:float=1.0, label:s
 
     x_nodes = model.get_nodes_coordinates()
 
-    qv = ax.quiver(
-        x_nodes[:, 0],
-        x_nodes[:, 1],
-        F_nodes[:, 0],
-        F_nodes[:, 1],
-        np.linalg.norm(F_nodes, axis=1),
-        angles='xy',
-        scale=scale,
-        scale_units='width',
-        label=label,
-        cmap='plasma',
-    )
+    if color is None:
+        qv = ax.quiver(
+            x_nodes[:, 0],
+            x_nodes[:, 1],
+            F_nodes[:, 0],
+            F_nodes[:, 1],
+            np.linalg.norm(F_nodes, axis=1),
+            angles='xy',
+            scale=scale,
+            scale_units='width',
+            label=label,
+            cmap='plasma',
+        )
 
-    cbar = plt.colorbar(qv, ax=ax, label=f'{label} Magnitude')
+        cbar = plt.colorbar(qv, ax=ax, label=f'{label} Magnitude')
+    else:
+        ax.quiver(
+            x_nodes[:, 0],
+            x_nodes[:, 1],
+            F_nodes[:, 0],
+            F_nodes[:, 1],
+            angles='xy',
+            scale=scale,
+            scale_units='width',
+            label=label,
+            color=color
+        )
 
     ax.set_aspect('equal')
     ax.set_title(label)

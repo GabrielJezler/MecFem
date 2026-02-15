@@ -4,8 +4,8 @@ from matplotlib.collections import PolyCollection
 import matplotlib.cm as cm
 import numpy as np
 
-from MecFEM.model import NonLinearFE
-from MecFEM.utils.stress import von_mises
+from ..models import NonLinearFE
+from ..utils.stress import von_mises
 
 def plot_2d_field(model: NonLinearFE, F: np.ndarray, component: str="vm", ax=None, label:str='Stress'):
     """

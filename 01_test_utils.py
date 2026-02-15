@@ -9,13 +9,13 @@ if __name__ == "__main__":
     material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=200.0, nu=0.3)
 
     mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
-    element = mesh.get_element_by_id(30, 2)
-    x_nodes = mesh.get_nodes_coodinates_by_element(30, 2)
+    element = mesh.get_element_by_id(100, 2)
+    x_nodes = mesh.get_nodes_coordinates_by_element(100, 2)
 
     int_pts = ref.ReferenceElements().get_by_type(element.type).integration_points
     dim = element.dim
 
-    fe = mf.element.NonLinearFiniteElement(
+    fe = mf.elements.NonLinearFiniteElement(
         element,
         x_nodes,
     )

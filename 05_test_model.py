@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=200.0e9, nu=0.3)
 
-    model = mf.NonLinearFEModel(
+    model = mf.models.NonLinearFE(
         mesh,
         material
     )
@@ -87,12 +87,11 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     mf.mesh.plot_mesh(mesh, ax, nodes_ids=True, elems_ids=True, zoom_out=0.25)
 
-    ax = mf.post.fields.plot_2d_arrows(model.get_nodes_coordinates(), U, ax=ax, label='Displacement', color='C0')
+    ax = mf.post.vector.plot_2d_arrows(model, U, ax=ax, scale=1/8.0, label='Displacement', color='C0')
 
-    ax = mf.post.fields.plot_2d_arrows(model.get_nodes_coordinates(), f_vol, ax=ax, label='Volumetric Forces', color='C1')
+    ax = mf.post.vector.plot_2d_arrows(model, f_vol, ax=ax, scale=4.0, label='Volumetric Forces', color='C1')
 
-    ax = mf.post.fields.plot_2d_arrows(model.get_nodes_coordinates(), f_int, ax=ax, label='Internal Forces', color='C2')
-
+    ax = mf.post.vector.plot_2d_arrows(model, f_int, ax=ax, scale=1e10, label='Internal Forces', color='C2')
     ax.axis('off')
     ax.legend(loc='lower center', ncol=3, bbox_to_anchor=(0.5, -0.15))
 
@@ -117,17 +116,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     mf.mesh.plot_mesh(mesh, ax, nodes_ids=False, elems_ids=False)
 
-    mf.post.fields.plot_2d_field(model.get_nodes_coordinates(), U, ax=ax, component="Mag", label='Displacement Magnitude')
-
-    plt.show()
-
-    sigma_avg = model.sigma(U)
-    x_nodes = model.get_nodes_coordinates()
-
-    fig, ax = plt.subplots()
-    mf.mesh.plot_mesh(mesh, ax, nodes_ids=False, elems_ids=False)
-
-    mf.post.fields.plot_2d_field(x_nodes, sigma_avg, ax=ax, component="VM", label='VM Stress')
+    mf.post.vector.plot_2d_field(model, U, ax=ax, component="mag", label='Displacement Magnitude')
 
     plt.show()
 

@@ -1,8 +1,8 @@
 import numpy as np
 
-from .geometry import isoparametric_elements as iso_elem
-from .mesh import Element
-from .utils import tensor
+from ..geometry import isoparametric_elements as iso_elem
+from ..mesh import Element
+from ..utils import tensor
 
 class NonLinearFiniteElement:
     """

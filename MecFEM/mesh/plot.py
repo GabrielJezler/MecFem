@@ -4,7 +4,7 @@ import numpy as np
 from .mesh_struct import Mesh
 from MecFEM.geometry.isoparametric_elements import ReferenceElements
 
-def plot_mesh(mesh:Mesh, ax:plt.Axes | None=None, nodes_ids:bool=False, elems_ids:bool=False, zoom_out:float=0.1) -> plt.Axes:
+def plot_mesh(mesh:Mesh, ax:plt.Axes | None=None, nodes_marker:bool=True, nodes_ids:bool=False, elems_ids:bool=False, zoom_out:float=0.1) -> plt.Axes:
     """
     Plots the mesh on the given Axes object.
 
@@ -14,6 +14,8 @@ def plot_mesh(mesh:Mesh, ax:plt.Axes | None=None, nodes_ids:bool=False, elems_id
         The mesh to plot.
     ax : plt.Axes
         The matplotlib Axes object to plot on.
+    nodes_marker : bool, optional
+        If True, plot nodes as markers. Default is True.
     nodes_ids : bool, optional
         If True, plot node IDs. Default is False.
     elems_ids : bool, optional
@@ -35,8 +37,8 @@ def plot_mesh(mesh:Mesh, ax:plt.Axes | None=None, nodes_ids:bool=False, elems_id
         nodes_coords[:, 0], 
         nodes_coords[:, 1],
         color='k',
-        marker='o',
-        s=2,
+        marker='o' if nodes_marker else None,
+        s=50 if nodes_marker else 0,
         zorder=-10
     )
 
@@ -51,7 +53,7 @@ def plot_mesh(mesh:Mesh, ax:plt.Axes | None=None, nodes_ids:bool=False, elems_id
             color='k',
             linestyle='-',
             linewidth=2,
-            zorder=-10
+            zorder=-12
         )
     
     if nodes_ids:

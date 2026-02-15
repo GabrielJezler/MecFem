@@ -1,6 +1,5 @@
 import MecFEM as mf
 import matplotlib.pyplot as plt
-import numpy as np
 
 plt.rcParams.update({
     "figure.figsize": (10, 8),
