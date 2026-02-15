@@ -3,7 +3,7 @@ import gmsh
 
 import MecFEM.geometry.isoparametric_elements as ref
 
-def test_shape_functions(elem):
+def evaluate_shape_functions(elem):
     """
     Test shape functions for an isoparametric element. It verifies that:
         - At each node, the corresponding shape function is 1 and all others are 0.
@@ -17,14 +17,13 @@ def test_shape_functions(elem):
     """
     nodes = elem.nodes
     n_nodes = nodes.shape[0]
-    n_dim = nodes.shape[1]
 
     gmsh.initialize()
     for i in range(n_nodes): # for each node
         N = elem.shape_function.shape(nodes[i])
         assert N.shape == (n_nodes, 1), f"Shape function output shape mismatch: expected {(n_nodes, 1)}, got {N.shape}"
         assert np.isclose(np.sum(N), 1.0), f"Sum of shape functions at node {i} should be 1, got {np.sum(N)}"
-        
+
         for j in range(n_nodes): # for each shape function
             if i == j:
                 assert np.isclose(N[j,0], 1.0), f"Shape function {j} at node {i} should be 1, got {N[j,0]}"
@@ -41,7 +40,7 @@ def test_shape_functions(elem):
     assert N.shape == (n_nodes, 1), f"Shape function output shape mismatch at random point: expected {(n_nodes, 1)}, got {N.shape}"
     assert np.isclose(np.sum(N), 1.0), f"Sum of shape functions at random point should be 1, got {np.sum(N)}"
 
-def test_dShape_functions(elem):
+def evaluate_dShape_functions(elem):
     """
     Test derivatives of shape functions for an isoparametric element. It verifies that:
         - The sum of the derivatives of all shape functions with respect to each coordinate should be zero.
@@ -72,15 +71,18 @@ def test_dShape_functions(elem):
         sum_dN = np.sum(dN[:, dim])
         assert np.isclose(sum_dN, 0.0), f"Sum of derivatives w.r.t. dimension {dim} at random point should be 0, got {sum_dN}"
 
-if __name__ == "__main__":
+def test():
     for element in ref.ReferenceElements.ELEMS:
         print(f"Testing element: {element.name}")
 
-        test_shape_functions(element)
+        evaluate_shape_functions(element)
         print(f"    Shape function:               SUCCESS")
 
-        test_dShape_functions(element)
+        evaluate_dShape_functions(element)
         print(f"    Derivative of shape function: SUCCESS")
 
 
     print("\n\nShape function test completed successfully.")
+
+if __name__ == "__main__":
+    test()

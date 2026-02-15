@@ -5,7 +5,7 @@ import MecFEM.utils.kinematics as kinematics
 import MecFEM.geometry.isoparametric_elements as ref
 import MecFEM as mf
 
-if __name__ == "__main__":
+def test():
     material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=200.0, nu=0.3)
 
     mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
@@ -87,5 +87,5 @@ if __name__ == "__main__":
 
     print("\n\nUtils test completed successfully.")
 
-
-
+if __name__ == "__main__":
+    test()

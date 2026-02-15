@@ -43,7 +43,7 @@ def plot_integration_points(elem:ref.ReferenceElementData, ax=None):
     ax.axis('off')
 
 
-if __name__ == "__main__":
+def test():
     for element in [ref.ReferenceElements().get_by_type(1), ref.ReferenceElements().get_by_type(2), ref.ReferenceElements().get_by_type(3)]:
         fig, ax = plt.subplots(1, 3, figsize=(15,5))
         for i in range(3):
@@ -62,3 +62,6 @@ if __name__ == "__main__":
         plt.show()
         
     print("\n\nIntegration test completed successfully.")
+
+if __name__ == "__main__":
+    test()

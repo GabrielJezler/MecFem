@@ -9,7 +9,7 @@ plt.rcParams.update({
     "savefig.format": "pdf",
 })
 
-if __name__ == "__main__":
+def test():
     mf.mesh.generate.generate_rectangle_mesh(
         2.0, 1.0, 10, 5, "mesh/rect.msh"
     )
@@ -31,3 +31,6 @@ if __name__ == "__main__":
     plt.show()
     
     print("\n\nMesh test completed successfully.")
+
+if __name__ == "__main__":
+    test()

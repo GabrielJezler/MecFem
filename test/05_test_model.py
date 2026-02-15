@@ -49,7 +49,7 @@ def f_volumetric2(x:np.ndarray) -> np.ndarray:
     f[:, 0] = -9.81  # Gravity in negative x-direction
     return f
 
-if __name__ == "__main__":
+def test():
     mf.mesh.generate.generate_rectangle_mesh(
         1.0, 0.5, 8, 4, "mesh/rect.msh"
     )
@@ -125,3 +125,6 @@ if __name__ == "__main__":
     print(f"Residual vector norm: {np.linalg.norm(R)}")
 
     print("\n\nModel test completed successfully.")
+
+if __name__ == "__main__":
+    test()

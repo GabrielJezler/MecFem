@@ -65,9 +65,9 @@ def x_disp(X:np.ndarray) -> np.ndarray:
 
     return 0.1 * np.ones(X.shape[0])
 
-if __name__ == "__main__":
+def test():
     mf.mesh.generate.generate_rectangle_mesh(
-        1.0, 0.5, 32, 16, "mesh/rect.msh"
+        1.0, 0.5, 16, 8, "mesh/rect.msh"
     )
     mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
 
@@ -124,23 +124,65 @@ if __name__ == "__main__":
         MAX_ITER=50
     )
 
-    
     fig, ax = plt.subplots()
-    mf.mesh.plot_mesh(mesh, ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    mf.mesh.plot_mesh(
+        mesh, 
+        ax, 
+        nodes_marker=False, 
+        nodes_ids=False, 
+        elems_ids=False, 
+        zoom_out=0.25
+    )
 
-    ax = mf.post.vector.plot_2d_field(model, model.U[-1], component="mag", ax=ax, label='Displacement field')
-    
+    ax = mf.post.vector.plot_2d_field(
+        model, 
+        model.U[-1], 
+        component="mag", 
+        ax=ax, 
+        label='Displacement field'
+    )
+
     plt.show()
 
     fig, ax = plt.subplots()
 
     sigma = model.sigma(averaged=True)
-    mf.mesh.plot_mesh(mesh, ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
-    
-    mf.post.tensor.plot_2d_field(model, sigma[-1, :, :], ax=ax, component="vm", label='VM Stress')
-    
+    mf.mesh.plot_mesh(
+        mesh, 
+        ax, 
+        nodes_marker=False, 
+        nodes_ids=False, 
+        elems_ids=False, 
+        zoom_out=0.25
+    )
+
+    mf.post.tensor.plot_2d_field(
+        model, 
+        sigma[-1, :, :], 
+        ax=ax, 
+        component="vm", 
+        label='VM Stress'
+    )
+
     plt.show()
 
-    mf.mesh.write.element_tensor2_data("mesh/rect.msh", "out_test.msh", mesh, sigma, times=model.T, label="Stress")
+    mf.mesh.write.element_tensor2_data(
+        "mesh/rect.msh", 
+        "out_test.msh", 
+        mesh, 
+        sigma, 
+        times=model.T, 
+        label="Stress"
+    )
 
-    mf.mesh.write.node_vector_data("out_test.msh", "out_test.msh", mesh, model.U, model.T, label="Displacement")
+    mf.mesh.write.node_vector_data(
+        "out_test.msh", 
+        "out_test.msh", 
+        mesh, 
+        model.U, 
+        model.T, 
+        label="Displacement"
+    )
+
+if __name__ == "__main__":
+    test()
