@@ -1,8 +1,7 @@
-import MecFEM as mf
 import matplotlib.pyplot as plt
 import numpy as np
 
-from test_selector import RectangleSelector
+import MecFEM as mf
 
 plt.rcParams.update({
     "figure.figsize": (10, 8),
@@ -98,13 +97,13 @@ if __name__ == "__main__":
 
     mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
-    selector = RectangleSelector(ax)
+    selector = mf.boundary_conditions.selection.RectangleSelector(ax)
 
     plt.show()
 
     material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=210.0e9, nu=0.3)
 
-    model = mf.model.NonLinearFE(
+    model = mf.models.NonLinearFE(
         mesh,
         material
     )
@@ -182,8 +181,8 @@ if __name__ == "__main__":
     )
 
     fig, ax = plt.subplots(1,2)
-    ax[0] = mf.mesh.plot_mesh(mesh, ax=ax[0], nodes_ids=False, elems_ids=False, zoom_out=0.25)
-    ax[1] = mf.mesh.plot_mesh(mesh, ax=ax[1], nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    ax[0] = mf.mesh.plot_mesh(mesh, ax=ax[0], nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    ax[1] = mf.mesh.plot_mesh(mesh, ax=ax[1], nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
     
     ax[0] = mf.post.vector.plot_2d_field(model, model.U[-1], ax=ax[0], component="Mag", label='Displacement magnitude')
     ax[1] = mf.post.vector.plot_2d_arrows(model, model.U[-1], ax=ax[1], scale=1/5000, label='Displacement vectors')
@@ -194,7 +193,7 @@ if __name__ == "__main__":
     sigma = model.sigma(averaged=True)
 
     fig, ax = plt.subplots()
-    ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
     ax = mf.post.tensor.plot_2d_field(model, sigma[-1], ax=ax, component="VM", label='Von Mises Stress')
 
@@ -202,7 +201,7 @@ if __name__ == "__main__":
     plt.show()
 
     fig, ax = plt.subplots()
-    ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
     ax, ani = mf.post.vector.animate_2d_displacement(model, scale=1000, ax=ax, label='Displacement magnitude', zoom_out=0.25, interval=200)
 
