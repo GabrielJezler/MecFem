@@ -453,7 +453,7 @@ class NonLinearFE:
 
         return None
 
-    def plot_bc(self, ax=None) -> None:
+    def plot_bc(self, ax: plt.Axes=None, time:float=1.0) -> None:
         if ax is None:
             fig, ax = plt.subplots()
 
@@ -463,7 +463,7 @@ class NonLinearFE:
             nodes_id = np.unique(dofs // self.dim)
             axis = np.unique(dofs % self.dim)
             
-            label = f"BC {c}"
+            label = f"Displacement {c} "
             U = np.zeros(len(nodes_id))
             V = np.zeros(len(nodes_id))
             for a in axis:
@@ -471,18 +471,30 @@ class NonLinearFE:
                     raise ValueError("Invalid axis value. Axis must be 0, 1 or 2.")
                 
                 if a == 0:
-                    label += '- x '
-                    U = U + step.interp(1.0)(X_nodes[nodes_id, :])
+                    U = U + step.interp(time)(X_nodes[nodes_id, :])
                 elif a == 1:
-                    label += '- y '
-                    V = V +  step.interp(1.0)(X_nodes[nodes_id, :])
+                    V = V +  step.interp(time)(X_nodes[nodes_id, :])
 
-            ax.plot(X_nodes[nodes_id, 0], X_nodes[nodes_id, 1], 'o', color=f"C{c-1}", label=label, markersize=4)
+            ax.scatter(X_nodes[nodes_id, 0], X_nodes[nodes_id, 1], c=f"C{c-1}", label=label, s=20, zorder=0)
 
-            ax.quiver(X_nodes[nodes_id, 0], X_nodes[nodes_id, 1], U, V, scale=1, color=f"C{c-1}")
+            ax.quiver(X_nodes[nodes_id, 0], X_nodes[nodes_id, 1], U, V, color=f"C{c-1}",zorder=-20)
 
             c += 1
 
+        c = 1
+        for step in self._volumetric_force_steps:
+            label = f"Volumetric Force {c}"
+            X_cg = np.zeros((len(self.elems), self.dim))
+            F = np.zeros((len(self.elems), self.dim))
+            for i, elem in enumerate(self.elems):
+                X_cg[i, :] = np.mean(elem.x_nodes[:, 0:elem.dim], axis=0)
+                F[i, :] = step.interp(time)._field(X_cg[i, :][np.newaxis, :])[0, :]
+
+            ax.scatter(X_cg[:, 0], X_cg[:, 1], c=f"C{c-1}", marker="x", label=label, s=40, zorder=0)
+            ax.quiver(X_cg[:, 0], X_cg[:, 1], F[:, 0], F[:, 1], color=f"C{c-1}", zorder=-20)
+            c += 1
+
+        ax.set_title(f"Boundary conditions at t = {time:.4f}")
         return None
     
     def sigma(self, averaged=True) -> np.ndarray:

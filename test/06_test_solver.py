@@ -63,7 +63,29 @@ def x_disp(X:np.ndarray) -> np.ndarray:
 
     """
 
-    return 0.1 * np.ones(X.shape[0])
+    return 0.001 * np.ones(X.shape[0])
+
+def f_volumetric(x:np.ndarray, g) -> np.ndarray:
+    """
+    Example volumetric force function.
+
+    Parameters
+    ----------
+    x : ndarray
+        Coordinates where the force is evaluated. This is an array of shape (n_nodes, dim).
+    g : float
+        Gravity magnitude.
+
+    Returns
+    -------
+    f : ndarray
+        Volumetric force vector at the given coordinates. This is an array of shape (n_nodes, dim).
+
+    """
+    f = np.zeros_like(x)
+    f[:, 1] = g
+    return f
+
 
 def test():
     mf.mesh.generate.generate_rectangle_mesh(
@@ -117,6 +139,24 @@ def test():
         )
     )
 
+    f = mf.boundary_conditions.VolumetricForce(lambda X: f_volumetric(X, g=-9.81 * 1e7))
+
+    bc_step = mf.boundary_conditions.BCStep(
+        times=[0.0, 1.0],
+        values=[f * 0.0, f * 1.0]
+    )
+
+    model.add_volumetric_force(bc_step)
+
+    fig, ax = plt.subplots()
+
+    mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+
+    model.plot_bc(ax=ax, time=1.0)
+
+    ax.legend(loc='center right', ncol=1, bbox_to_anchor=(1.0, 0.5))
+    plt.show()
+
     model.solve(
         dt=0.1,
         t_end=1.0,
@@ -137,7 +177,7 @@ def test():
     ax = mf.post.vector.plot_2d_field(
         model, 
         model.U[-1], 
-        component="mag", 
+        component="y", 
         ax=ax, 
         label='Displacement field'
     )
@@ -164,6 +204,14 @@ def test():
         label='VM Stress'
     )
 
+    plt.show()
+
+    fig, ax = plt.subplots()
+    ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+
+    ax, ani = mf.post.vector.animate_2d_displacement(model, scale=100, ax=ax, label='Displacement magnitude', zoom_out=0.25, interval=200)
+
+    fig.suptitle("Displacement animation")
     plt.show()
 
     mf.mesh.write.element_tensor2_data(
