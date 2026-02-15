@@ -197,6 +197,14 @@ if __name__ == "__main__":
     fig.suptitle("Von Mises stress field")
     plt.show()
 
-    mf.mesh.write.element_tensor2_data("mesh/cylinder_quad.msh", "out_test.msh", mesh, sigma, times=model.T, label="Stress")
+    fig, ax = plt.subplots()
+    ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
-    mf.mesh.write.node_vector_data("out_test.msh", "out_test.msh", mesh, model.U, model.T, label="Displacement")
+    ax, ani = mf.post.vector.animate_2d_displacement(model, scale=1000, ax=ax, label='Displacement magnitude', zoom_out=0.25, interval=200)
+
+    fig.suptitle("Displacement animation")
+    plt.show()
+
+    # mf.mesh.write.element_tensor2_data("mesh/cylinder_quad.msh", "out_test.msh", mesh, sigma, times=model.T, label="Stress")
+
+    # mf.mesh.write.node_vector_data("out_test.msh", "out_test.msh", mesh, model.U, model.T, label="Displacement")

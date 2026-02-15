@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     # Fix Y displacements at the right edge
     model.add_displacement_bc(
-        right_nodes * 2 ,
+        right_nodes * 2 + 1,
         mf.boundary_conditions.BCStep(
             times=[0.0, 1.0],
             values=[0.0 * fix_disp_step, 1.0 * fix_disp_step]
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
     # Impose X displacements at the right edge
     model.add_displacement_bc(
-        right_nodes * 2 + 1,
+        right_nodes * 2,
         mf.boundary_conditions.BCStep(
             times=[0.0, 1.0],
             values=[0.0 * x_disp_step, 1.0 * x_disp_step]
@@ -135,6 +135,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
 
     sigma = model.sigma(averaged=True)
+    mf.mesh.plot_mesh(mesh, ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
     
     mf.post.tensor.plot_2d_field(model, sigma[-1, :, :], ax=ax, component="vm", label='VM Stress')
     
