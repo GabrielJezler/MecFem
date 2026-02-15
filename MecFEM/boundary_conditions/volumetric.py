@@ -31,9 +31,9 @@ class VolumetricForce:
         f_int_pts : ndarray
             Volumetric force vector at the integration points. This is an array of shape (n_int_pts, dim).
         """
-        x_int_pts = np.einsum('ij,ni->nj', x_nodes, f_shape[:,:,0])  # shape (n_int_pts, dim)
+        x_int_pts = np.einsum('ni,ik->nk', f_shape[:,:,0],  x_nodes)
 
-        f_int_pts = self._field(x_int_pts)  # shape (n_int_pts, dim)
+        f_int_pts = self._field(x_int_pts)
         return f_int_pts
     
     def __add__(self, other):

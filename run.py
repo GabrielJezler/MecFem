@@ -124,8 +124,8 @@ if __name__ == "__main__":
 
 
     fix_disp_step = mf.boundary_conditions.Displacement(fixed_disp)
-    rx_disp_step = mf.boundary_conditions.Displacement(lambda X: rx_disp(X, dr=1e-5))
-    ry_disp_step = mf.boundary_conditions.Displacement(lambda X: ry_disp(X, dr=1e-5))
+    rx_disp_step = mf.boundary_conditions.Displacement(lambda X: rx_disp(X, dr=1e-4))
+    ry_disp_step = mf.boundary_conditions.Displacement(lambda X: ry_disp(X, dr=1e-4))
 
     # Fix X displacements at the left edge
     model.add_displacement_bc(
@@ -174,9 +174,9 @@ if __name__ == "__main__":
     plt.show()
 
     model.solve(
-        dt=0.1,
+        dt=0.05,
         t_end=1.0,
-        F_VERBOSE=1,
+        F_VERBOSE=2,
         MAX_ITER=50
     )
 

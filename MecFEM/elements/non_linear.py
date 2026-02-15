@@ -2,7 +2,7 @@ import numpy as np
 
 from ..geometry import isoparametric_elements as iso_elem
 from ..mesh import Element
-from ..utils import tensor
+from ..utils import tensor, cache_none
 
 class NonLinearFiniteElement:
     """
@@ -44,6 +44,7 @@ class NonLinearFiniteElement:
         """ Get number of nodes per element """
         return self.x_nodes.shape[0]
 
+    @cache_none
     def fshape(self, x: np.ndarray | None = None) -> np.ndarray:
         """
         Compute the shape functions at given local coordinates.
@@ -66,6 +67,7 @@ class NonLinearFiniteElement:
         )
         return fshape
     
+    @cache_none
     def jacobian(self, x: np.ndarray | None = None) -> np.ndarray:
         """
         Compute the Jacobian matrices at given local coordinates.
@@ -96,6 +98,7 @@ class NonLinearFiniteElement:
         )
         return jacobian
     
+    @cache_none
     def dfshape(self, x: np.ndarray | None = None) -> np.ndarray:
         """
         Compute the derivatives of the shape functions with respect to global coordinates at given local coordinates.
