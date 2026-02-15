@@ -5,6 +5,8 @@ import numpy as np
 plt.rcParams.update({
     "figure.figsize": (10, 8),
     "figure.titlesize": 24,
+    "figure.autolayout":True,
+    "axes.titlesize": 20,
     "font.family": "Courier New",
     "font.size": 16,
     "savefig.format": "pdf",
@@ -29,89 +31,172 @@ def f_volumetric(x:np.ndarray) -> np.ndarray:
     f[:, 1] = -9.81  # Gravity in negative y-direction
     return f
 
+def fixed_disp(X:np.ndarray) -> np.ndarray:
+    """
+    Example fixed displacement function.
+
+    Parameters
+    ----------
+    x : ndarray
+        Coordinates where the displacement is evaluated. This is an array of shape (n_dofs,).
+
+    Returns
+    -------
+    u : ndarray | float
+        Displacement vector at the given coordinates. This is an array of shape (n_dofs,).
+
+    """
+    return np.zeros(X.shape[0])
+
+def rx_disp(X:np.ndarray, dr:float) -> np.ndarray:
+    """
+    Example radial displacement function along x axis.
+
+    Parameters
+    ----------
+    X : ndarray
+        Coordinates where the displacement is evaluated. This is an array of shape (n_dofs,).
+    dr : float
+        Radial displacement magnitude at the arc.
+
+    Returns
+    -------
+    u : ndarray | float
+        Displacement vector at the given coordinates. This is an array of shape (n_dofs,).
+
+    """
+
+    return dr * X[:, 0] / np.linalg.norm(X, axis=1)
+
+def ry_disp(X:np.ndarray, dr:float) -> np.ndarray:
+    """
+    Example radial displacement function along y axis.
+
+    Parameters
+    ----------
+    X : ndarray
+        Coordinates where the displacement is evaluated. This is an array of shape (n_dofs,).
+    dr : float
+        Radial displacement magnitude at the arc.
+    
+    Returns
+    -------
+    u : ndarray | float
+        Displacement vector at the given coordinates. This is an array of shape (n_dofs,).
+
+    """
+
+    return dr * X[:, 1] / np.linalg.norm(X, axis=1)
+
+
 if __name__ == "__main__":
-    # mf.mesh.generate.generate_rectangle_mesh(
-    #     2.0, 1.0, 10, 5, "mesh/rect.msh"
-    # )
+    mesh = mf.mesh.read.read_gmsh_mesh("mesh/cylinder_quad.msh", dim=2)
 
-    # mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
+    fig, ax = plt.subplots()
 
-    # fig, ax = plt.subplots()
-    # mf.mesh.plot_mesh(mesh, ax, nodes_ids=False, elems_ids=True)
-    # plt.show()
+    mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
-    grad0_u = np.array(
-        [
-            [[0.1, 0.2], [0.0, 0.3]],
-            [[0.0, 0.1], [0.2, 0.0]]
-        ]
-    )
+    plt.show()
 
-    material = mf.materials.IsotropicElasticity(E=200.0, nu=0.3)
+    material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=210.0e9, nu=0.3)
 
-    # eps = material.epsilon(grad0_u)
-    # F = material.deformation_gradient(grad0_u)
-    # print("Strain tensor:")
-    # print(eps)
-    # print("Deformation gradient:")
-    # print(F)
-
-    # sigma = material.sigma(grad0_u)
-    # print("Cauchy stress tensor:")
-    # print(sigma)
-    # tau = material.tau(grad0_u)
-    # print("Kirchhoff stress tensor:")
-    # print(tau)
-    # P = material.pk1(grad0_u)
-    # print("First Piola-Kirchhoff stress tensor:")
-    # print(P)
-    # S = material.pk2(grad0_u)
-    # print("Second Piola-Kirchhoff stress tensor:")
-    # print(S)
-
-    # sigma_vm = mf.utils.stress.von_mises(sigma)
-    # print(f"Von Mises stress: {sigma_vm}")
-
-    # C = material.cauchy_green_right(F)
-    # print("Right Cauchy-Green deformation tensor:")
-    # print(C)
-    # b = material.cauchy_green_left(F)
-    # print("Left Cauchy-Green deformation tensor:")
-    # print(b)
-    # E = material.green_lagrange(F)
-    # print("Green-Lagrange strain tensor:")
-    # print(E)
-    # e = material.euler_almansi(F)
-    # print("Euler-Almansi strain tensor:")
-    # print(e)
-
-    elem_ref = mf.geometry.QUAD4()
-    int_pts = mf.geometry.IPGauss2D(4)
-    xNod = np.array([[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]])
-    dim = 2
-
-    fe = mf.element.NonLinearFiniteElement(
-        elem_ref,
-        int_pts,
-        xNod,
-        dim
-    )
-    fe.update(
-        np.array([[0.05, 0.1], [0.1, 0.2], [0.15, 0.25], [0.2, 0.3]]), 
+    model = mf.model.NonLinearFE(
+        mesh,
         material
     )
-    f_vol = fe.volumetric_force(
-        np.random.rand(*xNod.shape)
-    )
-    print("Volumetric force vector:")
-    print(f_vol)
-    f_ext = fe.external_force(
-        np.random.rand(*xNod.shape)
-    )
-    print("External force vector:")
-    print(f_ext)
 
+    x_nodes = mesh.get_nodes_coordinates()
 
+    left_nodes = np.arange(model.n_nodes)[np.isclose(x_nodes[:, 0], 0.0)]
 
-
+    down_nodes = np.arange(model.n_nodes)[np.isclose(x_nodes[:, 1], 0.0)]
     
+    arc_in = np.arange(model.n_nodes)[np.isclose(x_nodes[:, 0]**2 + x_nodes[:, 1]**2, 0.02**2)]
+    
+    arc_out = np.arange(model.n_nodes)[np.isclose(x_nodes[:, 0]**2 + x_nodes[:, 1]**2, 0.06**2)]
+    arc_out = np.setdiff1d(arc_out, np.concatenate((left_nodes, down_nodes)))
+
+    left_nodes = np.setdiff1d(left_nodes, arc_in)
+    down_nodes = np.setdiff1d(down_nodes, arc_in)
+
+
+    fix_disp_step = mf.boundary_conditions.Displacement(fixed_disp)
+    rx_disp_step = mf.boundary_conditions.Displacement(lambda X: rx_disp(X, dr=1e-5))
+    ry_disp_step = mf.boundary_conditions.Displacement(lambda X: ry_disp(X, dr=1e-5))
+
+    # Fix X displacements at the left edge
+    model.add_displacement_bc(
+        2 * left_nodes,
+        mf.boundary_conditions.BCStep(
+            times=[0.0, 1.0],
+            values=[0.0 * fix_disp_step, 1.0 * fix_disp_step]
+        )
+    )
+
+    # Fix Y displacements at the right edge
+    model.add_displacement_bc(
+        2 * down_nodes + 1,
+        mf.boundary_conditions.BCStep(
+            times=[0.0, 1.0],
+            values=[0.0 * fix_disp_step, 1.0 * fix_disp_step]
+        )
+    )
+
+    # Impose radial displacements at the arc out edge
+    # At x dofs
+    model.add_displacement_bc(
+        2 * arc_in,
+        mf.boundary_conditions.BCStep(
+            times=[0.0, 1.0],
+            values=[0.0 * rx_disp_step, 1.0 * rx_disp_step]
+        )
+    )
+
+    # At y dofs
+    model.add_displacement_bc(
+        2 * arc_in + 1,
+        mf.boundary_conditions.BCStep(
+            times=[0.0, 1.0],
+            values=[0.0 * ry_disp_step, 1.0 * ry_disp_step]
+        )
+    )
+
+    fig, ax = plt.subplots()
+
+    mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+
+    model.plot_bc(ax=ax)
+
+    ax.legend(loc='center left', ncol=1, bbox_to_anchor=(1.0, 0.5))
+    plt.show()
+
+    model.solve(
+        dt=0.1,
+        t_end=1.0,
+        F_VERBOSE=1,
+        MAX_ITER=50
+    )
+
+    fig, ax = plt.subplots(1,2)
+    ax[0] = mf.mesh.plot_mesh(mesh, ax=ax[0], nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    ax[1] = mf.mesh.plot_mesh(mesh, ax=ax[1], nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    
+    ax[0] = mf.post.vector.plot_2d_field(model, model.U[-1], ax=ax[0], component="Mag", label='Displacement magnitude')
+    ax[1] = mf.post.vector.plot_2d_arrows(model, model.U[-1], ax=ax[1], scale=1/5000, label='Displacement vectors')
+
+    fig.suptitle("Displacement")
+    plt.show()
+
+    sigma = model.sigma(averaged=True)
+
+    fig, ax = plt.subplots()
+    ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+
+    ax = mf.post.tensor.plot_2d_field(model, sigma[-1], ax=ax, component="VM", label='Von Mises Stress')
+
+    fig.suptitle("Von Mises stress field")
+    plt.show()
+
+    mf.mesh.write.element_tensor2_data("mesh/cylinder_quad.msh", "out_test.msh", mesh, sigma, times=model.T, label="Stress")
+
+    mf.mesh.write.node_vector_data("out_test.msh", "out_test.msh", mesh, model.U, model.T, label="Displacement")

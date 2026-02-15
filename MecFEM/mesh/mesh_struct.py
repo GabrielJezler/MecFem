@@ -62,6 +62,9 @@ class Mesh:
     """Class containing basic data structure for unstructured mesh"""
     def __init__(self,dim:int=2):
         """Create mesh of dimension d"""
+        if dim not in [1, 2, 3]:
+            raise ValueError("Mesh dimension must be 1, 2 or 3.")
+        
         self._dim:int = dim
         self._nodes:list[Node] = []
         self._elems:list[list[Element]] = [[] for _ in range(dim + 1)]
@@ -85,8 +88,8 @@ class Mesh:
     
     @property
     def n_elements(self):
-        """Return number of elements in the mesh"""
-        return len(self._elems)
+        """Return number of elements of the mesh dimension in the mesh"""
+        return len(self._elems[self.dim])
     
     def get_nodes_coordinates(self):
         """
@@ -101,7 +104,7 @@ class Mesh:
 
         return np.array(coords)
     
-    def get_nodes_coodinates_by_element(self, elem_id:int, dim:int | None=None):
+    def get_nodes_coordinates_by_element(self, elem_id:int, dim:int | None=None):
         """
         Get the coordinates of the nodes of a specific element
 

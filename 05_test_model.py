@@ -55,7 +55,7 @@ if __name__ == "__main__":
     )
     mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
 
-    material = mf.materials.IsotropicElasticity(E=200.0e9, nu=0.3)
+    material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=200.0e9, nu=0.3)
 
     model = mf.NonLinearFEModel(
         mesh,
@@ -121,7 +121,8 @@ if __name__ == "__main__":
 
     plt.show()
 
-    x_nodes, sigma_avg = model.sigma(U)
+    sigma_avg = model.sigma(U)
+    x_nodes = model.get_nodes_coordinates()
 
     fig, ax = plt.subplots()
     mf.mesh.plot_mesh(mesh, ax, nodes_ids=False, elems_ids=False)

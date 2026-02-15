@@ -20,7 +20,7 @@ def read_gmsh_mesh(filename, dim=1):
     n_elem_types = 0
     for i, elem_type in enumerate(elem_types):
         elem_data = ReferenceElements().get_by_type(elem_type)
-        # if elem_data.dim == dim: # Get only the elements of the specified dimension
+        
         elem_tag = elem_tags[i]
         elem_node_tag = elem_node_tags[i] - 1 # python is 0-based
 
@@ -31,11 +31,6 @@ def read_gmsh_mesh(filename, dim=1):
         
         n_elem_types += 1
     
-    if n_elem_types == 0:
-        raise TypeError(f'No elements of dimension {dim} found in the mesh file {filename}')
-    if n_elem_types > 1:
-        print(f'Warning: More than one element type of dimension {dim} found in the mesh file {filename}. All have been added to the mesh.')
-
     gmsh.finalize()
 
     if mesh.n_elements > 0:

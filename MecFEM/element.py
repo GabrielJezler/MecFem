@@ -87,8 +87,12 @@ class NonLinearFiniteElement:
             [self.__shape.dShape(x[i,:])[:, 0:self.dim] for i in range(x.shape[0])]
         )
 
+        ##### HERE -> Add transpose #####
+        # jacobian = np.array(
+        #     [np.dot(dshape0[i, :, 0:self.dim].T, self.x_nodes[:, 0:self.dim]).T for i in range(x.shape[0])]
+        # )
         jacobian = np.array(
-            [np.dot(dshape0[i, :, 0:self.dim].T, self.x_nodes[:, 0:self.dim]) for i in range(x.shape[0])]
+            [np.einsum("ij, ik->jk", self.x_nodes[:, 0:self.dim], dshape0[i, :, 0:self.dim]) for i in range(x.shape[0])]
         )
         return jacobian
     
@@ -129,7 +133,7 @@ class NonLinearFiniteElement:
             Coordinates of the integration points. This is an array of shape (n_int_pts, dim).
 
         """
-        x_int_pts = np.einsum('inj,nj->ni', self.fshape(self.__int_pts.X)[:,:,0], self.x_nodes)
+        x_int_pts = np.einsum('ni,ik->nk', self.fshape(self.__int_pts.X)[:,:,0], self.x_nodes)
         return x_int_pts
 
     def gradient(self, u_nodes, x: np.ndarray | None = None) -> np.ndarray:
@@ -170,9 +174,11 @@ class NonLinearFiniteElement:
 
         """
         self.grad0_u = self.gradient(u_nodes)
-        self.pk1 = material.pk1(self.grad0_u)
 
-        return self.pk1, self.grad0_u
+        self.pk1 = material.pk1(self.grad0_u)
+        self.stiffness = material.stiffness(self.grad0_u)
+
+        return self.stiffness, self.pk1, self.grad0_u
     
     def integrate(self, tensor:np.ndarray) -> np.ndarray:
         """
@@ -191,11 +197,15 @@ class NonLinearFiniteElement:
         """
         if tensor.shape[0] != self.n_int_pts:
             raise ValueError(f"Tensor first dimension must match number of integration points: expected {self.n_int_pts}, got {tensor.shape[0]}")
-        if tensor.ndim != 3:
-            raise ValueError(f"Tensor must be a 3D array with shape (n_int_pts, ..., ...), got {tensor.ndim}D array")
         
         jacobian_det = np.linalg.det(self.jacobian(self.__int_pts.X))
-        integral = np.einsum('i,ijk->jk', jacobian_det*self.weights, tensor)
+        if tensor.ndim == 3:
+            integral = np.einsum('i,ijk->jk', jacobian_det*self.weights, tensor)
+        elif tensor.ndim == 5:
+            integral = np.einsum('i,ijklm->jklm', jacobian_det*self.weights, tensor)
+        else:
+            raise ValueError(f"Tensor must be a 3D array with shape (n_int_pts, ..., ...) or 5D array with shape (n_int_pts, ..., ..., ..., ...), got {tensor.ndim}D array")
+
         return integral
 
     def internal_force(self) -> np.ndarray:
@@ -249,6 +259,20 @@ class NonLinearFiniteElement:
         # f_ext = np.einsum('i,ik,ij->jk', self.jacobian_det*self.weight, f_int_pts, self.fshape[:,:,0])
         f_ext = self.integrate(np.einsum('ik,ij->ijk', f_int_pts, self.fshape()[:,:,0]))
         return f_ext
+    
+    def stiffness_matrix(self):
+        """
+        compute internal stiffness of the element
+
+        Returns
+        -------
+        K : 4-entry tensor
+            internal stiffness of the element.
+        """
+        Kint = self.integrate(np.einsum('naJ,niJkL,nbL->naibk', self.dfshape(), self.stiffness, self.dfshape()))
+
+        K = Kint
+        return K
     
     def sigma(self, u_nodes, material) -> np.ndarray:
         """

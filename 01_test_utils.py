@@ -6,7 +6,7 @@ import MecFEM.geometry.isoparametric_elements as ref
 import MecFEM as mf
 
 if __name__ == "__main__":
-    material = mf.materials.IsotropicElasticity(E=200.0, nu=0.3)
+    material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=200.0, nu=0.3)
 
     mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
     element = mesh.get_element_by_id(30, 2)
@@ -20,7 +20,7 @@ if __name__ == "__main__":
         x_nodes,
     )
 
-    pk1_mat, grad0_u = fe.update(
+    stiffness, pk1_mat, grad0_u = fe.update(
         np.array([[0.05, 0.1], [0.1, 0.2], [0.15, 0.25], [0.2, 0.3]]), 
         material
     )

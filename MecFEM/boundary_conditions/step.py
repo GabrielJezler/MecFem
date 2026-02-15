@@ -1,12 +1,14 @@
 import numpy as np
 
 from .volumetric import VolumetricForce
+from .displacement import Displacement
 
 class BCStep():
-    def __init__(self, values:list[VolumetricForce] | None=None, times:list[float] | None=None) -> None:
+    def __init__(self, values:list[VolumetricForce | Displacement] | None=None, times:list[float] | None=None) -> None:
         if values is not None and times is not None:
             if len(values) != len(times):
                 raise ValueError("Length of values and times must be the same")
+        
         if (values is None and times is not None) or (values is not None and times is None):
             raise ValueError("Values cannot be None if times are provided or vice versa")
 

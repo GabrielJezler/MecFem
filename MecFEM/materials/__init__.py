@@ -1,1 +1,2 @@
-from .istropic_elasticity import IsotropicElasticity
+from . import linear
+from . import non_linear

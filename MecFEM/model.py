@@ -1,4 +1,4 @@
-from email.mime import message
+import matplotlib.pyplot as plt
 import numpy as np
 import copy
 import datetime
@@ -7,7 +7,7 @@ from .mesh import Mesh
 from .element import NonLinearFiniteElement
 from .boundary_conditions import BCStep
 
-class NonLinearFEModel:
+class NonLinearFE:
     """
     Data structure for FE model
     
@@ -35,20 +35,29 @@ class NonLinearFEModel:
         self.n_nodes: int = mesh.n_nodes
         self.connect: np.array = mesh.get_connectivity_matrix()
 
-        self.free_dofs = np.arange(self.n_nodes * self.dim)
-        self.fixed_dofs = np.array([])
+        self.n_dofs = self.n_nodes * self.dim
+        self.free_dofs = np.arange(self.n_dofs).astype(int)
+        self.fixed_dofs = np.array([], dtype=int)
+
+        self.material = material
 
         self.elems: list[NonLinearFiniteElement] = []
         self.boundary_elems: list[NonLinearFiniteElement] = []
 
-        self.material = material
-
         for elem in mesh.elems[self.dim]:
-            x_nodes = mesh.get_nodes_coodinates_by_element(elem.id, self.dim)
+            x_nodes = mesh.get_nodes_coordinates_by_element(elem.id, self.dim)
             self.elems.append(NonLinearFiniteElement(elem, x_nodes))
+
+        for elem in mesh.elems[self.dim - 1]:
+            x_nodes = mesh.get_nodes_coordinates_by_element(elem.id, self.dim - 1)
+            self.boundary_elems.append(NonLinearFiniteElement(elem, x_nodes))
         
         self._volumetric_force_steps: list[BCStep] = []
-        self._external_forces: list[BCStep] = []
+        self._external_forces_steps: list[BCStep] = []
+        self._displacement_steps: list[(np.ndarray, BCStep)] = []
+
+        self.U:np.ndarray | None = None
+        self.T:np.ndarray | None = None
     
     @property
     def n_elements(self):
@@ -72,6 +81,35 @@ class NonLinearFEModel:
 
         return x_nodes
     
+    def add_displacement_bc(self, dofs: np.ndarray, step: BCStep) -> None:
+        """
+        Add displacement boundary conditions to the model.
+
+        Parameters
+        ----------
+        dofs : ndarray
+            Array of degrees of freedom (DOFs) where the displacement is applied. This is an array of shape (n_dofs,).
+        step : BCStep
+            Boundary condition step defining the time-dependent values for the DOFs.
+        Returns
+        -------
+        None.
+
+        """
+        if not isinstance(step, BCStep):
+            raise TypeError("step must be an instance of BCStep")
+        
+        dofs = dofs.astype(int)
+        if np.any(np.isin(dofs, self.fixed_dofs)):
+            mask = np.isin(dofs, self.fixed_dofs)
+            raise ValueError(f"The following DOFs are already fixed: {dofs[mask]}. It can only be fixed to the model once.")
+
+        self.fixed_dofs = np.concatenate((self.fixed_dofs, dofs))
+        self.free_dofs = np.setdiff1d(self.free_dofs, self.fixed_dofs)
+
+        self._displacement_steps.append((dofs, step))
+        return None
+
     def add_volumetric_force(self, step: BCStep) -> None:
         """
         Add volumetric force to the model.
@@ -110,7 +148,7 @@ class NonLinearFEModel:
         if not f_nodes.shape == (self.n_nodes, self.dim):
             raise ValueError("External force shape mismatch")
         
-        self._external_forces.append(f_nodes)
+        self._external_forces_steps.append(f_nodes)
         return None
 
     def extract(self, U: np.ndarray, elem_id: int) -> np.ndarray:
@@ -157,7 +195,7 @@ class NonLinearFEModel:
 
         """
         iNod = self.connect[elem_id]
-        V[*([iNod, slice(None)] * (V.ndim // 2))] += vNod
+        V[np.ix_(*([iNod, range(self.dim)] * (V.ndim // 2)))] += vNod
         return None
     
     def update_elements(self, U: np.ndarray) -> None:
@@ -245,16 +283,41 @@ class NonLinearFEModel:
         """
         Fext = np.zeros((self.n_nodes, self.dim))
 
-        if self._external_forces == []:
+        if self._external_forces_steps == []:
             return Fext
 
         for i, elem in enumerate(self.elems):
-            external_forces_elem = np.sum(np.array([f(elem.x_nodes[:, 0:elem.dim], elem.fshape) for f in self._external_forces]), axis=0)
+            external_forces_elem = np.sum(np.array([f(elem.x_nodes[:, 0:elem.dim], elem.fshape) for f in self._external_forces_steps]), axis=0)
 
             self.assemble(i, elem.external_force(external_forces_elem), Fext)
 
         return Fext
     
+    def apply_displacement(self, U: np.ndarray, t: float=0.0) -> np.ndarray:
+        """
+        Apply displacement boundary conditions to the nodal displacement field U.
+
+        Parameters
+        ----------
+        U : ndarray
+            Nodal displacement field. This is an array of shape (n_dofs).
+        t : float
+            Current time.
+
+        Returns
+        -------
+        U_bc : ndarray
+            Nodal displacement field with boundary conditions applied. This is an array of shape (n_dofs,).
+
+        """
+        U_bc = copy.deepcopy(U)
+        nodes_coords = self.get_nodes_coordinates()
+
+        for dofs, step in self._displacement_steps:
+            U_bc[np.ix_(dofs)] = step.interp(t)(nodes_coords[dofs // self.dim, :])
+        
+        return U_bc
+
     def residual(self, U: np.ndarray, t: float=0.0) -> np.ndarray:
         """
         Compute global residual vector.
@@ -278,9 +341,16 @@ class NonLinearFEModel:
         R = self.internal_forces(U) - (self.volumetric_forces(t) + self.external_forces(t))
         return R
     
+    def tangent_matrix(self, U: np.ndarray, t: float=0.0) -> np.ndarray:
+        K = np.zeros((self.n_nodes, self.dim, self.n_nodes, self.dim))
+
+        for i, elem in enumerate(self.elems):
+            self.assemble(i, elem.stiffness_matrix(), K)
+
+        return K
+
     def solve(
             self,
-            U0: np.ndarray,
             dt: float=0.1, 
             t_end: float=1.0,
             F_VERBOSE: int=10, 
@@ -288,7 +358,7 @@ class NonLinearFEModel:
             TOLERANCE: float=1e-6, 
             MAX_ITER: int=10,
             FULL_VERBOSE: bool=False, 
-        ):
+        ) -> None:
         """
         Solve the nonlinear FE model using the Newton-Raphson method.
 
@@ -298,37 +368,37 @@ class NonLinearFEModel:
             Nodal displacement field. This is an array of shape (n_nodes, dim).
 
         """
-        time = 0.0
-
-        time_verbose = [0.0]
-        U_verbose = [U0]
-
-        messages = []
-
-        self.update_elements(U0, self.material)
+        time = 0.0        
 
         n_step = 1
-        Un_1 = U0.reshape((self.n_nodes, self.dim))
+        Un_1 = np.zeros((self.n_dofs))
+        Un_1 = self.apply_displacement(Un_1, time)
+
+        messages = []
+        time_verbose = [0.0]
+        U_verbose = [Un_1]
+
+        self.update_elements(Un_1.reshape((self.n_nodes, self.dim)))
 
         time = dt
-
         print("===== Starting nonlinear solver =====")
         start_time = datetime.datetime.now()
         while time < t_end:
-            Un = Un_1
+            Un = copy.deepcopy(Un_1)
+            Un = self.apply_displacement(Un, time)
             
-            R = self.residual(Un, time)
+            R = self.residual(Un.reshape((self.n_nodes, self.dim)), time).reshape((self.n_dofs))
             norm_R0 = np.linalg.norm(R[np.ix_(self.free_dofs)])
             norm_R = 1.0
 
+            stagnation = False
             iter = 1
             if FULL_VERBOSE:
                 print(f'------------------------ Time = {time:.6f} ------------------------')
                 print(f'Newton-Raphson iteration {iter:>2} | ||r||: {norm_R:.3e}')
             
             while norm_R > TOLERANCE and norm_R > PRECISION:
-                # Compute tangent stiffness matrix
-                tangent = None ### To do
+                tangent = self.tangent_matrix(Un.reshape((self.n_nodes, self.dim)), time).reshape((self.n_dofs, self.n_dofs))
 
                 dU = np.linalg.solve(tangent[np.ix_(self.free_dofs,self.free_dofs)], -R[np.ix_(self.free_dofs)])
 
@@ -342,7 +412,7 @@ class NonLinearFEModel:
 
                 Un[np.ix_(self.free_dofs)] = Un[np.ix_(self.free_dofs)] + dU
 
-                R = self.residual(Un, time + dt)
+                R = self.residual(Un.reshape((self.n_nodes, self.dim)), time + dt).reshape((self.n_dofs))
                 norm_R = np.linalg.norm(R[np.ix_(self.free_dofs)]) / norm_R0
 
                 iter += 1
@@ -367,42 +437,83 @@ class NonLinearFEModel:
                 U_verbose.append(Un)
                 time_verbose.append(time)
 
-                Dt = datetime.now() - start_time
+                Dt = datetime.datetime.now() - start_time
                 print(f"Time: {str(Dt).split('.')[0]} < {str((t_end - time)*Dt/time).split('.')[0]} | Simulation time: {time:.4f} / {t_end:.4f} | ||r||: {norm_R:.3e} at iteration {iter:<2}", end="\r", flush=True)
         
-            Un_1 = Un
+            Un_1 = copy.deepcopy(Un)
             time += dt
             n_step += 1
         
-        run_time = datetime.now() - start_time
+        run_time = datetime.datetime.now() - start_time
         print(f"SIMULATION COMPLETED - RUN TIME: {run_time}")
 
-    def sigma(self, U: np.ndarray, averaged=True) -> np.ndarray:
+        self.U = np.array(U_verbose).reshape((len(U_verbose), self.n_nodes, self.dim))
+        self.T = np.array(time_verbose)
+        self.messages = messages
+
+        return None
+
+    def plot_bc(self, ax=None) -> None:
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        X_nodes = self.get_nodes_coordinates()
+        c = 1
+        for dofs, step in self._displacement_steps:
+            nodes_id = np.unique(dofs // self.dim)
+            axis = np.unique(dofs % self.dim)
+            
+            label = f"BC {c}"
+            U = np.zeros(len(nodes_id))
+            V = np.zeros(len(nodes_id))
+            for a in axis:
+                if a not in [0, 1, 2]:
+                    raise ValueError("Invalid axis value. Axis must be 0, 1 or 2.")
+                
+                if a == 0:
+                    label += '- x '
+                    U = U + step.interp(1.0)(X_nodes[nodes_id, :])
+                elif a == 1:
+                    label += '- y '
+                    V = V +  step.interp(1.0)(X_nodes[nodes_id, :])
+
+            ax.plot(X_nodes[nodes_id, 0], X_nodes[nodes_id, 1], 'o', color=f"C{c-1}", label=label, markersize=4)
+
+            ax.quiver(X_nodes[nodes_id, 0], X_nodes[nodes_id, 1], U, V, scale=1, color=f"C{c-1}")
+
+            c += 1
+
+        return None
+    
+    def sigma(self, averaged=True) -> np.ndarray:
         """
-        Get Cauchy stress at integration points for element elem_id.
+        Get Cauchy stress for each element.
 
         Parameters
         ----------
-        U : np.ndarray
-            Nodal displacement field. This is an array of shape (n_nodes, dim).
         averaged : bool, optional
             If True, return averaged stress at nodes. If False, return stress at integration points. The default is True.
 
         Returns
         -------
         sigma : ndarray
-            Cauchy stress at nodes. This is an array of shape (n_nodes, dim, dim).
+            Cauchy stress at element. This is an array of shape (n_elems, dim, dim).
 
         """
-        sigma = np.zeros((self.n_nodes, self.dim, self.dim))
+        if self.U is None or self.T is None:
+            raise ValueError("No solution found. Please run the solver first.")
+        
+        if not averaged:
+            raise ValueError("Non averaged values are not yet available.")
+        
+        sigma = np.zeros((self.T.shape[0], len(self.elems), self.dim, self.dim))
 
-        n_elem = np.zeros((self.n_nodes))
-        for e, elem in enumerate(self.elems):
-            u_nodes = self.extract(U, e)
-            sigma_elem = elem.sigma(u_nodes, self.material)
+        for step in range(self.T.shape[0]):
+            for e, elem in enumerate(self.elems):
+                u_nodes = self.extract(self.U[step, :], e)
+                sigma_elem = elem.sigma(u_nodes, self.material)
 
-            sigma[self.connect[e], :, :] += sigma_elem
-            n_elem[self.connect[e]] += 1
+                sigma[step, e, :, :] = np.mean(sigma_elem, axis=0)
 
-        return self.get_nodes_coordinates(), sigma / n_elem[:, None, None]
+        return sigma
 
