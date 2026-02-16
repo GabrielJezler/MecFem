@@ -1,0 +1,17 @@
+[ui.light]
+bg = "#ffffff"
+text = "#232E3F"
+text_secondary = "#ffffff"
+primary = "#2759CD"
+alert = "#FE7102"
+success = "#3DD378"
+
+[ui.dark]
+bg = "#121212"
+text = "#ffffff"
+text_secondary = "#ffffff"
+primary = "#2759CD"
+alert = "#FE7102"
+success = "#3DD378"
+
+

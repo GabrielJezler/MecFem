@@ -1,0 +1,7 @@
+[fonts]
+body = "Roboto Mono"
+title = "Roboto Mono"
+label = "Roboto Mono"
+
+[theme]
+mode = "dark"
