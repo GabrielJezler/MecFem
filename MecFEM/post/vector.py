@@ -31,6 +31,7 @@ def plot_2d_arrows(model, F_nodes: np.ndarray, ax=None, scale:float=1.0, label:s
         fig, ax = plt.subplots()
 
     x_nodes = model.get_nodes_coordinates()
+    Z = np.linalg.norm(F_nodes, axis=1)
 
     if color is None:
         qv = ax.quiver(
@@ -38,15 +39,15 @@ def plot_2d_arrows(model, F_nodes: np.ndarray, ax=None, scale:float=1.0, label:s
             x_nodes[:, 1],
             F_nodes[:, 0],
             F_nodes[:, 1],
-            np.linalg.norm(F_nodes, axis=1),
+            Z,
             angles='xy',
-            scale=scale,
+            # scale=scale,
             scale_units='width',
             label=label,
             cmap='plasma',
         )
 
-        cbar = plt.colorbar(qv, ax=ax, label=f'{label} Magnitude')
+        cbar = plt.colorbar(qv, ax=ax, label=f'{label} Magnitude', ticks=np.linspace(np.min(Z, axis=None), np.max(Z, axis=None), 11))
     else:
         ax.quiver(
             x_nodes[:, 0],
@@ -54,7 +55,7 @@ def plot_2d_arrows(model, F_nodes: np.ndarray, ax=None, scale:float=1.0, label:s
             F_nodes[:, 0],
             F_nodes[:, 1],
             angles='xy',
-            scale=scale,
+            # scale=scale,
             scale_units='width',
             label=label,
             color=color

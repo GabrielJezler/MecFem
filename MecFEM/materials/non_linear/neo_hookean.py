@@ -3,14 +3,14 @@ import numpy as np
 from ..base import Isotropic
 from ...utils import stress, kinematics, tensor
 
-class StVenantKirchhoffElasticity(Isotropic):
+class NeoHookean(Isotropic):
     """
-    Defines the  St. Venant-Kirchhoff material model.
+    Defines the compressible Neo-Hookean material model.
 
     This considers the material to be defined by two parameters: Young's modulus E and
     Poisson's ratio nu. The material behavior is defined by the following law:
 
-        S = λ * tr(E) * I + 2μ * E
+        S = μ * (I - C^(-1)) - λ * ln(J) * C^(-1)
     """
     def __init__(self, E, nu):
         """
@@ -106,11 +106,25 @@ class StVenantKirchhoffElasticity(Isotropic):
             Second Piola-Kirchhoff stress tensor.
 
         """
-        E = self.green_lagrange(self.transformation_gradient(grad0_u))
-        S = self._lambda * tensor.trace3(E) * tensor.identity3(E.shape[1]) + 2 * self._mu * E
+        F = self.transformation_gradient(grad0_u)
+
+        C = self.cauchy_green_right(F)
+        C_inv = np.linalg.inv(C)
+
+        J = np.linalg.det(F)
+
+        S = self._mu * (tensor.identity3(C.shape[1]) - C_inv) + self._lambda * np.einsum('n, nij->nij', np.log(J), C_inv)
         return S
 
     def material_elastic(self, grad0_u):
-        I3 = tensor.identity3(grad0_u.shape[1])
-        return self._lambda * np.einsum('nNJ, ngh->nNJgh', I3, I3) + self._mu * (np.einsum('nNg, nJh->nNJgh', I3, I3) + np.einsum('nNh, nJg->nNJgh', I3, I3))
+        F = self.transformation_gradient(grad0_u)
 
+        C = self.cauchy_green_right(F)
+        C_inv = np.linalg.inv(C)
+
+        J = np.linalg.det(F)
+
+        dSdC = (1 / 2) * np.einsum('n, nNJgh->nNJgh', (self._mu - self._lambda * np.log(J)), (np.einsum('nNg, nJh->nNJgh', C_inv, C_inv) + np.einsum('nNh, nJg->nNJgh', C_inv, C_inv)))
+        dSdC = dSdC + (1 /2) * self._lambda * np.einsum('ngh, nNJ->nNJgh', C_inv, C_inv)
+   
+        return 2 *dSdC

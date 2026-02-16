@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     plt.show()
 
-    material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=210.0e9, nu=0.3)
+    material = mf.materials.non_linear.NeoHookean(E=10.0e6, nu=0.45)
 
     model = mf.models.NonLinearFE(
         mesh,
@@ -124,8 +124,8 @@ if __name__ == "__main__":
 
 
     fix_disp_step = mf.boundary_conditions.Displacement(fixed_disp)
-    rx_disp_step = mf.boundary_conditions.Displacement(lambda X: rx_disp(X, dr=1e-4))
-    ry_disp_step = mf.boundary_conditions.Displacement(lambda X: ry_disp(X, dr=1e-4))
+    rx_disp_step = mf.boundary_conditions.Displacement(lambda X: rx_disp(X, dr=1e-5))
+    ry_disp_step = mf.boundary_conditions.Displacement(lambda X: ry_disp(X, dr=1e-5))
 
     # Fix X displacements at the left edge
     model.add_displacement_bc(
@@ -174,17 +174,17 @@ if __name__ == "__main__":
     plt.show()
 
     model.solve(
-        dt=0.05,
+        dt=0.1,
         t_end=1.0,
-        F_VERBOSE=2,
+        F_VERBOSE=1,
         MAX_ITER=50
     )
 
     fig, ax = plt.subplots(1,2)
-    ax[0] = mf.mesh.plot_mesh(mesh, ax=ax[0], nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
-    ax[1] = mf.mesh.plot_mesh(mesh, ax=ax[1], nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    ax[0] = mf.mesh.plot_mesh(mesh, ax=ax[0], nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.1)
+    ax[1] = mf.mesh.plot_mesh(mesh, ax=ax[1], nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.1)
     
-    ax[0] = mf.post.vector.plot_2d_field(model, model.U[-1], ax=ax[0], component="Mag", label='Displacement magnitude')
+    ax[0] = mf.post.vector.plot_2d_field(model, model.U[-1], ax=ax[0], component="Mag", label='Displacement')
     ax[1] = mf.post.vector.plot_2d_arrows(model, model.U[-1], ax=ax[1], scale=1/5000, label='Displacement vectors')
 
     fig.suptitle("Displacement")

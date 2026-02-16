@@ -1,1 +1,2 @@
 from .st_venant_kirchhoff_elasticity import StVenantKirchhoffElasticity
+from .neo_hookean import NeoHookean

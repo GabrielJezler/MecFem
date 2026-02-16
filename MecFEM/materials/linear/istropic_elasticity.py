@@ -1,8 +1,9 @@
 import numpy as np
 
-from MecFEM.utils import stress, kinematics, tensor
+from ...utils import stress, kinematics, tensor
+from ..base import Isotropic
 
-class IsotropicElasticity:
+class IsotropicElasticity(Isotropic):
     """
     Defines an isotropic linear elastic material model.
 
@@ -27,31 +28,7 @@ class IsotropicElasticity:
         None.
 
         """
-        self._E = E
-        self._nu = nu
-
-        self._lambda = self._E * self._nu / ((1 + self._nu) * (1 - 2 * self._nu))
-        self._mu = self._E / (2 * (1 + self._nu))
-
-    @property
-    def E(self):
-        """Young's modulus"""
-        return self._E
-    
-    @property
-    def nu(self):
-        """Poisson's ratio"""
-        return self._nu
-    
-    @property
-    def lame1(self):
-        """Lame's first parameter (lambda)"""
-        return self._lambda
-    
-    @property
-    def lame2(self):
-        """Lame's second parameter (mu)"""
-        return self._mu
+        super().__init__(E, nu)
 
     def epsilon(self, grad0_u):
         """
@@ -71,24 +48,6 @@ class IsotropicElasticity:
         epsilon = 0.5 * (grad0_u + tensor.transpose3(grad0_u))
         return epsilon
     
-    def transformation_gradient(self, grad0_u):
-        """
-        Compute the transformation gradient tensor.
-
-        Parameters
-        ----------
-        grad0_u : ndarray
-            Displacement gradient tensor. This is an array of shape (n_int_pts, dim, dim).
-
-        Returns
-        -------
-        F : ndarray
-            Transformation gradient tensor. This is an array of shape (n_int_pts, dim, dim).
-
-        """
-        F = grad0_u + tensor.identity3(grad0_u.shape[1])
-        return F
-
     def sigma(self, grad0_u):
         """
         Compute the stress tensor given the displacement gradient tensor.
@@ -168,70 +127,3 @@ class IsotropicElasticity:
         F = self.transformation_gradient(grad0_u)
         S = stress.sigma2pk2(sigma, F=F)
         return S
-
-    def cauchy_green_right(self, F):
-        """
-        Compute the right Cauchy-Green deformation tensor.
-        
-        Parameters
-        ----------
-        F : ndarray
-            Deformation gradient.
-            
-        Returns
-        -------
-        C : ndarray
-            Right Cauchy-Green deformation tensor.
-        """
-        return kinematics.cauchy_green_right(F)
-    
-    def cauchy_green_left(self, F):
-        """
-        Compute the left Cauchy-Green deformation tensor.
-        
-        Parameters
-        ----------
-        F : ndarray
-            Deformation gradient.
-            
-        Returns
-        -------
-        b : ndarray
-            Left Cauchy-Green deformation tensor.
-        """
-        return kinematics.cauchy_green_left(F)
-    
-    def green_lagrange(self, F):
-        """
-        Compute the Green-Lagrange strain tensor.
-        
-        Parameters
-        ----------
-        F : ndarray
-            Deformation gradient.
-            
-        Returns
-        -------
-        E : ndarray
-            Green-Lagrange strain tensor.
-        """
-        return kinematics.green_lagrange(F)
-    
-    def euler_almansi(self, F):
-        """
-        Compute the Euler-Almansi strain tensor.
-        
-        Parameters
-        ----------
-        F : ndarray
-            Deformation gradient.
-            
-        Returns
-        -------
-        eA : ndarray
-            Euler-Almansi strain tensor.
-        """
-        return kinematics.euler_almansi(F)
-    
-
-
