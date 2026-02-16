@@ -31,6 +31,8 @@ dependencies = [
     "scipy>=1.7.0",
     "matplotlib>=3.3.0",
     "gmsh>=4.0.0",
+    "flet>=0.80.5",
+    "toml>=0.10.2",
 ]
 
 [project.optional-dependencies]
@@ -45,12 +47,11 @@ Repository = "https://github.com/GabrielJezler/MecFem"
 Issues = "https://github.com/GabrielJezler/MecFem/issues"
 
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]
 include = ["MecFEM*"]
-exclude = ["test*", "mesh*"]
 
 [tool.pytest.ini_options]
 testpaths = ["test"]
 python_files = ["*_test_*.py", "test_*.py"]
-pythonpath = ["."]
+pythonpath = ["src"]
 
