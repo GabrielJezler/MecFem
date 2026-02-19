@@ -3,14 +3,12 @@ import flet as ft
 from ._base import BasePage
 
 def bc(
-        page:ft.Page,
-        title: str | None=None,
-        description: str | None=None,
+        app,
     ):
 
     return BasePage(
-        page=page,
-        title=title,
-        description=description,
+        app,
+        title="Boundary Conditions",
+        description="Define boundary conditions for the simulation",
         # primary_content=primary_content
     )

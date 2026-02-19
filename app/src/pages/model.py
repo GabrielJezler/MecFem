@@ -3,14 +3,12 @@ import flet as ft
 from ._base import BasePage
 
 def model(
-        page:ft.Page,
-        title: str | None=None,
-        description: str | None=None,
+        app,
     ):
 
     return BasePage(
-        page=page,
-        title=title,
-        description=description,
+        app,
+        title="Model",
+        description="Define the model for the simulation",
         # primary_content=primary_content
     )

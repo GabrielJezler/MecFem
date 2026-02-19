@@ -2,15 +2,14 @@ import flet as ft
 
 from ._base import BasePage
 
+@ft.component
 def home(
-        page:ft.Page,
-        title: str | None=None,
-        description: str | None=None,
+        app
     ):
 
     return BasePage(
-        page=page,
-        title=title if title else "Home",
-        description=description if description else "Welcome to the home page of the application.",
+        app,
+        title="Home",
+        description="Welcome to the MecFEM application.",
         # primary_content=primary_content
     )

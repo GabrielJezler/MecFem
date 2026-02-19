@@ -3,14 +3,12 @@ import flet as ft
 from ._base import BasePage
 
 def post(
-        page:ft.Page,
-        title: str | None=None,
-        description: str | None=None,
+        app
     ):
 
     return BasePage(
-        page=page,
-        title=title,
-        description=description,
+        app,
+        title="Post-Processing",
+        description="Visualize and analyze simulation results",
         # primary_content=primary_content
     )
