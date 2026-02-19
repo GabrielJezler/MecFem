@@ -17,7 +17,7 @@ def MaterialContent(app) -> ft.Control:
             return "Material model saved."
         return "No material model saved."
     
-    def model_status_color(saved:bool=True):
+    def model_status_color_str(saved:bool=True):
         if saved:
             return COLORS["ui"][app.theme_mode.value]["success"]
         return COLORS["ui"][app.theme_mode.value]["alert"]
@@ -39,7 +39,6 @@ def MaterialContent(app) -> ft.Control:
         if model_name:
             return model_name
         return None
-
 
     def get_model_parameters(model: type) -> list[str] | None:
         if model:
@@ -65,74 +64,113 @@ def MaterialContent(app) -> ft.Control:
     models = get_material_models()
 
     model_status_span, set_model_status_span = ft.use_state(model_status_str(False))
-    model_status_color_span, set_model_status_color_span = ft.use_state(model_status_color(False))
+    model_status_color_span, set_model_status_color_span = ft.use_state(model_status_color_str(False))
     model_name_span, set_model_name_span = ft.use_state(model_name_str(None))
     model_parameters_span, set_model_parameters_span = ft.use_state(model_parameters_str())
     model_name_dropdown, set_model_name_dropdown = ft.use_state(dropdown_model_str(None))
+    parameter_controls, set_parameter_controls = ft.use_state([])
 
-    parameter_controls, set_parameter_controls = ft.use_state([]) 
-    
-    params_refs = ft.use_ref({}) # Refs for the parementer's name and control, used to get the current value of the parameter fields when saving the material
-    models_names_refs = ft.use_ref({}) # Ref for the model's name and control, used to reset the dropdown value when a model is deselected
+    parameters_ref = ft.use_ref(ft.Ref[ft.ResponsiveRow]())
+    models_names_refs = ft.use_ref(None)
+
+    def no_model_dialog():
+        dialog = ft.AlertDialog(
+            title=ft.Text(
+                "No model selected", 
+                style=text.title_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["primary"])
+            ),
+            content=ft.Text(
+                "Please select a material model before saving.", 
+                style=text.body_medium(app.theme_mode)
+            ),
+            actions=[
+                ft.TextButton(
+                    "Dismiss",
+                    on_click=lambda e: ft.context.page.pop_dialog(),
+                    autofocus=True
+                )
+            ],
+            modal=True,
+        )
+        ft.context.page.show_dialog(dialog)
+
+    def material_not_saved_dialog(exception: Exception = None):
+        dialog = ft.AlertDialog(
+            title=ft.Text(
+                "Material not saved", 
+                style=text.title_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["primary"])
+            ),
+            content=ft.Text(
+                f"Please fill in all parameters and save the material model before proceeding.", 
+                spans=[
+                    ft.TextSpan(
+                        text=f"\nError details: {exception}",
+                        style=text.body_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["alert"], italic=True)
+                    )
+                ] if exception else None,
+                style=text.body_medium(app.theme_mode)
+            ),
+            actions=[
+                ft.TextButton(
+                    "Dismiss",
+                    on_click=lambda e: ft.context.page.pop_dialog(),
+                    autofocus=True
+                )
+            ],
+            modal=True,
+        )
+        ft.context.page.show_dialog(dialog)
+
+    def update_parameter_controls(params_names: dict[str, str] | None):
+        if params_names:            
+            set_parameter_controls(
+                [
+                    ft.TextField(
+                        label=param,
+                        data=param,
+                        key=param,
+                        value=params_names.get(param, None),
+                        label_style=text.body_medium(app.theme_mode),
+                        border_color=COLORS["ui"][app.theme_mode.value]["primary"],
+                        col={
+                            ft.ResponsiveRowBreakpoint.XS: 12,
+                            ft.ResponsiveRowBreakpoint.MD: 6,
+                        },
+                        input_filter=ft.InputFilter(
+                            regex_string=r"^[0-9]*\.?[0-9]*$",
+                            allow=True,
+                            replacement_string="",
+                        ),
+                        on_submit=lambda e: save_material(e),
+                    ) for param in params_names
+                ]
+            )
+        else:
+            set_parameter_controls([])
 
     def restore_state():
         if not app.simulation_data.material:
             return
 
         set_model_status_span(model_status_str(True))
-        set_model_status_color_span(model_status_color(True))
+        set_model_status_color_span(model_status_color_str(True))
 
         initial_model_name = app.simulation_data.material.__class__.__name__
         initial_params = {name: getattr(app.simulation_data.material, name) for name in get_model_parameters(app.simulation_data.material.__class__)[1:] if hasattr(app.simulation_data.material, name)}
         if initial_model_name:
             model = models.get(initial_model_name)
             if model:
-                set_model_name_dropdown(dropdown_model_str(initial_model_name))
-                set_model_status_span(model_status_str(True))
-
                 set_model_name_span(model_name_str(initial_model_name))
                 set_model_parameters_span(model_parameters_str(initial_params))
+                set_model_name_dropdown(dropdown_model_str(initial_model_name))
 
-                models_names_refs.current = {initial_model_name: None}
-                params_names = initial_params.keys()
-                
-                if params_names:
-                    new_refs = {}
-                    new_controls = []
-                    for param in params_names:
-                        ref = ft.Ref[ft.TextField]()
-                        new_refs[param] = ref
-                        
-                        # Get saved value or default to empty
-                        saved_value = initial_params.get(param, "")
-                        
-                        new_controls.append(
-                            ft.TextField(
-                                ref=ref,
-                                label=param,
-                                value=str(saved_value),  # Restore saved value
-                                data=param,
-                                label_style=text.body_medium(app.theme_mode),
-                                border_color=COLORS["ui"][app.theme_mode.value]["primary"],
-                                col={
-                                    ft.ResponsiveRowBreakpoint.XS: 12,
-                                    ft.ResponsiveRowBreakpoint.MD: 6,
-                                },
-                                input_filter=ft.InputFilter(
-                                    regex_string=r"^[0-9]*\.?[0-9]*$",
-                                    allow=True,
-                                    replacement_string="",
-                                ),
-                                on_submit=lambda e: save_material(e),
-                            )
-                        )
-                    
-                    params_refs.current = new_refs
-                    set_parameter_controls(new_controls)
+                update_parameter_controls(initial_params)
+
+                models_names_refs.current = initial_model_name
 
     ft.on_mounted(restore_state)
 
-    def update_material_parameters(e:ft.ControlEvent) -> None:
+    def update_from_material_model(e:ft.ControlEvent) -> None:
         model_name = e.control.value
         model = models.get(model_name)
 
@@ -140,83 +178,50 @@ def MaterialContent(app) -> ft.Control:
         app.simulation_data.material = None
         set_model_parameters_span(model_parameters_str(None))
         set_model_status_span(model_status_str(False)) 
-        set_model_status_color_span(model_status_color(False))
+        set_model_status_color_span(model_status_color_str(False))
 
         if model:
             set_model_name_dropdown(dropdown_model_str(model_name))
             set_model_name_span(model_name_str(model_name))
             
-            models_names_refs.current = {model_name: e.control}
+            models_names_refs.current = model_name
             params_names = get_model_parameters(model)[1:]
-            if params_names:
-                new_refs = {}
-                for param in params_names:
-                    ref = ft.Ref[ft.TextField]()
-                    new_refs[param] = ref
-
-                params_refs.current = new_refs
-                set_parameter_controls(
-                    [
-                        ft.TextField(
-                            ref=ref,
-                            label=param,
-                            data=param,
-                            key=param,
-                            label_style=text.body_medium(app.theme_mode),
-                            border_color=COLORS["ui"][app.theme_mode.value]["primary"],
-                            col={
-                                ft.ResponsiveRowBreakpoint.XS: 12,
-                                ft.ResponsiveRowBreakpoint.MD: 6,
-                            },
-                            input_filter=ft.InputFilter(
-                                regex_string=r"^[0-9]*\.?[0-9]*$",
-                                allow=True,
-                                replacement_string="",
-                            ),
-                            on_submit=lambda e: save_material(e),
-                        ) for param, ref in params_refs.current.items()
-                    ]
-                )
-            else:
+            
+            update_parameter_controls({name: None for name in params_names})
+            if not params_names:
                 set_model_parameters_span(model_parameters_str({}))
-                set_parameter_controls([])
                 set_model_name_dropdown(dropdown_model_str(None))
-                params_refs.current = {}
-                models_names_refs.current = {}
+                models_names_refs.current = None
         else:
-            set_model_name_span(model_name_str(None))
-            set_parameter_controls([])
             set_model_name_dropdown(dropdown_model_str(None))
-            params_refs.current = {}
-            models_names_refs.current = {}
+            set_model_name_span(model_name_str(None))
+
+            set_parameter_controls([])
+            models_names_refs.current = None
 
     def save_material(e: ft.ControlEvent)-> None:
-        model_name = list(models_names_refs.current.keys())[0]
+        model_name = models_names_refs.current
         model = models.get(model_name)
         if not model:
-            raise ValueError("No model selected")
+            no_model_dialog()
+            return
         
         params = {}
-        for param_name, ref in params_refs.current.items():
-            if ref.current:
-                value = ref.current.value
-                if not value or value.strip() == "":
-                    return
-                try:
-                    params[param_name] = float(value)
-                except ValueError:
-                    return
-
-        print(f"Saving material with model {model_name} and parameters: {params}")
+        for control in parameters_ref.current.controls:
+            param_name = control.data
+            param_value = control.value
+            if not param_value:
+                return # Do not update if any parameter is empty
+            params[param_name] = float(param_value)
         
         try:
             material_instance = model(*params.values())
             app.simulation_data.material = material_instance
             set_model_parameters_span(model_parameters_str(params))
             set_model_status_span(model_status_str(True))
-            set_model_status_color_span(model_status_color(True))
+            set_model_status_color_span(model_status_color_str(True))
         except Exception as ex:
-            raise ValueError(f"Error creating material instance: {ex}")
+            material_not_saved_dialog(ex)
 
     return ft.Container(
         expand = True,
@@ -238,7 +243,7 @@ def MaterialContent(app) -> ft.Control:
                                 ) 
                                 for model_name in models.keys()
                             ],
-                            on_select=lambda e: update_material_parameters(e),
+                            on_select=lambda e: update_from_material_model(e),
                             col={
                                 ft.ResponsiveRowBreakpoint.XS: 12,
                                 ft.ResponsiveRowBreakpoint.MD: 4,
@@ -276,6 +281,7 @@ def MaterialContent(app) -> ft.Control:
                     ]
                 ),
                 ft.ResponsiveRow(
+                    ref=parameters_ref,
                     controls=parameter_controls,
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),

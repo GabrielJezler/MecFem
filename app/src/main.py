@@ -7,7 +7,7 @@ from typing import Any
 import MecFEM as mf
 
 import themes
-import pages
+import components
 from utils import tomltools
 
 @dataclass(frozen=True)
@@ -140,7 +140,7 @@ def MecApp():
 
     home_page = Page(
         name="Home",
-        content=pages.home(app),
+        content=components.home(app),
         icon=ft.CupertinoIcons.HOME,
         route="/",
         index=0
@@ -148,7 +148,7 @@ def MecApp():
 
     material_page = Page(
         name="Material",
-        content=pages.material(app),
+        content=components.material(app),
         icon=ft.CupertinoIcons.LAB_FLASK,
         route="/material",
         index=1
@@ -156,7 +156,7 @@ def MecApp():
 
     mesh_page = Page(
         name="Mesh",
-        content=pages.mesh(app),
+        content=components.mesh(app),
         icon=ft.CupertinoIcons.SQUARE_GRID_4X3_FILL,
         route="/mesh",
         index=2
@@ -164,7 +164,7 @@ def MecApp():
 
     model_page = Page(
         name="Model",
-        content=pages.model(app),
+        content=components.model(app),
         icon=ft.CupertinoIcons.DOC_CHART,
         route="/model",
         index=3
@@ -172,7 +172,7 @@ def MecApp():
 
     bc_page = Page(
         name="Boundary\nConditions",
-        content=pages.bc(app),
+        content=components.bc(app),
         icon=ft.CupertinoIcons.ARROW_UP_RIGHT_SQUARE,
         route="/bc",
         index=4
@@ -180,7 +180,7 @@ def MecApp():
 
     run_page = Page(
         name="Run",
-        content=pages.run(app),
+        content=components.run(app),
         icon=ft.CupertinoIcons.PLAY,
         route="/run",
         index=5
@@ -188,7 +188,7 @@ def MecApp():
 
     post_page = Page(
         name="Post",
-        content=pages.post(app),
+        content=components.post(app),
         icon=ft.CupertinoIcons.GRAPH_SQUARE,
         route="/post",
         index=6
