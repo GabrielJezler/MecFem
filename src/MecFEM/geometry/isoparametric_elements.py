@@ -1,7 +1,7 @@
 import numpy as np
 
-from MecFEM.geometry import shape_functions as sf
-from MecFEM.geometry import integration as it
+from . import shape_functions as sf
+from . import integration as it
 
 class ReferenceElementData:
     """

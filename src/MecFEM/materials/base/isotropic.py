@@ -27,12 +27,18 @@ class Isotropic:
         None.
 
         """
+        if nu == 0.5 or nu == -1:
+            raise ValueError("Poisson's ratio cannot be 0.5 or -1 for isotropic materials.")
 
         self._E = E
         self._nu = nu
 
         self._lambda = self._E * self._nu / ((1 + self._nu) * (1 - 2 * self._nu))
         self._mu = self._E / (2 * (1 + self._nu))
+
+    @property
+    def params(self):
+        return f"E = {self.E}, nu = {self.nu}"
 
     @property
     def E(self):

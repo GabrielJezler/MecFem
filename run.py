@@ -91,7 +91,7 @@ def ry_disp(X:np.ndarray, dr:float) -> np.ndarray:
 
 
 if __name__ == "__main__":
-    mesh = mf.mesh.read.read_gmsh_mesh("mesh/cylinder_quad.msh", dim=2)
+    mesh = mf.mesh.read.read_gmsh_mesh("mesh/cylinder_quad.msh")
 
     fig, ax = plt.subplots()
 
