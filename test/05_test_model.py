@@ -57,7 +57,7 @@ def test():
 
     material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=200.0e9, nu=0.3)
 
-    model = mf.models.NonLinearFE(
+    model = mf.models.NonLinear(
         mesh,
         material
     )

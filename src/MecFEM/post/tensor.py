@@ -4,10 +4,10 @@ from matplotlib.collections import PolyCollection
 import matplotlib.cm as cm
 import numpy as np
 
-from ..models import NonLinearFE
+from ..models import NonLinear
 from ..utils.stress import von_mises
 
-def plot_2d_field(model: NonLinearFE, F: np.ndarray, component: str="vm", ax=None, label:str='Stress'):
+def plot_2d_field(model: NonLinear, F: np.ndarray, component: str="vm", ax=None, label:str='Stress'):
     """
     Plots the magnitude of a tensor field on the mesh. This field is element-wise, so the values are defined at the center of each element.
 

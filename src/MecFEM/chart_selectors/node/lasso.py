@@ -1,0 +1,217 @@
+import matplotlib.pyplot as plt
+from matplotlib.path import Path
+import matplotlib.colors as mc
+import numpy as np
+
+class LassoSelector:
+    COLORS_ID = 0
+    COLORS = [
+        "orangered",
+        "darkorange",
+        "green",
+        "dodgerblue",
+        "indigo",
+        "dimgrey",
+    ]
+    
+    def __init__(self, ax:plt.Axes):
+        self.ax = ax
+
+        self.ax_table = None
+        self.table = None
+
+        self.lasso_path = []
+        self.line = None
+
+        self.selections = []
+        self.temp_selection = []
+        self.ctrl_held = False
+
+        self.cid_press = ax.figure.canvas.mpl_connect('button_press_event', self._on_press)
+        self.cid_release = ax.figure.canvas.mpl_connect('button_release_event', self._on_release)
+        self.cid_motion = ax.figure.canvas.mpl_connect('motion_notify_event', self._on_motion)
+        self.cid_key_press = ax.figure.canvas.mpl_connect('key_press_event', self._on_key_press)
+        self.cid_key_release = ax.figure.canvas.mpl_connect('key_release_event', self._on_key_release)
+
+    def _on_press(self, event):
+        if event.inaxes == self.ax:
+            self.lasso_path = [(event.xdata, event.ydata)]
+            self.line, = self.ax.plot([event.xdata], [event.ydata], 'k-', linewidth=2)
+
+    def _on_motion(self, event):
+        if self.lasso_path and event.inaxes == self.ax:
+            self.lasso_path.append((event.xdata, event.ydata))
+            x_coords, y_coords = zip(*self.lasso_path)
+            self.line.set_data(x_coords, y_coords)
+            self.ax.figure.canvas.draw()
+
+    def _on_release(self, event):
+        self.update_selection()
+
+    def _on_key_press(self, event):
+        if event.key == 'control':
+            self.ctrl_held = True
+    
+    def _on_key_release(self, event):
+        if event.key == 'control':
+            self.ctrl_held = False
+            self.update_selection()
+            self.temp_selection = []   
+        
+    def update_selection(self):
+        if self.lasso_path:
+            self.lasso_path.append(self.lasso_path[0])
+            selected_data = self.get_data_within_lasso()
+            if selected_data:
+                self.temp_selection.extend(selected_data)
+                if not self.ctrl_held:
+                    color = self.COLORS[self.COLORS_ID]
+                    self.selections.append({
+                        'id': len(self.selections) + 1,
+                        'color': color,
+                        'count': len(self.temp_selection),
+                        'indices': self.temp_selection
+                    })
+
+                    self.update_table()
+                    self.temp_selection = []                
+                    self.change_selected_color(selected_data)
+                    self.update_color_index()
+                else:
+                    self.change_selected_color(selected_data)
+            
+            if self.line:
+                self.line.remove()
+            self.lasso_path = []
+            self.ax.figure.canvas.draw()
+        else:
+            if self.temp_selection:
+                color = self.COLORS[self.COLORS_ID]
+                self.selections.append({
+                    'id': len(self.selections) + 1,
+                    'color': color,
+                    'count': len(self.temp_selection),
+                    'indices': self.temp_selection
+                })
+
+                self.update_table()
+                self.temp_selection = []
+                self.update_color_index()
+
+    def get_data_within_lasso(self):
+        """
+        Get the indices of data points that lie within the lasso path.
+
+        Returns
+        -------
+        indices : list[int]
+            List of indices of data points within the lasso.
+        
+        """
+        
+        path = Path(self.lasso_path)
+        indices = []
+        
+        for collection in self.ax.collections:
+            offsets = collection.get_offsets()
+            for i, (x, y) in enumerate(offsets):
+                if path.contains_point((x, y)):
+                    indices.append(i)
+        
+        return np.unique(indices).tolist()
+    
+    def change_selected_color(self, indices):
+        """
+        Change the color of the selected points in the scatter plot.
+        
+        Parameters
+        ----------
+        indices : list[int]
+            List of indices of data points to change color.
+        
+        """
+        if indices and len(self.ax.collections) > 0:
+            collection = self.ax.collections[0]
+            colors = collection.get_facecolors()
+            if len(colors) == 0:
+                colors = np.tile([0, 0, 1, 1], (len(collection.get_offsets()), 1))
+            elif len(colors) == 1:
+                colors = np.tile(colors[0], (len(collection.get_offsets()), 1))
+            else:
+                colors = colors.copy()
+            
+            for idx in indices:
+                colors[idx] = mc.to_rgba(self.COLORS[self.COLORS_ID])
+            
+            collection.set_facecolors(colors)
+
+    def update_color_index(self):
+        self.COLORS_ID = (self.COLORS_ID + 1) % len(self.COLORS)
+
+    def update_table(self):
+        """
+        Update the table showing selection information.
+
+        """
+        if self.table is not None:
+            self.table.remove() 
+        if self.ax_table is None:
+            self.ax.figure.set_constrained_layout(False)
+            pos = self.ax.get_position()
+            self.ax.set_position([pos.x0, pos.y0, pos.width * 0.7, pos.height])
+
+            self.ax_table: plt.Axes = self.ax.figure.add_axes([
+                pos.x0 + pos.width * 0.7,
+                pos.y0,
+                pos.width * 0.3,
+                pos.height
+            ])
+            self.ax_table.axis('off')
+
+        nodes_str = [s['indices'] for s in self.selections]
+        nodes_str = [[id_str for id, id_str in enumerate(str(n).removeprefix(r'[').removesuffix(r']').split(','))] for n in nodes_str]
+        nodes_str = [self.format_n_per_line(ids) for ids in nodes_str]
+
+        cell_text = [[sel['id'], nodes_str[i]] for i, sel in enumerate(self.selections)]
+        cell_colors = [['white', 'white'] for s in self.selections]
+
+        self.table = self.ax_table.table(
+            cellText=cell_text,
+            cellColours=cell_colors,
+            colLabels=['Selection', 'Nodes'],
+            colWidths=[0.35, 0.6],
+            loc='center',
+            cellLoc='center',
+            edges='horizontal'
+        )
+        self.table.auto_set_font_size(False)
+        self.table.set_fontsize(12)
+
+        for (i, _), cell in self.table.get_celld().items():
+            if i == 0:
+                cell.set_facecolor('white')
+                cell.set_text_props(weight='bold', color='black')
+                cell.set_height(cell.get_height() * 1.2)
+            else:
+                cell.set_facecolor('white')
+                cell.set_text_props(color=self.selections[i-1]['color'])
+                cell.set_height(cell.get_height() * 1.2 * np.ceil(self.selections[i-1]['count'] / 3))
+            cell.set_edgecolor('black')
+            cell.set_linewidth(1)
+        
+        self.ax_table.figure.canvas.draw()
+
+    @staticmethod
+    def format_n_per_line(nums:list[str], n_per_line:int=3):
+        """
+        Format a list of strings into lines with a specified number of items per line.
+
+        Parameters
+        ----------
+        nums : list[str]
+            List of strings to format.
+        n_per_line : int, optional
+            Number of items per line, by default 3.
+        """
+        lines = [",".join(map(str, nums[i:i+n_per_line])) for i in range(0, len(nums), n_per_line)]
+        return "\n".join(lines)

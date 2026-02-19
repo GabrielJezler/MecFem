@@ -3,7 +3,7 @@ import matplotlib.animation as animation
 import matplotlib.cm as cm
 import numpy as np
 
-from ..models import NonLinearFE
+from ..models import NonLinear
 
 def plot_2d_arrows(model, F_nodes: np.ndarray, ax=None, scale:float=1.0, label:str='Field', color:str | None=None):
     """
@@ -68,7 +68,7 @@ def plot_2d_arrows(model, F_nodes: np.ndarray, ax=None, scale:float=1.0, label:s
 
     return ax
 
-def plot_2d_field(model: NonLinearFE, F_nodes: np.ndarray, component: str="Mag", ax=None, label:str='Field Magnitude'):
+def plot_2d_field(model: NonLinear, F_nodes: np.ndarray, component: str="Mag", ax=None, label:str='Field Magnitude'):
     """
     Plots the magnitude of the Field field on the mesh.
 
@@ -137,7 +137,7 @@ def plot_2d_field(model: NonLinearFE, F_nodes: np.ndarray, component: str="Mag",
     
     return ax
 
-def animate_2d_displacement(model: NonLinearFE, scale: float=1.0, cmap_component: str="mag", ax=None, label:str='Field Magnitude', zoom_out:float=0.1, interval:int=100):
+def animate_2d_displacement(model: NonLinear, scale: float=1.0, cmap_component: str="mag", ax=None, label:str='Field Magnitude', zoom_out:float=0.1, interval:int=100):
     """
     Plots the magnitude of the Field field on the mesh.
 

@@ -91,19 +91,19 @@ def ry_disp(X:np.ndarray, dr:float) -> np.ndarray:
 
 
 if __name__ == "__main__":
-    mesh = mf.mesh.read.read_gmsh_mesh("mesh/cylinder_quad.msh")
+    mesh = mf.mesh.read.read_gmsh_mesh("mesh/cylinder_quad.msh", dim=2)
 
     fig, ax = plt.subplots()
 
     mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
-    selector = mf.boundary_conditions.selection.RectangleSelector(ax)
+    selector = mf.chart_selectors.node.LassoSelector(ax)
 
     plt.show()
 
     material = mf.materials.non_linear.NeoHookean(E=10.0e6, nu=0.45)
 
-    model = mf.models.NonLinearFE(
+    model = mf.models.NonLinear(
         mesh,
         material
     )

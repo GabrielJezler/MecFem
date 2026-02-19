@@ -4,5 +4,6 @@ from . import mesh
 from . import materials
 from . import utils
 from . import boundary_conditions
+from . import chart_selectors
 from . import post
 from . import models

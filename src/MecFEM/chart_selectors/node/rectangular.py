@@ -24,10 +24,14 @@ class RectangleSelector:
         self.rect = None
 
         self.selections = []
+        self.temp_selection = []
+        self.ctrl_held = False
 
         self.cid_press = ax.figure.canvas.mpl_connect('button_press_event', self._on_press)
         self.cid_release = ax.figure.canvas.mpl_connect('button_release_event', self._on_release)
         self.cid_motion = ax.figure.canvas.mpl_connect('motion_notify_event', self._on_motion)
+        self.cid_key_press = ax.figure.canvas.mpl_connect('key_press_event', self._on_key_press)
+        self.cid_key_release = ax.figure.canvas.mpl_connect('key_release_event', self._on_key_release)
 
     def _on_press(self, event):
         if event.inaxes == self.ax:
@@ -44,23 +48,55 @@ class RectangleSelector:
             self.ax.figure.canvas.draw()
 
     def _on_release(self, event):
-        if self.start_point is not None:
+        self.update_selection()
+        
+    def _on_key_press(self, event):
+        if event.key == 'control':
+            self.ctrl_held = True
+    
+    def _on_key_release(self, event):
+        if event.key == 'control':
+            self.ctrl_held = False
+            self.update_selection()
+            self.temp_selection = []   
+
+    def update_selection(self):
+        if self.start_point:
             selected_data = self.get_data_within_rectangle()
             if selected_data:
+                self.temp_selection.extend(selected_data)
+                if not self.ctrl_held:
+                    color = self.COLORS[self.COLORS_ID]
+                    self.selections.append({
+                        'id': len(self.selections) + 1,
+                        'color': color,
+                        'count': len(self.temp_selection),
+                        'indices': self.temp_selection
+                    })
+
+                    self.update_table()
+                    self.temp_selection = []                
+                    self.change_selected_color(selected_data)
+                    self.update_color_index()
+                else:
+                    self.change_selected_color(selected_data)
+
+            self.start_point = None
+            self.rect.remove()
+            self.ax.figure.canvas.draw()
+        else:
+            if self.temp_selection:
                 color = self.COLORS[self.COLORS_ID]
                 self.selections.append({
                     'id': len(self.selections) + 1,
                     'color': color,
-                    'count': len(selected_data),
-                    'indices': selected_data
+                    'count': len(self.temp_selection),
+                    'indices': self.temp_selection
                 })
 
-                self.change_selected_color(selected_data)
                 self.update_table()
-            self.start_point = None
-            self.rect.remove()
-
-            self.ax.figure.canvas.draw()
+                self.temp_selection = []                
+                self.update_color_index()
 
     def get_data_within_rectangle(self):
         """
@@ -110,23 +146,10 @@ class RectangleSelector:
                 colors[idx] = mc.to_rgba(self.COLORS[self.COLORS_ID])
             
             collection.set_facecolors(colors)
-            self.COLORS_ID = (self.COLORS_ID + 1) % len(self.COLORS)
 
-    @staticmethod
-    def format_two_per_line(nums:list[str], n_per_line:int=3):
-        """
-        Format a list of strings into lines with a specified number of items per line.
+    def update_color_index(self):
+        self.COLORS_ID = (self.COLORS_ID + 1) % len(self.COLORS)
 
-        Parameters
-        ----------
-        nums : list[str]
-            List of strings to format.
-        n_per_line : int, optional
-            Number of items per line, by default 3.
-        """
-        lines = [",".join(map(str, nums[i:i+n_per_line])) for i in range(0, len(nums), n_per_line)]
-        return "\n".join(lines)
-    
     def update_table(self):
         """
         Update the table showing selection information.
@@ -149,7 +172,7 @@ class RectangleSelector:
 
         nodes_str = [s['indices'] for s in self.selections]
         nodes_str = [[id_str for id, id_str in enumerate(str(n).removeprefix(r'[').removesuffix(r']').split(','))] for n in nodes_str]
-        nodes_str = [self.format_two_per_line(ids) for ids in nodes_str]
+        nodes_str = [self.format_n_per_line(ids) for ids in nodes_str]
 
         cell_text = [[sel['id'], nodes_str[i]] for i, sel in enumerate(self.selections)]
         cell_colors = [['white', 'white'] for s in self.selections]
@@ -179,3 +202,18 @@ class RectangleSelector:
             cell.set_linewidth(1)
         
         self.ax_table.figure.canvas.draw()
+
+    @staticmethod
+    def format_n_per_line(nums:list[str], n_per_line:int=3):
+        """
+        Format a list of strings into lines with a specified number of items per line.
+
+        Parameters
+        ----------
+        nums : list[str]
+            List of strings to format.
+        n_per_line : int, optional
+            Number of items per line, by default 3.
+        """
+        lines = [",".join(map(str, nums[i:i+n_per_line])) for i in range(0, len(nums), n_per_line)]
+        return "\n".join(lines)

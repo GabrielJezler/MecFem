@@ -7,9 +7,9 @@ from ..mesh import Mesh
 from ..elements import NonLinearFiniteElement
 from ..boundary_conditions import BCStep
 
-class NonLinearFE:
+class NonLinear:
     """
-    Data structure for FE model
+    Data structure for non linear FE model
     
     Attributes:
         - dim: mesh dimension

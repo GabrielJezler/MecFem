@@ -1,1 +1,1 @@
-from .non_linear import NonLinearFE
+from .non_linear import NonLinear
