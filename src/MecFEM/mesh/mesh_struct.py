@@ -69,6 +69,9 @@ class Mesh:
         self._nodes:list[Node] = []
         self._elems:list[list[Element]] = [[] for _ in range(dim + 1)]
 
+    def __repr__(self):
+        return f"Mesh(dim={self.dim}, n_nodes={self.n_nodes}, n_elements={self.n_elements})"
+
     @property
     def dim(self):
         return self._dim

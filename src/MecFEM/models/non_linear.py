@@ -58,6 +58,9 @@ class NonLinear:
 
         self.U:np.ndarray | None = None
         self.T:np.ndarray | None = None
+
+    def __repr__(self):
+        return f"NonLinear(n_nodes: {self.n_nodes}, n_elems: {self.n_elements}, dim: {self.dim}, material: {self.material})"
     
     @property
     def n_elements(self):

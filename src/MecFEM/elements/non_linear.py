@@ -34,6 +34,9 @@ class NonLinearFiniteElement:
             [elem_data.integration_points.W[i] for i in range(elem_data.integration_points.N)]
         )
 
+    def __repr__(self):
+        return f"NonLinearFiniteElement(dim={self.dim}, n_nodes={self.n_nodes}, n_int_pts={self.n_int_pts})"
+
     @property
     def n_int_pts(self,):
         """ Get number of integration points per element """

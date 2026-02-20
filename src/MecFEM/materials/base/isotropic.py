@@ -36,6 +36,9 @@ class Isotropic:
         self._lambda = self._E * self._nu / ((1 + self._nu) * (1 - 2 * self._nu))
         self._mu = self._E / (2 * (1 + self._nu))
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(E={self.E}, nu={self.nu})"
+
     @property
     def params(self):
         return f"E = {self.E}, nu = {self.nu}"
