@@ -15,6 +15,7 @@ def MeshContent(app) -> ft.Control:
     COLORS = tomltools.load_colors()
 
     mesh_path_text, set_mesh_path_text = ft.use_state("Select a mesh file (.msh)")
+    mesh_fullpath_text, set_mesh_fullpath_text = ft.use_state(None)
     dim_text, set_dim_text = ft.use_state(None)
     mesh_status_str, set_mesh_status_str = ft.use_state("No mesh loaded.")
     mesh_status_path_str, set_mesh_status_path_str = ft.use_state(None)
@@ -50,17 +51,15 @@ def MeshContent(app) -> ft.Control:
         if files:
             if files[0].path.endswith((".msh")):
                 set_mesh_path_text(os.path.split(files[0].path)[-1])
-                mesh_path_ref.current.data = files[0].path
+                set_mesh_fullpath_text(files[0].path)
             else:
                 show_file_error_dialog()
 
     def show_mesh(e: ft.ControlEvent):
         mesh_path = mesh_path_ref.current.data
         dim = dim_ref.current.value
-        if mesh_path is not None and dim is not None:
-            print("Plotting mesh...")
-            print(f"Mesh path: {mesh_path}")
-            print(f"Mesh dimension: {dim}")
+
+        if mesh_path and dim:
             try:
                 mesh = mf.mesh.read.read_gmsh_mesh(mesh_path, dim=int(dim))
 
@@ -69,25 +68,24 @@ def MeshContent(app) -> ft.Control:
 
                 set_mesh_status_str("Mesh loaded successfully: ")
                 set_mesh_status_path_str(mesh_path)
-
-                fig, ax = plt.subplots()
-
-                ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
-
-                sel = mf.boundary_conditions.selection.RectangleSelector(ax)
-
-                plt.show()
-
-                # set_mesh_fig(fig)
             except Exception as ex:
                 print(f"Error plotting mesh: {ex}")
 
-    if app.simulation_data.mesh_path is not None:
-        mesh_path_text = os.path.split(app.simulation_data.mesh_path)[-1]
-        set_mesh_path_text(mesh_path_text)
+    def mount():
+        if app.simulation_data.mesh_path is not None and app.simulation_data.mesh is not None:
+            set_mesh_path_text(os.path.split(app.simulation_data.mesh_path)[-1])
+            set_mesh_fullpath_text(app.simulation_data.mesh_path)
+            set_dim_text(str(app.simulation_data.mesh.dim))
+            set_mesh_status_str("Mesh loaded successfully: ")
+            set_mesh_status_path_str(app.simulation_data.mesh_path)
 
-    if app.simulation_data.mesh is not None:
-        set_dim_text(str(app.simulation_data.mesh.dim))
+    ft.on_mounted(mount)
+
+    # def test():
+    #     print(f"--New mesh ref: {mesh_path_ref.current.data}")
+    #     print(f"--New mesh ref: {mesh_path_ref.current.content.value}")
+
+    # ft.use_effect(test, [mesh_path_ref])
 
     return ft.Container(
         expand = True,
@@ -99,7 +97,7 @@ def MeshContent(app) -> ft.Control:
                         ft.Container(
                             ref=mesh_path_ref,
                             content=ft.Text(mesh_path_text, style=text.body_medium(app.theme_mode), expand=True),
-                            data=None if app.simulation_data.mesh_path is None else app.simulation_data.mesh_path,
+                            data=mesh_fullpath_text,
                             border=ft.Border.all(1, COLORS["ui"][app.theme_mode.value]["primary"]),
                             border_radius=4,
                             padding=ft.Padding(16, 12, 16, 12),
@@ -155,7 +153,7 @@ def MeshContent(app) -> ft.Control:
                             style=text.body_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["primary"], italic=True)
                         ),
                     ]
-                )
+                ),
                 # flet_charts.MatplotlibChart(
                 #     figure=mesh_fig,
                 #     expand=True,

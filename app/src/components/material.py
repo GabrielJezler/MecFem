@@ -12,22 +12,22 @@ from ._base import BasePage
 
 @ft.component
 def MaterialContent(app) -> ft.Control:
-    def model_status_str(saved:bool=True):
+    def material_status_str(saved:bool=True):
         if saved:
             return "Material model saved."
         return "No material model saved."
     
-    def model_status_color_str(saved:bool=True):
+    def material_status_color_str(saved:bool=True):
         if saved:
             return COLORS["ui"][app.theme_mode.value]["success"]
         return COLORS["ui"][app.theme_mode.value]["alert"]
     
-    def model_name_str(model_name:str | None=None):
+    def material_name_str(model_name:str | None=None):
         if model_name:
             return stringtools.pascal_to_string(model_name)
         return "None"
 
-    def model_parameters_str(params:dict[str, str] | None=None):
+    def material_parameters_str(params:dict[str, str] | None=None):
         if params:
             return ", ".join([f"{name} = {value}" for name, value in params.items()])
         elif params == {}:
@@ -35,17 +35,17 @@ def MaterialContent(app) -> ft.Control:
         elif params is None:
             return ""
 
-    def dropdown_model_str(model_name: str | None = None):
+    def dropdown_material_str(model_name: str | None = None):
         if model_name:
             return model_name
-        return None
+        return ""
 
-    def get_model_parameters(model: type) -> list[str] | None:
+    def get_material_parameters(model: type) -> list[str] | None:
         if model:
             return list(inspect.signature(model.__init__).parameters.keys())
         return None
 
-    def get_material_models() -> dict[str, type]:
+    def get_materials() -> dict[str, type]:
         models = {}
 
         for _, module_name, _ in pkgutil.walk_packages(
@@ -61,22 +61,23 @@ def MaterialContent(app) -> ft.Control:
         return models
 
     COLORS = tomltools.load_colors()
-    models = get_material_models()
+    materials = get_materials()
 
-    model_status_span, set_model_status_span = ft.use_state(model_status_str(False))
-    model_status_color_span, set_model_status_color_span = ft.use_state(model_status_color_str(False))
-    model_name_span, set_model_name_span = ft.use_state(model_name_str(None))
-    model_parameters_span, set_model_parameters_span = ft.use_state(model_parameters_str())
-    model_name_dropdown, set_model_name_dropdown = ft.use_state(dropdown_model_str(None))
+    material_status_span, set_material_status_span = ft.use_state(material_status_str(False))
+    material_status_color_span, set_material_status_color_span = ft.use_state(material_status_color_str(False))
+    material_parameters_span, set_material_parameters_span = ft.use_state(material_parameters_str())
+
+    material_name_dropdown, set_material_name_dropdown = ft.use_state(dropdown_material_str(None))
+    material_name_data_dropdown, set_material_name_data_dropdown = ft.use_state(None)
     parameter_controls, set_parameter_controls = ft.use_state([])
 
     parameters_ref = ft.use_ref(ft.Ref[ft.ResponsiveRow]())
-    models_names_refs = ft.use_ref(None)
+    dropdown_ref = ft.use_ref(ft.Ref[ft.Dropdown]())
 
-    def no_model_dialog():
+    def no_material_dialog():
         dialog = ft.AlertDialog(
             title=ft.Text(
-                "No model selected", 
+                "No material selected", 
                 style=text.title_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["primary"])
             ),
             content=ft.Text(
@@ -148,62 +149,37 @@ def MaterialContent(app) -> ft.Control:
         else:
             set_parameter_controls([])
 
-    def restore_state():
-        if not app.simulation_data.material:
-            return
-
-        set_model_status_span(model_status_str(True))
-        set_model_status_color_span(model_status_color_str(True))
-
-        initial_model_name = app.simulation_data.material.__class__.__name__
-        initial_params = {name: getattr(app.simulation_data.material, name) for name in get_model_parameters(app.simulation_data.material.__class__)[1:] if hasattr(app.simulation_data.material, name)}
-        if initial_model_name:
-            model = models.get(initial_model_name)
-            if model:
-                set_model_name_span(model_name_str(initial_model_name))
-                set_model_parameters_span(model_parameters_str(initial_params))
-                set_model_name_dropdown(dropdown_model_str(initial_model_name))
-
-                update_parameter_controls(initial_params)
-
-                models_names_refs.current = initial_model_name
-
-    ft.on_mounted(restore_state)
-
     def update_from_material_model(e:ft.ControlEvent) -> None:
-        model_name = e.control.value
-        model = models.get(model_name)
+        material_name = e.control.value
+        material = materials.get(material_name)
 
         # Reset the material
         app.simulation_data.material = None
-        set_model_parameters_span(model_parameters_str(None))
-        set_model_status_span(model_status_str(False)) 
-        set_model_status_color_span(model_status_color_str(False))
+        set_material_parameters_span(material_parameters_str(None))
+        set_material_status_span(material_status_str(False)) 
+        set_material_status_color_span(material_status_color_str(False))
 
-        if model:
-            set_model_name_dropdown(dropdown_model_str(model_name))
-            set_model_name_span(model_name_str(model_name))
-            
-            models_names_refs.current = model_name
-            params_names = get_model_parameters(model)[1:]
+        if material:
+            set_material_name_dropdown(dropdown_material_str(material_name))
+            set_material_name_data_dropdown(material_name)
+
+            params_names = get_material_parameters(material)[1:]
             
             update_parameter_controls({name: None for name in params_names})
             if not params_names:
-                set_model_parameters_span(model_parameters_str({}))
-                set_model_name_dropdown(dropdown_model_str(None))
-                models_names_refs.current = None
+                set_material_parameters_span(material_parameters_str({}))
+                set_material_name_dropdown(dropdown_material_str(None))
+                set_material_name_data_dropdown(None)
         else:
-            set_model_name_dropdown(dropdown_model_str(None))
-            set_model_name_span(model_name_str(None))
-
+            set_material_name_dropdown(dropdown_material_str(None))
+            set_material_name_data_dropdown(None)
             set_parameter_controls([])
-            models_names_refs.current = None
 
     def save_material(e: ft.ControlEvent)-> None:
-        model_name = models_names_refs.current
-        model = models.get(model_name)
-        if not model:
-            no_model_dialog()
+        material_name = dropdown_ref.current.data
+        material = materials.get(material_name)
+        if not material:
+            no_material_dialog()
             return
         
         params = {}
@@ -211,17 +187,37 @@ def MaterialContent(app) -> ft.Control:
             param_name = control.data
             param_value = control.value
             if not param_value:
-                return # Do not update if any parameter is empty
+                return
             params[param_name] = float(param_value)
         
         try:
-            material_instance = model(*params.values())
+            material_instance = material(*params.values())
             app.simulation_data.material = material_instance
-            set_model_parameters_span(model_parameters_str(params))
-            set_model_status_span(model_status_str(True))
-            set_model_status_color_span(model_status_color_str(True))
+            set_material_parameters_span(material_parameters_str(params))
+            set_material_status_span(material_status_str(True))
+            set_material_status_color_span(material_status_color_str(True))
         except Exception as ex:
             material_not_saved_dialog(ex)
+
+    def mount():
+        if not app.simulation_data.material:
+            return
+
+        set_material_status_span(material_status_str(True))
+        set_material_status_color_span(material_status_color_str(True))
+
+        initial_material_name = app.simulation_data.material.__class__.__name__
+        initial_params = {name: getattr(app.simulation_data.material, name) for name in get_material_parameters(app.simulation_data.material.__class__)[1:] if hasattr(app.simulation_data.material, name)}
+        if initial_material_name:
+            material = materials.get(initial_material_name)
+            if material:
+                set_material_parameters_span(material_parameters_str(initial_params))
+                set_material_name_dropdown(dropdown_material_str(initial_material_name))
+                set_material_name_data_dropdown(initial_material_name)
+
+                update_parameter_controls(initial_params)
+
+    ft.on_mounted(mount)
 
     return ft.Container(
         expand = True,
@@ -232,16 +228,18 @@ def MaterialContent(app) -> ft.Control:
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     controls=[
                         ft.Dropdown(
-                            value=model_name_dropdown,
+                            ref=dropdown_ref,
+                            value=material_name_dropdown,
+                            data=material_name_data_dropdown,
                             label="Select Material Model",
                             label_style=text.body_medium(app.theme_mode),
                             border_color=COLORS["ui"][app.theme_mode.value]["primary"],
                             options=[
                                 ft.dropdown.Option(
-                                    key=model_name, 
-                                    text=stringtools.pascal_to_string(model_name)
+                                    key=material_name, 
+                                    text=stringtools.pascal_to_string(material_name)
                                 ) 
-                                for model_name in models.keys()
+                                for material_name in materials.keys()
                             ],
                             on_select=lambda e: update_from_material_model(e),
                             col={
@@ -253,23 +251,15 @@ def MaterialContent(app) -> ft.Control:
                         ft.Text(
                             spans=[
                                 ft.TextSpan(
-                                    text=model_status_span,
-                                    style=text.body_medium(app.theme_mode, color=model_status_color_span, bold=True),
-                                ),
-                                ft.TextSpan(
-                                    text="\nMaterial model: ",
-                                    style=text.body_medium(app.theme_mode),
-                                ),
-                                ft.TextSpan(
-                                    text=model_name_span,
-                                    style=text.body_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["primary"], bold=True)
+                                    text=material_status_span,
+                                    style=text.body_medium(app.theme_mode, color=material_status_color_span, bold=True),
                                 ),
                                 ft.TextSpan(
                                     text="\nMaterial parameters: ",
                                     style=text.body_medium(app.theme_mode)
                                 ),
                                 ft.TextSpan(
-                                    text=model_parameters_span,
+                                    text=material_parameters_span,
                                     style=text.body_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["primary"], bold=True)
                                 )
                             ],

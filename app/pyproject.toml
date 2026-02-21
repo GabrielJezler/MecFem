@@ -10,7 +10,6 @@ authors = [
 dependencies = [
     "flet>=0.80.5",
     "toml>=0.10.2",
-    "MecFEM @ file://..",
 ]
 
 [dependency-groups]
