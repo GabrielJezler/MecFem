@@ -31,6 +31,9 @@ class NonLinear:
         - material: Material object defining the constitutive behavior
     """
     def __init__(self, mesh: Mesh, material) -> None:
+        self.material = material
+        self.mesh = mesh
+
         self.dim: int = mesh.dim
         self.n_nodes: int = mesh.n_nodes
         self.connect: np.array = mesh.get_connectivity_matrix()
@@ -39,7 +42,6 @@ class NonLinear:
         self.free_dofs = np.arange(self.n_dofs).astype(int)
         self.fixed_dofs = np.array([], dtype=int)
 
-        self.material = material
 
         self.elems: list[NonLinearFiniteElement] = []
         self.boundary_elems: list[NonLinearFiniteElement] = []
@@ -61,6 +63,13 @@ class NonLinear:
 
     def __repr__(self):
         return f"NonLinear(n_nodes: {self.n_nodes}, n_elems: {self.n_elements}, dim: {self.dim}, material: {self.material})"
+    
+    def __eq__(self, value):
+        if isinstance(value, self.__class__):
+            if self.mesh == value.mesh and self.material == value.material:
+                return True
+
+        return False
     
     @property
     def n_elements(self):

@@ -9,6 +9,13 @@ class Node:
         self._id = i
         self._X = [x, y, z]
 
+    def __eq__(self, value):
+        if isinstance(value, self.__class__):
+            if self.id == value.id and self.X == value.X:
+                return True
+        
+        return False
+
     @property
     def id(self):
         return self._id
@@ -26,6 +33,13 @@ class Element:
         self._type:int = t
         self._nodes:np.ndarray = nodes
         self._dim:int = ReferenceElements().get_by_type(t).dim
+
+    def __eq__(self, value):
+        if isinstance(value, self.__class__):
+            if self.id == value.id and self.type == value.type and self.nodes == value.nodes:
+                return True
+        
+        return False
 
     @property
     def id(self):
@@ -71,6 +85,21 @@ class Mesh:
 
     def __repr__(self):
         return f"Mesh(dim={self.dim}, n_nodes={self.n_nodes}, n_elements={self.n_elements})"
+    
+    def __eq__(self, value):
+        if isinstance(value, self.__class__):
+            if self.n_elements == value.n_elements and self.n_nodes == value.n_nodes:
+                for elem_id in range(self.n_elements):
+                    if self.elems[self.dim][elem_id] != value.elems[value.dim][elem_id]:
+                        return False
+                    
+                for node_id in range(self.n_nodes):
+                    if self.nodes[node_id] != value.nodes[node_id]:
+                        return False
+
+                return True
+
+        return False
 
     @property
     def dim(self):

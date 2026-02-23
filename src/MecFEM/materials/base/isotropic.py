@@ -38,6 +38,13 @@ class Isotropic:
 
     def __repr__(self):
         return f"{self.__class__.__name__}(E={self.E}, nu={self.nu})"
+    
+    def __eq__(self, value):
+        if isinstance(value, self.__class__):
+            if self.E == value.E and self.nu == value.nu:
+                return True
+
+        return False
 
     @property
     def params(self):
