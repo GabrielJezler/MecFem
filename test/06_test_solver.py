@@ -139,14 +139,23 @@ def test():
         )
     )
 
+    x_elements_cg = mesh.get_elements_cg_coordinates()
+
+    lower_elements = np.where(x_elements_cg[:, 1] < 0.25)[0]
+    upper_elements = np.where(x_elements_cg[:, 1] >= 0.25)[0]
+
+    lower_elements_id = [mesh.elems[mesh.dim][i].id for i in lower_elements]
+    upper_elements_id = [mesh.elems[mesh.dim][i].id for i in upper_elements]
+
     f = mf.boundary_conditions.VolumetricForce(lambda X: f_volumetric(X, g=-9.81 * 1e7))
 
-    bc_step = mf.boundary_conditions.BCStep(
-        times=[0.0, 1.0],
-        values=[f * 0.0, f * 1.0]
+    model.add_volumetric_force(
+        step=mf.boundary_conditions.BCStep(
+            times=[0.0, 1.0],
+            values=[f * 0.0, f * 1.0]
+        ),
+        elems_id=upper_elements_id
     )
-
-    model.add_volumetric_force(bc_step)
 
     fig, ax = plt.subplots()
 

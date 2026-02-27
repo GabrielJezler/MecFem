@@ -73,8 +73,8 @@ def test():
         values=[f * 0.0, f * 1.0, f * 0.0]
     )
 
-    model.add_volumetric_force(bc_step)
-    model.add_volumetric_force(bc_step)
+    model.add_volumetric_force(step=bc_step)
+    model.add_volumetric_force(step=bc_step)
 
     U = np.zeros((mesh.n_nodes, mesh.dim))
     U[:, 0] = 0.01 * x_nodes[:, 0] ** 3  # Small displacement in x
