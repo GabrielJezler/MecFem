@@ -53,7 +53,8 @@ def test():
     mf.mesh.generate.generate_rectangle_mesh(
         1.0, 0.5, 8, 4, "mesh/rect.msh"
     )
-    mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
+    # mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
+    mesh = mf.mesh.Mesh("mesh/rect.msh", dim=2)
 
     material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=200.0e9, nu=0.3)
 
@@ -85,7 +86,8 @@ def test():
     f_vol = model.volumetric_forces(t=1.0)
 
     fig, ax = plt.subplots()
-    mf.mesh.plot_mesh(mesh, ax, nodes_ids=True, elems_ids=True, zoom_out=0.25)
+    # mf.mesh.plot_mesh(mesh, ax, nodes_ids=True, elems_ids=True, zoom_out=0.25)
+    mesh.plot(ax=ax, nodes_ids=True, elems_ids=True, zoom_out=0.25)
 
     ax = mf.post.vector.plot_2d_arrows(model, U, ax=ax, scale=1/8.0, label='Displacement', color='C0')
 
@@ -114,7 +116,8 @@ def test():
     plt.show()
 
     fig, ax = plt.subplots()
-    mf.mesh.plot_mesh(mesh, ax, nodes_ids=False, elems_ids=False)
+    # mf.mesh.plot_mesh(mesh, ax, nodes_ids=False, elems_ids=False)
+    mesh.plot(ax=ax, nodes_ids=False, elems_ids=False)
 
     mf.post.vector.plot_2d_field(model, U, ax=ax, component="mag", label='Displacement Magnitude')
 

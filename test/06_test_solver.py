@@ -91,9 +91,11 @@ def test():
     mf.mesh.generate.generate_rectangle_mesh(
         1.0, 0.5, 16, 8, "mesh/rect.msh"
     )
-    mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
+    # mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
+    mesh = mf.mesh.Mesh("mesh/rect.msh", dim=2)
 
-    mf.mesh.plot_mesh(mesh, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    # mf.mesh.plot_mesh(mesh, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    mesh.plot(nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
     plt.show()
 
@@ -159,7 +161,8 @@ def test():
 
     fig, ax = plt.subplots()
 
-    mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    # mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    mesh.plot(ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
     model.plot_bc(ax=ax, time=1.0)
 
@@ -174,12 +177,19 @@ def test():
     )
 
     fig, ax = plt.subplots()
-    mf.mesh.plot_mesh(
-        mesh, 
-        ax, 
-        nodes_marker=False, 
-        nodes_ids=False, 
-        elems_ids=False, 
+    # mf.mesh.plot_mesh(
+    #     mesh, 
+    #     ax, 
+    #     nodes_marker=False, 
+    #     nodes_ids=False, 
+    #     elems_ids=False, 
+    #     zoom_out=0.25
+    # )
+    mesh.plot(
+        ax,
+        nodes_marker=False,
+        nodes_ids=False,
+        elems_ids=False,
         zoom_out=0.25
     )
 
@@ -196,14 +206,22 @@ def test():
     fig, ax = plt.subplots()
 
     sigma = model.sigma(averaged=True)
-    mf.mesh.plot_mesh(
-        mesh, 
-        ax, 
-        nodes_marker=False, 
-        nodes_ids=False, 
-        elems_ids=False, 
+    # mf.mesh.plot_mesh(
+    #     mesh, 
+    #     ax, 
+    #     nodes_marker=False, 
+    #     nodes_ids=False, 
+    #     elems_ids=False, 
+    #     zoom_out=0.25
+    # )
+    mesh.plot(
+        ax=ax,
+        nodes_marker=False,
+        nodes_ids=False,
+        elems_ids=False,
         zoom_out=0.25
     )
+    
 
     mf.post.tensor.plot_2d_field(
         model, 
@@ -216,30 +234,48 @@ def test():
     plt.show()
 
     fig, ax = plt.subplots()
-    ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    # ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    mesh.plot(
+        ax,
+        nodes_marker=False,
+        nodes_ids=False,
+        elems_ids=False,
+        zoom_out=0.25
+    )
 
     ax, ani = mf.post.vector.animate_2d_displacement(model, scale=100, ax=ax, label='Displacement magnitude', zoom_out=0.25, interval=200)
 
     fig.suptitle("Displacement animation")
     plt.show()
 
-    mf.mesh.write.element_tensor2_data(
-        "mesh/rect.msh", 
-        "out_test.msh", 
-        mesh, 
-        sigma, 
-        times=model.T, 
+    # mf.mesh.write.element_tensor2_data(
+    #     "mesh/rect.msh", 
+    #     "out_test.msh", 
+    #     mesh, 
+    #     sigma, 
+    #     times=model.T, 
+    #     label="Stress"
+    # )
+    mesh.write_element_tensor2_data(
+        values=sigma, 
+        times=model.T,
         label="Stress"
     )
 
-    mf.mesh.write.node_vector_data(
-        "out_test.msh", 
-        "out_test.msh", 
-        mesh, 
-        model.U, 
-        model.T, 
+    # mf.mesh.write.node_vector_data(
+    #     "out_test.msh", 
+    #     "out_test.msh", 
+    #     mesh, 
+    #     model.U, 
+    #     model.T, 
+    #     label="Displacement"
+    # )
+    mesh.write_nodal_vector_data(
+        values=model.U, 
+        times=model.T,
         label="Displacement"
     )
+    
 
 if __name__ == "__main__":
     test()

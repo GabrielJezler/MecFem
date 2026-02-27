@@ -14,20 +14,24 @@ def test():
         2.0, 1.0, 10, 5, "mesh/rect.msh"
     )
 
-    mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
+    # mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
+    mesh = mf.mesh.Mesh("mesh/rect.msh", dim=2)
 
     fig, ax = plt.subplots()
-    mf.mesh.plot_mesh(mesh, ax, nodes_ids=True, elems_ids=True)
+    # mf.mesh.plot_mesh(mesh, ax, nodes_ids=True, elems_ids=True)
+    mesh.plot(ax=ax, nodes_ids=False, elems_ids=True)
     plt.show()
 
     mf.mesh.generate.generate_1d_line_mesh(
         10, 0.0, 1.0, filename="mesh/line.msh"
     )
     
-    mesh = mf.mesh.read.read_gmsh_mesh("mesh/line.msh", dim=1)
+    # mesh = mf.mesh.read.read_gmsh_mesh("mesh/line.msh", dim=1)
+    mesh = mf.mesh.Mesh("mesh/line.msh", dim=1)
 
     fig, ax = plt.subplots()
-    mf.mesh.plot_mesh(mesh, ax, nodes_ids=False, elems_ids=True)
+    # mf.mesh.plot_mesh(mesh, ax, nodes_ids=True, elems_ids=True)
+    mesh.plot(ax=ax, nodes_ids=False, elems_ids=True)
     plt.show()
     
     print("\n\nMesh test completed successfully.")
