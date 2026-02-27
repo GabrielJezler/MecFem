@@ -8,7 +8,6 @@ import MecFEM as mf
 def test():
     material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=200.0, nu=0.3)
 
-    # mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
     mesh = mf.mesh.Mesh("mesh/rect.msh", dim=2)
     element = mesh.get_element_by_id(100, 2)
     x_nodes = mesh.get_nodes_coordinates_by_element(100, 2)

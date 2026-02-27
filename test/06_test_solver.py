@@ -91,10 +91,9 @@ def test():
     mf.mesh.generate.generate_rectangle_mesh(
         1.0, 0.5, 16, 8, "mesh/rect.msh"
     )
-    # mesh = mf.mesh.read.read_gmsh_mesh("mesh/rect.msh", dim=2)
+    
     mesh = mf.mesh.Mesh("mesh/rect.msh", dim=2)
 
-    # mf.mesh.plot_mesh(mesh, nodes_ids=False, elems_ids=False, zoom_out=0.25)
     mesh.plot(nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
     plt.show()
@@ -156,12 +155,11 @@ def test():
             times=[0.0, 1.0],
             values=[f * 0.0, f * 1.0]
         ),
-        elems_id=upper_elements_id
+        elems_id=None # Apply to all elements
     )
 
     fig, ax = plt.subplots()
 
-    # mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
     mesh.plot(ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
     model.plot_bc(ax=ax, time=1.0)
@@ -177,14 +175,7 @@ def test():
     )
 
     fig, ax = plt.subplots()
-    # mf.mesh.plot_mesh(
-    #     mesh, 
-    #     ax, 
-    #     nodes_marker=False, 
-    #     nodes_ids=False, 
-    #     elems_ids=False, 
-    #     zoom_out=0.25
-    # )
+
     mesh.plot(
         ax,
         nodes_marker=False,
@@ -206,14 +197,7 @@ def test():
     fig, ax = plt.subplots()
 
     sigma = model.sigma(averaged=True)
-    # mf.mesh.plot_mesh(
-    #     mesh, 
-    #     ax, 
-    #     nodes_marker=False, 
-    #     nodes_ids=False, 
-    #     elems_ids=False, 
-    #     zoom_out=0.25
-    # )
+
     mesh.plot(
         ax=ax,
         nodes_marker=False,
@@ -234,7 +218,7 @@ def test():
     plt.show()
 
     fig, ax = plt.subplots()
-    # ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+
     mesh.plot(
         ax,
         nodes_marker=False,
@@ -248,28 +232,12 @@ def test():
     fig.suptitle("Displacement animation")
     plt.show()
 
-    # mf.mesh.write.element_tensor2_data(
-    #     "mesh/rect.msh", 
-    #     "out_test.msh", 
-    #     mesh, 
-    #     sigma, 
-    #     times=model.T, 
-    #     label="Stress"
-    # )
     mesh.write_element_tensor2_data(
         values=sigma, 
         times=model.T,
         label="Stress"
     )
 
-    # mf.mesh.write.node_vector_data(
-    #     "out_test.msh", 
-    #     "out_test.msh", 
-    #     mesh, 
-    #     model.U, 
-    #     model.T, 
-    #     label="Displacement"
-    # )
     mesh.write_nodal_vector_data(
         values=model.U, 
         times=model.T,
