@@ -1,0 +1,153 @@
+\documentclass[12pt]{report}
+
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\usepackage{graphicx}   
+\usepackage{subcaption}
+\usepackage{extramarks}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage[top=2cm, left=2cm, right=2cm, bottom=2.5cm]{geometry}
+\usepackage{tikz}
+\usepackage[plain]{algorithm}
+\usepackage{algpseudocode}
+\usepackage[colorlinks=true,linkcolor=black, citecolor=red]{hyperref}
+\usepackage{url}
+\usepackage{enumitem}
+\usepackage{multirow}
+
+\usepackage{nomencl}
+\renewcommand{\nomname}{List of Symbols}
+\makenomenclature
+
+\usepackage{scalerel}
+
+\setlength{\parindent}{0mm}
+\setlength{\parskip}{2mm}
+
+\usetikzlibrary{automata,positioning}
+
+\pagestyle{fancy}
+
+\lhead{\reportTitle}
+\rhead{\authorName \textbf{ - \the\year{}}}
+
+
+\cfoot{\thepage}
+
+% \renewcommand\headrulewidth{0.4pt}
+% \renewcommand\footrulewidth{0.4pt}
+
+\newcommand{\reportTitle}{Finite Elements for Linear and Non Linear Mechanics}
+\newcommand{\authorName}{\textbf{Gabriel Jezler}}
+
+%
+% Title Page
+%
+
+\title{
+    \vspace{5cm}
+    \textmd{\textbf{\reportTitle}}\\
+    \vspace{8cm}
+}
+
+\author{\authorName}
+\date{\today}
+
+% \renewcommand{\part}[1]{\textbf{\large Part \Alph{partCounter}}\stepcounter{partCounter}\\}
+
+%
+% Various Helper Commands
+%
+% For derivatives
+\newcommand{\deriv}[1]{\frac{\mathrm{d}}{\mathrm{d}x} (#1)}
+
+% For partial derivatives
+\newcommand{\psderiv}[2]{\frac{\partial}{\partial #2} (#1)}
+\newcommand{\pderiv}[2]{\frac{\partial #1}{\partial #2} }
+
+% Integral dx
+\newcommand{\dt}{\, \mathrm{dt}}
+\newcommand{\dV}{\, \mathrm{dV}}
+\newcommand{\dS}{\, \mathrm{dS}}
+\newcommand{\dv}{\, \mathrm{dv}}
+\newcommand{\ds}{\, \mathrm{ds}}
+
+% Tensor
+\newcommand{\tensorTwo}[1]{\bar{\bar{#1}}}
+\newcommand{\tensorFour}[1]{\bar{\bar{\bar{\bar{#1}}}}}
+
+\newcommand{\tensorTwoGradO}[1]{\tensorTwo{\nabla}_\mathrm{0} #1}
+\newcommand{\vectorGradO}[1]{\vec{\nabla}_\mathrm{0} #1}
+\newcommand{\tensorTwoGrad}[1]{\tensorTwo{\nabla} #1}
+\newcommand{\vectorGrad}[1]{\vec{\nabla} #1}
+
+% Kinematics
+\newcommand{\x}[0]{\vec{x}}
+\newcommand{\X}[0]{\vec{X}}
+
+\newcommand{\F}[0]{\tensorTwo{\mathrm{F}}}
+\newcommand{\C}[0]{\tensorTwo{\mathrm{C}}}
+\newcommand{\E}[0]{\tensorTwo{\mathrm{E}}}
+
+\newcommand{\J}[0]{\mathrm{J}}
+
+% Stress
+\newcommand{\cauchy}[0]{\tensorTwo{\sigma}}
+\newcommand{\kirchhoff}[0]{\tensorTwo{\scalerel*{\tau}{X}}}
+\newcommand{\pkOne}[0]{\tensorTwo{\mathrm{P}}}
+\newcommand{\pkTwo}[0]{\tensorTwo{\mathrm{S}}}
+
+% Potential
+\newcommand{\potential}[0]{\Psi}
+
+% List of Symbols
+\nomenclature{$\X$}{Position vector at the initial configuration}
+\nomenclature{$\vec{\phi}$}{Transformation function}
+\nomenclature{$\x$}{Position vector at the deformed configuration}
+\nomenclature{$\F$}{Transformation gradient tensor}
+\nomenclature{$\J$}{Jacobian of the transformation}
+\nomenclature{$\C$}{Cauchy-Green right tensor}
+\nomenclature{$\E$}{Green-Lagrange tensor}
+\nomenclature{$\cauchy$}{Cauchy stress tensor}
+\nomenclature{$\kirchhoff$}{Kirchhoff stress tensor}
+\nomenclature{$\pkOne$}{First Piola-Kirchhoff stress tensor}
+\nomenclature{$\pkTwo$}{Second Piola-Kirchhoff stress tensor}
+\nomenclature{$\Psi$}{Strain energy density}
+\nomenclature{$\tensorTwo{\varepsilon}$}{Strain tensor}
+\nomenclature{$\delta \mathcal{W}$}{Virtual work of the system}
+\nomenclature{$\vec{n}$}{Normal vector}
+\nomenclature{$v$}{Volume of the deformed configuration}
+\nomenclature{$V$}{Volume of the initial configuration}
+\nomenclature{$s$}{Surface of the deformed configuration}
+\nomenclature{$S$}{Surface of the initial configuration}
+\nomenclature{$N$}{Shape function}
+
+\begin{document}
+
+\maketitle
+
+\pagebreak
+
+\printnomenclature
+
+\pagebreak
+
+\tableofcontents
+
+\pagebreak
+
+\include{sections/01_intro}
+
+\include{sections/02_kinematics_stress}
+
+\include{sections/03_materials}
+
+\include{sections/04_finite_elements}
+
+\include{sections/05_solution}
+
+\include{sections/06_code}
+
+\end{document}

@@ -1,0 +1,66 @@
+\chapter{Kinematics and Stresses}
+
+\section{Kinematics}
+
+\begin{equation} \label{eq:transformation}
+    \x = \vec{\phi} (\X, \, t)
+\end{equation}
+
+\begin{equation} \label{eq:F}
+    \F = \tensorTwoGradO{\x} = \pderiv{\x}{\X}
+\end{equation}
+
+\begin{equation} \label{eq:J}
+    \J = \det{\F}
+\end{equation}
+
+\begin{equation} \label{eq:C}
+    \C = \F^T \F
+\end{equation}
+
+\begin{equation} \label{eq:E}
+    \E = \frac{1}{2} \left(\C - \tensorTwo{\mathrm{I}}\right)
+\end{equation}
+
+\section{Stresses}
+
+Four different stress tensors are used throughout this paper and are listed below:
+
+\begin{itemize}
+    \item $\cauchy$: Cauchy stress tensor
+    \item $\kirchhoff$: kirchhoff stress tensor
+    \item $\pkOne$: First Piola-Kirchhoff stress tensor
+    \item $\pkTwo$: Second Piola-kirchhoff stress tensor
+\end{itemize}
+
+They are all stress' representations but under different configurations. They can all be related under the following equation:
+
+\begin{equation}
+    \cauchy = \J^{-1} \cdot \kirchhoff = \J^{-1} \cdot \pkOne \F^T = \J^{-1} \cdot \F \pkTwo \F^T
+\end{equation}
+
+\section{Strain Energy Density}
+
+The strain energy density is defined as:
+
+\begin{equation}
+    \potential (\F, \, \X) = \int\pkOne :\dot{\F} \dt
+\end{equation}
+
+From this definition, a new definition for $\pkOne$ can be stated:
+
+\begin{equation}
+    \pkOne = \pderiv{\potential}{\F}
+\end{equation}
+
+This can also be written as a function of the tensor $\C$ as given below:
+
+\begin{equation}
+    \potential (\F, \, \X) = \potential (\C, \, \X) = \int \frac{1}{2}\pkTwo : \dot{\C} \dt 
+\end{equation}
+
+This means the $\pkTwo$ can be written as:
+
+\begin{equation}
+    \pkTwo = 2 \pderiv{\Psi}{\C} = \pderiv{\Psi}{\E}
+\end{equation}

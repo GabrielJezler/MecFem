@@ -1,0 +1,136 @@
+\chapter{Finite Element Formulation}
+
+\section{Equilibrium Equation}
+
+The equation to be solved is given below:
+
+\begin{equation}
+    \vec{\mathrm{div}} \cauchy + \vec{f} = \vec{0}
+\end{equation}
+
+However, the equation above is in its strong formulation. For the finite elements methods, it is far more useful to convert it to its weak form. This allows for the application of boundary conditions directly in the equation. It can be done by using the virtual work theorem:
+
+\begin{equation*}
+    \vec{\mathrm{div}} \cauchy + \vec{f} = \vec{0} \qquad \Longrightarrow \qquad 
+    \delta \mathcal{W} = \int_v \left( \vec{\mathrm{div}} \cauchy + \vec{f} \right) \cdot \vec{\delta u} \dv = 0 \quad \forall \, \vec{\delta u} \Longrightarrow
+\end{equation*}
+\begin{equation*}
+    \Longrightarrow \qquad \delta \mathcal{W} = \int_v \vec{\mathrm{div}} \cauchy \cdot \vec{\delta u} \dv + \int_v \vec{f} \cdot \vec{\delta u} \dv = 0 \quad \forall \, \vec{\delta u}
+\end{equation*}
+
+This can be further developed by applying the following rule (Equation \ref{eq:div_prod_rule}) along side with the divergence theorem (Equation \ref{eq:divergence_th}).
+
+\begin{equation} \label{eq:div_prod_rule}
+    \vec{\mathrm{div}} \tensorTwo{A} \cdot \vec{b} = \vec{\mathrm{div}} \left( \tensorTwo{A} \cdot \vec{b} \right) - \tensorTwo{A} : \vec{b}
+\end{equation}
+
+\begin{equation} \label{eq:divergence_th}
+    \int_v \mathrm{div} \left(\vec{a} \right) \dv = \int_s \vec{a} \cdot \vec{n} \ds
+\end{equation}
+
+By applying both relation on the left hand term of the equation, it is possible to obtain:
+
+\begin{equation} \label{eq:wf_cauchy}
+    \delta \mathcal{W} = \int_v \cauchy : \tensorTwoGrad{\vec{\delta u}} \dv - \left (\int_v \vec{f} \cdot \vec{\delta u} \dv + \int_s \vec{t} \cdot \vec{\delta u} \ds \right) = 0 \quad \forall \, \vec{\delta u}
+\end{equation}
+
+Where:
+
+\begin{equation*}
+    \vec{t} = \cauchy \cdot \vec{n}
+\end{equation*}
+
+The next step is to rewrite Equation \ref{eq:wf_cauchy} with respect to the initial configuration. This can be done by using the Jacobian of the transformation defined by Equation \ref{eq:J}. Using this, it is possible to rewrite Equation \ref{eq:wf_cauchy} as follows:
+
+\begin{equation*}
+    \int_V \cauchy : \tensorTwoGrad{\vec{\delta u}} \, J \dV - \left (\int_V \vec{f} \cdot \vec{\delta u} \, J \dV + \int_S \vec{t} \cdot \vec{\delta u} \left( \pderiv{s}{S} \right)\dS \right) = 0 \quad \forall \, \vec{\delta u} \qquad \Longrightarrow
+\end{equation*}
+\begin{equation*}
+    \Longrightarrow \qquad \int_V \underbrace{\kirchhoff}_{\J \cauchy} : \tensorTwoGrad{\vec{\delta u}} \dV - \left (\int_V \underbrace{\vec{f_0}}_{J \vec{f}} \cdot \vec{\delta u} \dV + \int_S \underbrace{\vec{t_0}}_{\left( \pderiv{s}{S} \right) \vec{t}} \cdot \vec{\delta u} \dS \right) = 0 \quad \forall \, \vec{\delta u} 
+\end{equation*}
+
+Furthermore, the gradient can be written as:
+
+\begin{equation*}
+    \tensorTwoGrad{\vec{\delta u}} = \pderiv{\vec{\delta u}}{\x} = \pderiv{\vec{\delta u}}{\X} \cdot \pderiv{\X}{\x} = \tensorTwoGradO{\vec{\delta u}} \cdot \F^{-1}
+\end{equation*}
+
+Finally, using that:
+
+\begin{equation*}
+    \tensorTwo{A} : \left( \tensorTwo{B} \tensorTwo{C} \right) = \left( \tensorTwo{A} \tensorTwo{C}^T \right) : \tensorTwo{B}
+\end{equation*}
+
+It is possible to obtain the final equation:
+
+\begin{equation} \label{eq:wf_pk1}
+    \delta \mathcal{W} = \int_V \underbrace{\pkOne}_{\kirchhoff \F^{-T}} : \tensorTwoGradO{\vec{\delta u}} \dV - \left (\int_V \vec{f_0} \cdot \vec{\delta u} \dV + \int_S \vec{t_0} \cdot \vec{\delta u} \dS \right) = 0 \quad \forall \, \vec{\delta u} 
+\end{equation}
+
+\section{Discretization}
+
+The discretization is a important step for the finite volume method. In this part, we use interpolation based on nodal values for the value of displacement inside an element. This is done by using shape functions ($N$) for each element node $a$ ($N_a$).
+
+\begin{equation}
+    \vec{u} ( \X ) = \sum_{a \, \in \, e} N_a (\vec{\xi}) \cdot \vec{U}_a
+\end{equation}
+\begin{equation}
+    \tensorTwoGradO{\vec{u}}( \X ) = \sum_{a \, \in \, e} \tensorTwoGradO{N_a}(\vec{\xi}) \otimes \vec{U}_a
+\end{equation}
+
+In those, the shape function is given as a function of the position vector $\vec{\xi}$. This is due to the fact that these functions are defined for a reference coordinate space. For a line element this would be for $\xi \in [-1, 1]$, for example. It is then possible to use the element's transformation (Equation \ref{eq:elem_transf}) to relate the reference system ($\vec{\xi}$) to the element's global coordinates ($\X$).
+
+\begin{equation} \label{eq:elem_transf}
+    \X = \psi (\vec{\xi}) \qquad \Longrightarrow \qquad \vec{\xi} = \psi^{-1} (\X)
+\end{equation}
+
+In addition, the Galerkin method is used, which means that the virtual field is given by:
+
+\begin{equation}
+    \vec{\delta u} ( \X ) = \sum_{a \, \in \, e} N_a (\vec{\xi}) \cdot \vec{\delta U}_a
+\end{equation}
+\begin{equation}
+    \tensorTwoGradO{\vec{\delta u}}( \X ) = \sum_{a \, \in \, e} \tensorTwoGradO{N_a}(\vec{\xi}) \otimes \vec{\delta U}_a
+\end{equation}
+
+\section{Elementary description}
+
+The total virtual work of the system can be given as the sum of the virtual work for each element as stated below. This means that the final equation will be the result of the sum of the contribution of each element. For that reason, it is possible to work with the element-wise contribution and then add them up in a process called assembly.
+
+\begin{equation}
+    \delta \mathcal{W} = \sum_e \delta \mathcal{W}^{(e)} = 0 \quad \forall \, \vec{\delta u}
+\end{equation}
+
+Therefore, by analyzing the element contribution fro the virtual work, the following relation is obtained
+
+\begin{equation*}
+    \delta \mathcal{W}^{(e)} = \int_{V^{(e)}}\pkOne^{(e)} : \tensorTwoGradO{\vec{\delta u}} \dV - \left (\int_{V^{(e)}} \vec{f_0^{(e)}} \cdot \vec{\delta u} \dV + \int_{S^{(e)}} \vec{t_0^{(e)}} \cdot \vec{\delta u} \dS \right)
+\end{equation*}
+
+ By using the discretized functions in the equation above, it then becomes:
+
+\begin{equation} \label{eq:dW_disc}
+    \delta \mathcal{W}^{(e)} = \sum_{a \, \in \, e} \left[ \underbrace{\int_{V^{(e)}} \pkOne^{(e)} \vectorGradO{N_a} \dV}_{\vec{\delta \mathcal{W}}_{int, a}^{(e)}} - \underbrace{\left (\int_{V^{(e)}} \vec{f_0^{(e)}} \cdot N_a  \dV + \int_{S^{(e)}} \vec{t_0^{(e)}} \cdot N_a \dS \right)}_{\vec{\delta \mathcal{W}}_{ext, a}^{(e)}} \right] \cdot \vec{\delta U}_a
+ \end{equation}
+
+\section{Numerical Integration}
+
+To solve for the integrals in the equations above, a numerical integration strategy is used. This is done with the Gauss quadrature framework. 
+
+Before using this process, one additional development needs to be done to Equation \ref{eq:dW_disc}. As mentioned before, the shape functions are written in the space of the reference element. Therefore, it is useful to also integrate in this coordinate system. To make this change in integration variable, a volume and surface Jacobian for the $V \longrightarrow \hat V$ and $S \longrightarrow \hat S$ transformations are used and are represented by $\J_V$ and $\J_S$, respectively. 
+
+\begin{align*}
+    \delta \mathcal{W}_{int,a}^{(e)} &= \int_{V^{(e)}} \pkOne^{(e)} \vectorGradO{N_a} \dV = \\
+    &= \int_{\hat V^{(e)}} \pkOne^{(e)} (\psi^{(e)}(\vec{\xi})) \vectorGradO{N_a} (\vec{\xi}) \cdot \J_V^{(e)} \mathrm{d\hat V} \\
+    \delta \mathcal{W}_{ext,a}^{(e)} &= \int_{V^{(e)}} \vec{f_0^{(e)}} \cdot N_a  \dV + \int_{S^{(e)}} \vec{t_0^{(e)}} \cdot N_a \dS = \\
+    &= \int_{\hat{V}^{(e)}} \vec{f_0^{(e)}} (\psi^{(e)}(\vec{\xi})) \cdot N_a (\vec{\xi}) \cdot \J_V^{(e)} \mathrm{d\hat V} + \int_{\hat{S}^{(e)}} \vec{t_0^{(e)}} (\psi^{(e)}(\vec{\xi})) \cdot N_a (\vec{\xi}) \cdot \J_S^{(e)} \mathrm{d\hat S}
+\end{align*}
+
+Now, by using the quadrature's approximation, it is possible to write:
+
+\begin{equation} \label{eq:integral_Wint}
+    \delta \mathcal{W}_{int,a}^{(e)} \approx \sum_g \omega_g \cdot  \pkOne^{(e)} (\psi^{(e)}(\vec{\xi_g})) \vectorGradO{N_a} (\vec{\xi_g}) \cdot \J_V^{(e)}
+\end{equation}
+\begin{equation} \label{eq:integral_Wext}
+    \delta \mathcal{W}_{ext,a}^{(e)} \approx \sum_g \omega_g \cdot \vec{f_0^{(e)}} (\psi^{(e)}(\vec{\xi_g})) \cdot N_a (\vec{\xi_g}) \cdot \J_V^{(e)} + \sum_{g_s} \vec{t_0^{(e)}} (\psi^{(e)}(\vec{\xi_{g_s}})) \cdot N_a (\vec{\xi_{g_s}}) \cdot \J_S^{(e)}
+\end{equation}

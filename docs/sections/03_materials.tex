@@ -1,0 +1,75 @@
+\chapter{Material Behavior}
+
+\section{Linear Materials}
+
+\subsection{Linear Elastic Isotropic} \label{mat:linear_elastic_iso}
+
+This model uses the hypothesis of small displacements under a elastic regime. This is mainly done by assuming that:
+
+\begin{equation*}
+    \tensorTwoGrad{\vec{u}} \approx \tensorTwoGradO{\vec{u}} \qquad \text{and} \qquad \lVert  \tensorTwoGrad{\vec{u}} \lVert \approx 0
+\end{equation*}
+
+This leads to the following conclusions:
+
+\begin{equation*}
+    \left\{
+    \begin{array}{cc}
+        \F &= \tensorTwo{\mathrm{I}} + \tensorTwoGradO{\vec{u}} \approx \tensorTwo{\mathrm{I}} \\
+        \J &= \det{\F} \approx 1 \\
+    \end{array} \right.
+    \qquad \Longrightarrow \qquad \cauchy \approx \kirchhoff \approx \pkOne \approx \pkTwo
+\end{equation*}
+
+Under this hypothesis, the strain ($\tensorTwo{\varepsilon}$) is used to model the material. It is defined as:
+
+\begin{equation} \label{eq:strain}
+    \tensorTwo{\varepsilon} = \frac{1}{2} \left(\tensorTwoGrad{\vec{u}} + \tensorTwoGrad{\vec{u}}^T \right)
+\end{equation}
+
+Using this, both the strain energy density and Cauchy stress can be defined as:
+
+\begin{equation} \label{eq:psi_linear_elastic_iso}
+    \potential = \frac{1}{2} \lambda \, \left( tr(\tensorTwo{\varepsilon}) \right)^2 + \mu \,\tensorTwo{\varepsilon} : \tensorTwo{\varepsilon}
+\end{equation}
+
+\begin{equation} \label{eq:sigma_linear_elastic_iso}
+    \cauchy = \lambda \, tr(\tensorTwo{\varepsilon}) \tensorTwo{\mathrm{I}} + 2\mu \,\tensorTwo{\varepsilon}
+\end{equation}
+
+This model is characterized by two parameters ($\lambda$ and $\mu$) which are called the Lamé coefficients. They can be written as a function of the Young's modulus ($E$) and Poisson coefficient ($\nu$) as follows:
+
+\begin{equation} \label{eq:lame1}
+    \lambda = \frac{E \nu}{(1 + \nu)(1 - 2\nu)}
+\end{equation}
+\begin{equation} \label{eq:lame2}
+    \mu = \frac{E}{2(1 + \nu)}
+\end{equation}
+
+\section{Non Linear Materials}
+
+\subsection{Saint Venant-Kirchhoff} \label{mat:svt}
+
+This model can be is often used for moderate deformations under a elastic regime. Unlike the \nameref{mat:linear_elastic_iso} model, the present framework does not uses the small displacement hypothesis and therefore is no longer a linear model.
+
+Similarly, the model uses the strain energy density to correlate the stress and kinematics of the material. Within this context, the strain energy and the second Piola-Kirchhoff stress tensor are give below:
+
+\begin{equation} \label{eq:psi_svt}
+    \potential = \frac{1}{2} \lambda \, \left( tr(\E) \right)^2 + \mu \, \E : \E
+\end{equation}
+
+\begin{equation} \label{eq:pk2_svt}
+    \pkTwo = \lambda \, tr(\E) \tensorTwo{\mathrm{I}} + 2\mu \,\E
+\end{equation}
+
+\subsection{Compressible Neo-Hookean} \label{mat:nh}
+
+Unlike the \nameref{mat:svt} model, this model can be employed for large deformations under a elastic regime. It considers a compressible hyper-elastic material that follows the following equations:
+
+\begin{equation} \label{eq:psi_nh}
+    \potential = \frac{1}{2} \mu \, \left( tr(\C) - 3 \right) + \mu \, \ln{\J} + \frac{1}{2} \lambda \, \left( \ln{\J} \right)^2
+\end{equation}
+
+\begin{equation} \label{eq:pk2_nh}
+    \pkTwo = \mu \, \left(\tensorTwo{\mathrm{I}} - \C^{-1} \right) - \lambda \, \ln{\J} \, \C^{-1}
+\end{equation}
