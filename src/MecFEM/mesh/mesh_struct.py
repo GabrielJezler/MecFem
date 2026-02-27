@@ -136,6 +136,56 @@ class Mesh:
 
         return np.array(coords)
     
+    def get_elements_cg_coordinates(self, dim:int=None):
+        """
+        Get the coordinates of the center of gravity of the elements of a specific dimension
+
+        Parameters:
+        ----------
+        dim: int | None
+            The dimension of the elements. If None, use mesh dimension. Defaults to None.
+
+        Returns:
+        -------
+        np.ndarray: Array of shape (nElements, 3) containing the coordinates of the center of gravity of the elements
+        """
+        if dim is None:
+            dim = self._dim
+        
+        coords = []
+        for elem in self._elems[dim]:
+            elem_coords = self.get_nodes_coordinates_by_element(elem.id, dim)
+            cg_coords = np.mean(elem_coords, axis=0)
+            coords.append(cg_coords)
+
+        return np.array(coords)
+
+    def get_elements_nodal_coordinates(self, dim:int=None):
+        """
+        Get the coordinates of the nodes of the elements of a specific dimension
+
+        Parameters:
+        ----------
+        dim: int | None
+            The dimension of the elements. If None, use mesh dimension.
+            Defaults to None.
+
+        Returns:
+        -------
+        np.ndarray: List (nElements, nNodesPerElement, 3) containing the coordinates
+        of the nodes of the elements. Note that the nNodesPerElement can be different
+        for each element, so the list is not a regular array.
+        """
+        if dim is None:
+            dim = self._dim
+        
+        coords = []
+        for elem in self._elems[dim]:
+            elem_coords = self.get_nodes_coordinates_by_element(elem.id, dim)
+            coords.append(elem_coords)
+
+        return coords
+
     def get_nodes_coordinates_by_element(self, elem_id:int, dim:int | None=None):
         """
         Get the coordinates of the nodes of a specific element
@@ -177,7 +227,7 @@ class Mesh:
         
         raise ValueError(f"Node with id {id} not found")
     
-    def get_element_by_id(self, id:int, dim:int=None):
+    def get_element_by_id(self, id:int, dim:int | None = None):
         """
         Get an element by its ID
 

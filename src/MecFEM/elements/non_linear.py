@@ -23,6 +23,7 @@ class NonLinearFiniteElement:
     """
     def __init__(self, elem: Element, x_nodes: np.ndarray) -> None:
         elem_data: iso_elem.ReferenceElementData = iso_elem.ReferenceElements().get_by_type(elem.type)
+        self.id = elem.id
 
         self.dim = elem_data.dim
         self.x_nodes = x_nodes
@@ -224,7 +225,6 @@ class NonLinearFiniteElement:
             Internal force vector. This is an array of shape (n_nodes, dim).
 
         """
-        # fint = np.einsum('i,ijk->jk', self.jacobian_det*self.weight, tensor.dot3(self.dfshape, self.pk1))
         fint = self.integrate(tensor.dot3(self.dfshape(), self.pk1))
         return fint
     
@@ -243,7 +243,6 @@ class NonLinearFiniteElement:
             Volumetric force vector. This is an array of shape (n_nodes, dim).
 
         """
-        # f_vol = np.einsum('i,ik,ij->jk', self.jacobian_det*self.weight, f_int_pts, self.fshape[:,:,0])
         f_vol = self.integrate(np.einsum('ik,ij->ijk', f_int_pts, self.fshape()[:,:,0]))
         return f_vol
     
@@ -262,7 +261,6 @@ class NonLinearFiniteElement:
             External force vector. This is an array of shape (n_nodes, dim).
 
         """
-        # f_ext = np.einsum('i,ik,ij->jk', self.jacobian_det*self.weight, f_int_pts, self.fshape[:,:,0])
         f_ext = self.integrate(np.einsum('ik,ij->ijk', f_int_pts, self.fshape()[:,:,0]))
         return f_ext
     

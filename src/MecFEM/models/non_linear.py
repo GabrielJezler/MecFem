@@ -42,7 +42,6 @@ class NonLinear:
         self.free_dofs = np.arange(self.n_dofs).astype(int)
         self.fixed_dofs = np.array([], dtype=int)
 
-
         self.elems: list[NonLinearFiniteElement] = []
         self.boundary_elems: list[NonLinearFiniteElement] = []
 
@@ -54,8 +53,8 @@ class NonLinear:
             x_nodes = mesh.get_nodes_coordinates_by_element(elem.id, self.dim - 1)
             self.boundary_elems.append(NonLinearFiniteElement(elem, x_nodes))
         
-        self._volumetric_force_steps: list[BCStep] = []
-        self._external_forces_steps: list[BCStep] = []
+        self._volumetric_force_steps: list[(np.ndarray, BCStep)] = []
+        self._external_forces_steps: list[(np.ndarray, BCStep)] = []
         self._displacement_steps: list[(np.ndarray, BCStep)] = []
 
         self.U:np.ndarray | None = None
@@ -103,6 +102,7 @@ class NonLinear:
             Array of degrees of freedom (DOFs) where the displacement is applied. This is an array of shape (n_dofs,).
         step : BCStep
             Boundary condition step defining the time-dependent values for the DOFs.
+
         Returns
         -------
         None.
@@ -122,14 +122,19 @@ class NonLinear:
         self._displacement_steps.append((dofs, step))
         return None
 
-    def add_volumetric_force(self, step: BCStep) -> None:
+    def add_volumetric_force(self, step: BCStep, elems_id: np.ndarray | None = None) -> None:
         """
         Add volumetric force to the model.
 
         Parameters
         ----------
-        f_nodes : np.ndarray
-            Function that takes nodal coordinates and returns nodal forces.
+        elems_id : ndarray | None
+            Array of element ids where the volumetric force is applied.  If None then
+            all elements are considered to have the volumetric force applied. This is
+            an array of shape (n_elems_id,). Pay attention that the element ids are the
+            one given by the mesh and not simply the order they appear in `self.elems`.
+        step : BCStep
+            Boundary condition step defining the time-dependent values for the DOFs.
 
         Returns
         -------
@@ -137,30 +142,39 @@ class NonLinear:
 
         """
         if isinstance(step, BCStep):
-            self._volumetric_force_steps.append(step)
+            if elems_id is None:
+                elems_id = np.array([elem.id for elem in self.elems])
+            
+            self._volumetric_force_steps.append((elems_id, step))
         else:
             raise TypeError("step must be an instance of BCStep")
         
         return None
     
-    def add_external_force(self, f_nodes: np.ndarray) -> None:
+    def add_external_force(self, elems_id: np.ndarray, step: BCStep) -> None:
         """
         Add external force to the model.
 
         Parameters
         ----------
-        f_nodes : np.ndarray
-            Function that takes nodal coordinates and returns nodal forces.
+        elems_id : ndarray
+            Array of element ids where the external force is applied (they are elements
+            of dimention `self.dim -1`). 
+            This is an array of shape (n_elems_id,). 
+            Pay attention that the element ids are the one given by the mesh and not
+            simply the order they appear in `self.elems`.
+        step : BCStep
+            Boundary condition step defining the time-dependent values for the DOFs.
 
         Returns
         -------
         None.
-
         """
-        if not f_nodes.shape == (self.n_nodes, self.dim):
-            raise ValueError("External force shape mismatch")
+        if isinstance(step, BCStep):
+            self._external_forces_steps.append((elems_id, step))
+        else:
+            raise TypeError("step must be an instance of BCStep")
         
-        self._external_forces_steps.append(f_nodes)
         return None
 
     def extract(self, U: np.ndarray, elem_id: int) -> np.ndarray:
@@ -249,6 +263,22 @@ class NonLinear:
         
         return Fint
     
+    def get_volumetric_forces_steps(self, elem_id: int):
+        """
+        Get the Volumetric forces steps for a certain element
+
+        Parameters:
+        -----------
+        elem_id : int
+            Element id from mesh.
+        """
+        steps = []
+        for ids, step in self._volumetric_force_steps:
+            if elem_id in ids:
+                steps.append(step)
+
+        return steps
+
     def volumetric_forces(self, t: float=0.0) -> np.ndarray:
         """
         Compute global volumetric force vector.
@@ -270,9 +300,11 @@ class NonLinear:
             return Fvol
         
         for i, elem in enumerate(self.elems):
-            # volumetric_forces_elem = np.sum(np.array([step.interp(t)(elem.x_nodes[:, 0:elem.dim], elem.fshape) for step in self._volumetric_force_steps]), axis=0)
+            steps = self.get_volumetric_forces_steps(elem.id)
+            if steps == []:
+                continue
 
-            volumetric_forces_elem = np.sum([step.interp(t)(elem.x_nodes[:, 0:elem.dim], elem.fshape()) for step in self._volumetric_force_steps], axis=0)
+            volumetric_forces_elem = np.sum([step.interp(t)(elem.x_nodes[:, 0:elem.dim], elem.fshape()) for step in steps], axis=0)
 
             self.assemble(i, elem.volumetric_force(volumetric_forces_elem), Fvol)
 
@@ -494,12 +526,13 @@ class NonLinear:
             c += 1
 
         c = 1
-        for step in self._volumetric_force_steps:
+        for elems_id, step in self._volumetric_force_steps:
             label = f"Volumetric Force {c}"
-            X_cg = np.zeros((len(self.elems), self.dim))
-            F = np.zeros((len(self.elems), self.dim))
-            for i, elem in enumerate(self.elems):
-                X_cg[i, :] = np.mean(elem.x_nodes[:, 0:elem.dim], axis=0)
+            X_cg = np.zeros((len(elems_id), self.dim))
+            F = np.zeros((len(elems_id), self.dim))
+            for i, elem_id in enumerate(elems_id):
+                elem = self.mesh.get_element_by_id(elem_id)
+                X_cg[i, :] = np.mean(self.mesh.get_nodes_coordinates_by_element(elem_id)[:, :self.dim], axis=0)
                 F[i, :] = step.interp(time)._field(X_cg[i, :][np.newaxis, :])[0, :]
 
             ax.scatter(X_cg[:, 0], X_cg[:, 1], c=f"C{c-1}", marker="x", label=label, s=40, zorder=0)
