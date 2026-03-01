@@ -17,6 +17,30 @@
 \usepackage{enumitem}
 \usepackage{multirow}
 
+\usepackage{listings}
+\usepackage{xcolor} % required for coloring
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\bfseries,
+    emphstyle=\color{red}\bfseries,
+    stringstyle=\color{green!60!black},
+    commentstyle=\color{gray}\itshape,
+    numberstyle=\tiny\color{black!75},
+    numbers=left,
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{black!75},
+    backgroundcolor=\color{white},
+    tabsize=4,
+    captionpos=b,
+}
+\lstset{style=pythonstyle}
+
 \usepackage{nomencl}
 \renewcommand{\nomname}{List of Symbols}
 \makenomenclature

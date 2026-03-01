@@ -1,10 +1,16 @@
 \chapter{Kinematics and Stresses}
 
+In this section, the kinematics and the different stress tensors used in this paper are defined. The relation between them is also given. Finally, the definition of the strain energy density is given as well as its relation with the different stress tensors. These definitions are used throughout the paper and are important for the understanding of the following sections.
+
 \section{Kinematics}
+
+The kinematics of a body is defined by the transformation between the initial configuration and the current configuration. This transformation can be defined as stated by Equation \ref{eq:transformation}. Thoughout this paper, the initial configuration will be denoted by capital letters while the current configuration will be denoted by lowercase letters.
 
 \begin{equation} \label{eq:transformation}
     \x = \vec{\phi} (\X, \, t)
 \end{equation}
+
+Based on this transformation, it is possible to define the transformation gradient (Equation \ref{eq:F}) and the Jacobian of the transformation (Equation \ref{eq:J}).
 
 \begin{equation} \label{eq:F}
     \F = \tensorTwoGradO{\x} = \pderiv{\x}{\X}
@@ -14,12 +20,14 @@
     \J = \det{\F}
 \end{equation}
 
+Based on the tensor $\F$, it is possible to define multiple tensors to represent the defromation. In this codes, two of then are used: the right Cauchy-Green deformation tensor $\C$ and the Green-Lagrange strain tensor $\E$ as given by Equations \ref{eq:C} and \ref{eq:E} respectively.
+
 \begin{equation} \label{eq:C}
     \C = \F^T \F
 \end{equation}
 
 \begin{equation} \label{eq:E}
-    \E = \frac{1}{2} \left(\C - \tensorTwo{\mathrm{I}}\right)
+    \E = \frac{1}{2} \left(\C - \tensorTwo{\mathrm{I}}\right) = \frac{1}{2} \left(\F^T \F - \tensorTwo{\mathrm{I}}\right)
 \end{equation}
 
 \section{Stresses}
