@@ -12,8 +12,10 @@ class NonLinear:
     Data structure for non linear FE model
     
     Attributes:
+        - material: Material object defining the constitutive behavior
+        - mesh: Mesh object defining the geometry and discretization of the problem
         - dim: mesh dimension
-        - nNodes: number of nodes
+        - n_nodes: number of nodes
         - connect: table of connectivity (list of lists)
 
             Example: 
@@ -28,7 +30,13 @@ class NonLinear:
                     [node1_elemM, node2_elemM, ..., nodeN_elemM]
                 ]
 
-        - material: Material object defining the constitutive behavior
+        - n_dofs: number of degrees of freedom (n_nodes * dim)
+        - free_dofs: array of free degrees of freedom
+        - fixed_dofs: array of fixed degrees of freedom
+        - elems: list of NonLinearFiniteElement objects representing the elements in the mesh
+        - boundary_elems: list of NonLinearFiniteElement objects representing the boundary elements in the mesh
+        - U: array of nodal displacements at each time step (shape: (n_time_steps, n_nodes, dim))
+        - T: array of time steps corresponding to the nodal displacements (shape: (n_time_steps,))
     """
     def __init__(self, mesh: Mesh, material) -> None:
         self.material = material
@@ -57,8 +65,9 @@ class NonLinear:
         self._external_forces_steps: list[(np.ndarray, BCStep)] = []
         self._displacement_steps: list[(np.ndarray, BCStep)] = []
 
-        self.U:np.ndarray | None = None
-        self.T:np.ndarray | None = None
+        self.U:np.ndarray | None = None # Displacement
+        self.R:np.ndarray | None = None # Residual
+        self.T:np.ndarray | None = None # Time steps
 
     def __repr__(self):
         return f"NonLinear(n_nodes: {self.n_nodes}, n_elems: {self.n_elements}, dim: {self.dim}, material: {self.material})"
@@ -421,6 +430,7 @@ class NonLinear:
         messages = []
         time_verbose = [0.0]
         U_verbose = [Un_1]
+        R_verbose = [self.residual(Un_1.reshape((self.n_nodes, self.dim)), time)]
 
         self.update_elements(Un_1.reshape((self.n_nodes, self.dim)))
 
@@ -480,6 +490,7 @@ class NonLinear:
             if (n_step % F_VERBOSE == 0 or time > t_end - dt):
                 U_verbose.append(Un)
                 time_verbose.append(time)
+                R_verbose.append(R.reshape((self.n_nodes, self.dim)))
 
                 Dt = datetime.datetime.now() - start_time
                 print(f"Time: {str(Dt).split('.')[0]} < {str((t_end - time)*Dt/time).split('.')[0]} | Simulation time: {time:.4f} / {t_end:.4f} | ||r||: {norm_R:.3e} at iteration {iter:<2}", end="\r", flush=True)
@@ -491,11 +502,44 @@ class NonLinear:
         run_time = datetime.datetime.now() - start_time
         print(f"SIMULATION COMPLETED - RUN TIME: {run_time}")
 
-        self.U = np.array(U_verbose).reshape((len(U_verbose), self.n_nodes, self.dim))
+        self.U = np.array(U_verbose).reshape((len(time_verbose), self.n_nodes, self.dim))
         self.T = np.array(time_verbose)
+        self.R = np.array(R_verbose)
         self.messages = messages
 
         return None
+
+    def sigma(self, averaged=True) -> np.ndarray:
+        """
+        Get Cauchy stress for each element.
+
+        Parameters
+        ----------
+        averaged : bool, optional
+            If True, return averaged stress at nodes. If False, return stress at integration points. The default is True.
+
+        Returns
+        -------
+        sigma : ndarray
+            Cauchy stress at element. This is an array of shape (n_elems, dim, dim).
+
+        """
+        if self.U is None or self.T is None:
+            raise ValueError("No solution found. Please run the solver first.")
+        
+        if not averaged:
+            raise ValueError("Non averaged values are not yet available.")
+        
+        sigma = np.zeros((self.T.shape[0], len(self.elems), self.dim, self.dim))
+
+        for step in range(self.T.shape[0]):
+            for e, elem in enumerate(self.elems):
+                u_nodes = self.extract(self.U[step, :], e)
+                sigma_elem = elem.sigma(u_nodes, self.material)
+
+                sigma[step, e, :, :] = np.mean(sigma_elem, axis=0)
+
+        return sigma
 
     def plot_bc(self, ax: plt.Axes=None, time:float=1.0) -> None:
         if ax is None:
@@ -542,35 +586,3 @@ class NonLinear:
         ax.set_title(f"Boundary conditions at t = {time:.4f}")
         return None
     
-    def sigma(self, averaged=True) -> np.ndarray:
-        """
-        Get Cauchy stress for each element.
-
-        Parameters
-        ----------
-        averaged : bool, optional
-            If True, return averaged stress at nodes. If False, return stress at integration points. The default is True.
-
-        Returns
-        -------
-        sigma : ndarray
-            Cauchy stress at element. This is an array of shape (n_elems, dim, dim).
-
-        """
-        if self.U is None or self.T is None:
-            raise ValueError("No solution found. Please run the solver first.")
-        
-        if not averaged:
-            raise ValueError("Non averaged values are not yet available.")
-        
-        sigma = np.zeros((self.T.shape[0], len(self.elems), self.dim, self.dim))
-
-        for step in range(self.T.shape[0]):
-            for e, elem in enumerate(self.elems):
-                u_nodes = self.extract(self.U[step, :], e)
-                sigma_elem = elem.sigma(u_nodes, self.material)
-
-                sigma[step, e, :, :] = np.mean(sigma_elem, axis=0)
-
-        return sigma
-

@@ -150,13 +150,13 @@ def test():
 
     f = mf.boundary_conditions.VolumetricForce(lambda X: f_volumetric(X, g=-9.81 * 1e7))
 
-    model.add_volumetric_force(
-        step=mf.boundary_conditions.BCStep(
-            times=[0.0, 1.0],
-            values=[f * 0.0, f * 1.0]
-        ),
-        elems_id=None # Apply to all elements
-    )
+    # model.add_volumetric_force(
+    #     step=mf.boundary_conditions.BCStep(
+    #         times=[0.0, 1.0],
+    #         values=[f * 0.0, f * 1.0]
+    #     ),
+    #     elems_id=None # Apply to all elements
+    # )
 
     fig, ax = plt.subplots()
 
@@ -230,6 +230,14 @@ def test():
     ax, ani = mf.post.vector.animate_2d_displacement(model, scale=100, ax=ax, label='Displacement magnitude', zoom_out=0.25, interval=200)
 
     fig.suptitle("Displacement animation")
+    plt.show()
+
+    fig, ax = plt.subplots()
+    ax = mesh.plot(ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+
+    ax = mf.post.vector.plot_2d_arrows(model, model.R[-1], ax=ax, scale=2e8, label='Reaction vectors')
+
+    fig.suptitle("Reaction vectors")
     plt.show()
 
     mesh.write_element_tensor2_data(

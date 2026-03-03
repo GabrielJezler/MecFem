@@ -91,11 +91,11 @@ def ry_disp(X:np.ndarray, dr:float) -> np.ndarray:
 
 
 if __name__ == "__main__":
-    mesh = mf.mesh.read.read_gmsh_mesh("mesh/cylinder_quad.msh", dim=2)
+    mesh = mf.mesh.Mesh("mesh/cylinder_quad.msh",dim=2)
 
     fig, ax = plt.subplots()
 
-    mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    mesh.plot(ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
     selector = mf.chart_selectors.node.LassoSelector(ax)
 
@@ -166,7 +166,7 @@ if __name__ == "__main__":
 
     fig, ax = plt.subplots()
 
-    mf.mesh.plot_mesh(mesh, ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    mesh.plot(ax=ax, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
     model.plot_bc(ax=ax)
 
@@ -181,8 +181,8 @@ if __name__ == "__main__":
     )
 
     fig, ax = plt.subplots(1,2)
-    ax[0] = mf.mesh.plot_mesh(mesh, ax=ax[0], nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.1)
-    ax[1] = mf.mesh.plot_mesh(mesh, ax=ax[1], nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.1)
+    ax[0] = mesh.plot(ax=ax[0], nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.1)
+    ax[1] = mesh.plot(ax=ax[1], nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.1)
     
     ax[0] = mf.post.vector.plot_2d_field(model, model.U[-1], ax=ax[0], component="Mag", label='Displacement')
     ax[1] = mf.post.vector.plot_2d_arrows(model, model.U[-1], ax=ax[1], scale=1/5000, label='Displacement vectors')
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     sigma = model.sigma(averaged=True)
 
     fig, ax = plt.subplots()
-    ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    ax = mesh.plot(ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
     ax = mf.post.tensor.plot_2d_field(model, sigma[-1], ax=ax, component="VM", label='Von Mises Stress')
 
@@ -201,7 +201,15 @@ if __name__ == "__main__":
     plt.show()
 
     fig, ax = plt.subplots()
-    ax = mf.mesh.plot_mesh(mesh, ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+    ax = mesh.plot(ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+
+    ax = mf.post.vector.plot_2d_arrows(model, model.R[-1], ax=ax, scale=200, label='Reaction vectors')
+
+    fig.suptitle("Reaction vectors")
+    plt.show()
+
+    fig, ax = plt.subplots()
+    ax = mesh.plot(ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
     ax, ani = mf.post.vector.animate_2d_displacement(model, scale=1000, ax=ax, label='Displacement magnitude', zoom_out=0.25, interval=200)
 

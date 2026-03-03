@@ -37,6 +37,13 @@ Using this, both the strain energy density and Cauchy stress can be defined as:
     \cauchy = \lambda \, tr(\tensorTwo{\varepsilon}) \tensorTwo{\mathrm{I}} + 2\mu \,\tensorTwo{\varepsilon}
 \end{equation}
 
+The Equation \ref{eq:sigma_linear_elastic_iso} is also known as the generalized Hooke's law for isotropic materials. This is written as a function of the elaticity tensor, which is given by:
+
+\begin{equation} \label{eq:sigma_linear_elastic_iso_C}
+    \cauchy = \tensorFour{C} : \tensorTwo{\varepsilon} \qquad \text{with} \qquad
+    C_{ijkl} = \lambda \, \delta_{ij}\delta_{kl} + \mu \left( \delta_{ik}\delta_{jl} + \delta_{il}\delta_{jk} \right)
+\end{equation}
+
 This model is characterized by two parameters ($\lambda$ and $\mu$) which are called the Lamé coefficients. They can be written as a function of the Young's modulus ($E$) and Poisson coefficient ($\nu$) as follows:
 
 \begin{equation} \label{eq:lame1}

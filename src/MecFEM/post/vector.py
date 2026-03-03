@@ -5,7 +5,7 @@ import numpy as np
 
 from ..models import NonLinear
 
-def plot_2d_arrows(model, F_nodes: np.ndarray, ax=None, scale:float=1.0, label:str='Field', color:str | None=None):
+def plot_2d_arrows(model, F_nodes: np.ndarray, ax=None, scale:float | None=None, label:str='Field', color:str | None=None):
     """
     Plots the Field vectors on the mesh.
 
@@ -41,7 +41,7 @@ def plot_2d_arrows(model, F_nodes: np.ndarray, ax=None, scale:float=1.0, label:s
             F_nodes[:, 1],
             Z,
             angles='xy',
-            # scale=scale,
+            scale=scale,
             scale_units='width',
             label=label,
             cmap='plasma',

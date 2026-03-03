@@ -1,0 +1,77 @@
+\chapter{Non Linear Solution}
+
+\section{Newton-Raphson Method}
+
+The Newton-Raphson method is an iterative method used to solve non linear equations. For the case of a 1D equation, the formulation is given by:
+
+\begin{equation*}
+    f(x) = 0
+\end{equation*}
+
+The ideia is to start with an initial guess for the solution and then iteratively improve it until convergence is achieved. The method is based on the Taylor series expansion of the function around the current guess. The next guess is then given by:
+
+\begin{equation} \label{eq:newton-raphson-1d}
+    x^{k+1} = x^k + \Delta x^k \qquad \text{where} \qquad \Delta x^k = -\frac{f(x^k)}{f'(x^k)}
+\end{equation}
+
+As we expand this formulation, it is possible to solve for a system of equations - where $f$ is now a vector - with $n$ unknowns:
+
+\begin{equation*}
+    \vec{f} \left(\vec{x} \right) = \vec{0}
+\end{equation*}
+
+For this case, the definition of a directional derivative is needed. This can be defined as:
+
+\begin{equation} \label{eq:directiona-der}
+    D \vec{f} \left( \vec{x} \right) \, \left[\vec{u} \right] = \frac{d}{d \epsilon} \Bigr \rvert_{\epsilon = 0} \vec{f} \left(\vec{x} + \epsilon \vec{u} \right)
+\end{equation}
+
+Therefore, the next guess for the solution is given by:
+
+\begin{equation} \label{eq:newton-raphson}
+    x^{k+1} = x^k + \Delta x^k \qquad \text{where} \qquad D \vec{f} \left( \vec{x}^k \right) \, \left[\Delta \vec{x}^k \right] = -\vec{f} \left(\vec{x}^k \right)
+\end{equation}
+
+\section{Application to Finite Elements}
+
+In order to apply the Newton-Raphson method to the finite element method, the equation to be solved is stated in \ref{eq:wf_pk1}. This means that the function to be solved is the virtual work of the system, and hence, the firts step is to compute the directional derivative of the virtual work with respect to a displacement increment $\Delta \vec{u}$:
+
+\begin{equation} \label{eq:dir-der-W}
+    \begin{split}
+        D \delta \mathcal{W} &\left( \vec{\phi}, \, \delta \vec{u} \right) \, \left[\Delta \vec{u} \right] = \\\\
+        &= \underbrace{\int_V D \pkOne \, [\Delta \vec{u}] : \tensorTwoGradO{\delta \vec{u}} \dV}_{D \delta \mathcal{W}^{int} \, \left[\Delta \vec{u} \right]} - \underbrace{\left(\int_V D \vec{f_0} \, [\Delta \vec{u}] \cdot \delta \vec{u} \dV + \int_S D \vec{t_0} \, [\Delta \vec{u}] \cdot \delta \vec{u} \dS \right)}_{D \delta \mathcal{W}^{ext} \, \left[\Delta \vec{u} \right]} = 0 \quad \forall \, \delta \vec{u} 
+    \end{split}
+\end{equation}
+
+To solve for the next step, the virtual work of the system is composed of the sum of the internal virtual work and the external virtual work. Then, the directional derivative of each of them is computed separately. In both cases, it will be written as follows:
+
+\begin{equation*}
+    D \delta \mathcal{W} \, \left[\Delta \vec{u} \right] = \sum_{a} \sum_{b} \vec{U}_a \cdot \tensorTwo{K}_{ik}^{(a,b)} \cdot \delta\vec{U}_b
+\end{equation*}
+
+The goal with this section is to find the tangent tensor $\tensorTwo{K}_{ik}^{(a,b)}$ for each node $a$ and $b$. Once this is done, the next step is to solve for the increment of displacement $\Delta \vec{U}$ by solving the following system of equations:
+
+\begin{equation*}
+    \sum_{a} \sum_{b} \vec{U}_a \cdot \tensorTwo{K}_{ik}^{(a,b)} \cdot \delta\vec{U}_b = -\delta \mathcal{W} = \sum \quad \forall \, \delta \vec{u}
+\end{equation*}
+
+\subsection{Internal virtual work}
+
+\begin{equation}
+    \int_V D \pkOne \, [\Delta \vec{u}] : \tensorTwoGradO{\delta \vec{u}} \dV
+\end{equation}
+
+\subsubsection{Discretization}
+
+\subsubsection{Elementary Description}
+
+\subsubsection{Numerical Integration}
+
+\subsection{External virtual work}
+
+\subsubsection{Discretization}
+
+\subsubsection{Elementary Description}
+
+\subsubsection{Numerical Integration}
+
