@@ -10,6 +10,7 @@
 - Add external forces to the solvers (*limited to volumetric with no spacial dependence for now*)
 - Add reaction forces to the solvers (*partially done*)
 - Validation of solver (done partially, but more cases to be analyzed)
+- Add sparse matrix compatibility to the solvers (currently using dense matrices, which is not efficient for large problems)
 - Finish the app (currently waiting for Matplotlib to be supported in Flet - [bug reported in Flet repo](https://github.com/flet-dev/flet/issues/6155))
 - Finish documentation
 
