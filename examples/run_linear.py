@@ -91,7 +91,7 @@ def ry_disp(X:np.ndarray, dr:float) -> np.ndarray:
 
 
 if __name__ == "__main__":
-    mesh = mf.mesh.Mesh("mesh/cylinder_quad.msh",dim=2)
+    mesh = mf.mesh.Mesh("../mesh/cylinder_quad.msh",dim=2)
 
     fig, ax = plt.subplots()
 
@@ -101,9 +101,9 @@ if __name__ == "__main__":
 
     plt.show()
 
-    material = mf.materials.non_linear.NeoHookean(E=10.0e6, nu=0.45)
+    material = mf.materials.linear.IsotropicElasticity(E=10.0e6, nu=0.45)
 
-    model = mf.models.NonLinear(
+    model = mf.models.Linear(
         mesh,
         material
     )
@@ -177,7 +177,6 @@ if __name__ == "__main__":
         dt=0.1,
         t_end=1.0,
         F_VERBOSE=1,
-        MAX_ITER=50
     )
 
     fig, ax = plt.subplots(1,2)
@@ -198,14 +197,6 @@ if __name__ == "__main__":
     ax = mf.post.tensor.plot_2d_field(model, sigma[-1], ax=ax, component="VM", label='Von Mises Stress')
 
     fig.suptitle("Von Mises stress field")
-    plt.show()
-
-    fig, ax = plt.subplots()
-    ax = mesh.plot(ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
-
-    ax = mf.post.vector.plot_2d_arrows(model, model.R[-1], ax=ax, scale=200, label='Reaction vectors')
-
-    fig.suptitle("Reaction vectors")
     plt.show()
 
     fig, ax = plt.subplots()
