@@ -21,8 +21,8 @@ def test():
     )
 
     stiffness, pk1_mat, grad0_u = fe.update(
-        np.array([[0.05, 0.1], [0.1, 0.2], [0.15, 0.25], [0.2, 0.3]]), 
-        material
+        material,
+        np.array([[0.05, 0.1], [0.1, 0.2], [0.15, 0.25], [0.2, 0.3]])
     )
     sigma_mat = material.sigma(grad0_u)
     tau_mat = material.tau(grad0_u)

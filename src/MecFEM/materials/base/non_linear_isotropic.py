@@ -1,8 +1,8 @@
 import numpy as np
 
-from MecFEM.utils import stress, kinematics, tensor
+from MecFEM.utils import kinematics, tensor
 
-class Isotropic:
+class NonLinearIsotropic:
     """
     This a base material class for isotropic materials. It defines the basic properties
     and methods that are common to all isotropic material models. To define a specific

@@ -1,14 +1,14 @@
 \chapter{Material Behavior}
 
-\section{Linear Materials}
+\section{Linear Materials} \label{sec:lin_mat}
 
 \subsection{Linear Elastic Isotropic} \label{mat:linear_elastic_iso}
 
 This model uses the hypothesis of small displacements under a elastic regime. This is mainly done by assuming that:
 
-\begin{equation*}
+\begin{equation} \label{eq:small_disp}
     \tensorTwoGrad{\vec{u}} \approx \tensorTwoGradO{\vec{u}} \qquad \text{and} \qquad \lVert  \tensorTwoGrad{\vec{u}} \lVert \approx 0
-\end{equation*}
+\end{equation}
 
 This leads to the following conclusions:
 
@@ -30,18 +30,18 @@ Under this hypothesis, the strain ($\tensorTwo{\varepsilon}$) is used to model t
 Using this, both the strain energy density and Cauchy stress can be defined as:
 
 \begin{equation} \label{eq:psi_linear_elastic_iso}
-    \potential = \frac{1}{2} \lambda \, \left( tr(\tensorTwo{\varepsilon}) \right)^2 + \mu \,\tensorTwo{\varepsilon} : \tensorTwo{\varepsilon}
+    \potential = \frac{1}{2} \lambda \, \left( tr(\tensorTwo{\varepsilon}) \right)^2 + \mu \, \tensorTwo{\varepsilon} : \tensorTwo{\varepsilon}
 \end{equation}
 
 \begin{equation} \label{eq:sigma_linear_elastic_iso}
     \cauchy = \lambda \, tr(\tensorTwo{\varepsilon}) \tensorTwo{\mathrm{I}} + 2\mu \,\tensorTwo{\varepsilon}
 \end{equation}
 
-The Equation \ref{eq:sigma_linear_elastic_iso} is also known as the generalized Hooke's law for isotropic materials. This is written as a function of the elaticity tensor, which is given by:
+The Equation \ref{eq:sigma_linear_elastic_iso} is also known as the generalized Hooke's law for isotropic materials. This is written as a function of the stiffness tensor, which is given by:
 
 \begin{equation} \label{eq:sigma_linear_elastic_iso_C}
-    \cauchy = \tensorFour{C} : \tensorTwo{\varepsilon} \qquad \text{with} \qquad
-    C_{ijkl} = \lambda \, \delta_{ij}\delta_{kl} + \mu \left( \delta_{ik}\delta_{jl} + \delta_{il}\delta_{jk} \right)
+    \cauchy = \tensorFour{\mathcal{C}} : \tensorTwo{\varepsilon} \qquad \text{with} \qquad
+    \mathcal{C}_{ijkl} = \lambda \, \delta_{ij}\delta_{kl} + \mu \left( \delta_{ik}\delta_{jl} + \delta_{il}\delta_{jk} \right)
 \end{equation}
 
 This model is characterized by two parameters ($\lambda$ and $\mu$) which are called the Lamé coefficients. They can be written as a function of the Young's modulus ($E$) and Poisson coefficient ($\nu$) as follows:
@@ -53,7 +53,7 @@ This model is characterized by two parameters ($\lambda$ and $\mu$) which are ca
     \mu = \frac{E}{2(1 + \nu)}
 \end{equation}
 
-\section{Non Linear Materials}
+\section{Non Linear Materials}  \label{sec:non_lin_mat}
 
 \subsection{Saint Venant-Kirchhoff} \label{mat:svt}
 

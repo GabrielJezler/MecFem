@@ -1,1 +1,2 @@
-from .isotropic import Isotropic
+from .non_linear_isotropic import NonLinearIsotropic
+from .linear_isotropic import LinearIsotropic

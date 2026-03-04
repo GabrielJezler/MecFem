@@ -71,11 +71,11 @@ It is possible to obtain the final equation:
 
 The discretization is a important step for the finite volume method. In this part, we use interpolation based on nodal values for the value of displacement inside an element. This is done by using shape functions ($N$) for each element node $a$ ($N_a$).
 
-\begin{equation}
+\begin{equation} \label{eq:disc_u}
     \vec{u} (\X) = \sum_{a \, \in \, e} N_a \left(\vec{\xi} \right) \cdot \vec{U}_a
 \end{equation}
-\begin{equation}
-    \tensorTwoGradO{\vec{u}} (\X) = \sum_{a \, \in \, e} \tensorTwoGradO{N_a} \left(\vec{\xi} \right) \otimes \vec{U}_a
+\begin{equation} \label{eq:disc_grad0_u}
+    \tensorTwoGradO{\vec{u}} (\X) = \sum_{a \, \in \, e} \vectorGradO{N_a} \left(\vec{\xi} \right) \otimes \vec{U}_a
 \end{equation}
 
 In those, the shape function is given as a function of the position vector $\vec{\xi}$. This is due to the fact that these functions are defined for a reference coordinate space. For a line element this would be for $\xi \in [-1, 1]$, for example. It is then possible to use the element's transformation (Equation \ref{eq:elem_transf}) to relate the reference system ($\vec{\xi}$) to the element's global coordinates ($\X$).
@@ -90,7 +90,7 @@ In addition, the Galerkin method is used, which means that the virtual field is 
     \delta \vec{u} ( \X ) = \sum_{a \, \in \, e} N_a \left(\vec{\xi} \right) \cdot \delta \vec{U}_a
 \end{equation}
 \begin{equation}
-    \tensorTwoGradO{\delta \vec{u}}( \X ) = \sum_{a \, \in \, e} \tensorTwoGradO{N_a} \left(\vec{\xi} \right) \otimes \delta \vec{U}_a
+    \tensorTwoGradO{\delta \vec{u}}( \X ) = \sum_{a \, \in \, e} \vectorGradO{N_a} \left(\vec{\xi} \right) \otimes \delta \vec{U}_a
 \end{equation}
 
 \section{Elementary description}
@@ -137,11 +137,10 @@ Now, by using the quadrature's approximation, it is possible to write:
 
 \section{Assembly}
 
-The final step is to assemble the contribution of each element to obtain the global system of equations. This is done by summing the contribution of each element connected to node $a$. This results in a system with $n_{nodes}$ equations with $a$ varying from 1 to $n_{nodes}$:
+The final step is to assemble the contribution of each element to obtain the global system of equations. This is done by summing the contribution of each element connected to node $a$. This results in a system with $n_{nodes}$  vector equations with $a$ varying from 1 to $n_{nodes}$. So, the total number or equations is $n_{nodes} \cdot dim$, where $dim$ is the number of dimensions of the problem. The final system of equations is given by:
 
-\begin{equation}
+\begin{equation} \label{eq:assembled_eq}
     \sum_{e \, \in \, E_a} \left[ {\delta \vec{\mathcal{W}}}_{int, a}^{(e)} - {\delta \vec{\mathcal{W}}}_{ext, a}^{(e)} \right] = \vec{0} \quad \forall \, a \in \{1, 2, ..., n_{nodes}\}
 \end{equation}
 
 Where $E_a$ is the set of element that are connected to node $a$. This results in a system of equations that can be solved for the unknowns $\vec{U}_a$.
-

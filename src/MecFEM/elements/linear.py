@@ -6,7 +6,7 @@ from ..geometry import isoparametric_elements as iso_elem
 from ..mesh import Element
 from ..utils import tensor, cache_none
 
-class NonLinearFiniteElement(BaseFiniteElement):
+class LinearFiniteElement(BaseFiniteElement):
     """
     Basic data structure for finite element
 
@@ -26,7 +26,7 @@ class NonLinearFiniteElement(BaseFiniteElement):
     def __init__(self, elem: Element, x_nodes: np.ndarray) -> None:
         super().__init__(elem, x_nodes)
 
-    def update(self, material, u_nodes):
+    def update(self, material, *args, **kwargs) -> np.ndarray:
         """
         Update element state based on nodal displacements and material properties.
 
@@ -34,34 +34,50 @@ class NonLinearFiniteElement(BaseFiniteElement):
         ----------
         material : mf.materials
             Material model.
+
+        Returns
+        -------
+        stiffness : ndarray
+            Stiffness matrix of the element.
+
+        """
+        self.mat_stiffness = material.stiffness(self.dim)
+
+        return self.mat_stiffness
+    
+    def simetric_gradient(self) -> np.ndarray:
+        """
+        Compute the symmetric gradient of the displacement field at integration points.
+
+        Parameters
+        ----------
         u_nodes : ndarray
             Nodal displacement field. This is an array of shape (n_nodes, dim).
 
         Returns
         -------
-        pk1 : ndarray
-            First Piola-Kirchhoff stress tensor at integration points.
-
+        B_sim : ndarray
+            Symmetric gradient operator at integration points. This is an array of shape (n_int_pts, n_nodes, dim, dim, dim).
         """
-        self.grad0_u = self.gradient(u_nodes)
+        I2 = np.eye(self.dim)
+        B_sim = 1/2 * (
+            np.einsum('gak,lm->gamkl', self.dfshape(), I2) + 
+            np.einsum('gal,km->gamkl', self.dfshape(), I2)
+        )
+        return B_sim
 
-        self.pk1 = material.pk1(self.grad0_u)
-        self.stiffness = material.stiffness(self.grad0_u)
-
-        return self.stiffness, self.pk1, self.grad0_u
-
-    def internal_force(self) -> np.ndarray:
+    def stiffness_matrix(self) -> np.ndarray:
         """
-        Compute the internal force vector for the element.
+        Compute the stiffness matrix for the element.
 
         Returns
         -------
-        fint : ndarray
-            Internal force vector. This is an array of shape (n_nodes, dim).
+        stiffness : ndarray
+            Stiffness matrix of the element. This is an array of shape (n_nodes, dim, n_nodes, dim).
 
         """
-        fint = self.integrate(tensor.dot3(self.dfshape(), self.pk1))
-        return fint
+        stiffness = self.integrate(np.einsum('ijkl,gbmkl,gaj->gaibm', self.mat_stiffness, self.simetric_gradient(), self.dfshape()))
+        return stiffness
     
     def volumetric_force(self, f_int_pts) -> np.ndarray:
         """
@@ -98,21 +114,7 @@ class NonLinearFiniteElement(BaseFiniteElement):
         """
         f_ext = self.integrate(np.einsum('ik,ij->ijk', f_int_pts, self.fshape()[:,:,0]))
         return f_ext
-    
-    def internal_tangent_matrix(self):
-        """
-        compute internal tangent matrix of the element
 
-        Returns
-        -------
-        K : 4-entry tensor
-            internal tangent matrix of the element.
-        """
-        Kint = self.integrate(np.einsum('naJ,niJkL,nbL->naibk', self.dfshape(), self.stiffness, self.dfshape()))
-
-        K = Kint
-        return K
-    
     def sigma(self, u_nodes, material) -> np.ndarray:
         """
         Compute the Cauchy stress tensor at integration points.

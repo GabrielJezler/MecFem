@@ -1,9 +1,9 @@
 import numpy as np
 
-from ..base import Isotropic
+from ..base import NonLinearIsotropic
 from ...utils import stress, kinematics, tensor
 
-class StVenantKirchhoffElasticity(Isotropic):
+class StVenantKirchhoffElasticity(NonLinearIsotropic):
     """
     Defines the  St. Venant-Kirchhoff material model.
 

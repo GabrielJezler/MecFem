@@ -1,9 +1,9 @@
 import numpy as np
 
-from ..base import Isotropic
+from ..base import NonLinearIsotropic
 from ...utils import stress, kinematics, tensor
 
-class NeoHookean(Isotropic):
+class NeoHookean(NonLinearIsotropic):
     """
     Defines the compressible Neo-Hookean material model.
 

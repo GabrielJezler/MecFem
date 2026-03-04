@@ -1,1 +1,39 @@
 \chapter{Linear Solution}
+
+This chapter is dedicated to the solution of the linear system of equations obtained from the finite element formulation. This approach is used to the linear materials presented in Section \ref{sec:lin_mat}. The final system of equations has the form given by Equation \ref{eq:linear-form} \footnote{Note that the linear system is expressed with tensor and vector notation even if, technically, they are (N$\times$N) and (N$\times$1) matrices, respectively.}.
+
+\begin{equation} \label{eq:linear-form}
+    \tensorTwo{K} \cdot \vec{U} = \vec{F}
+\end{equation}
+
+In this case, $\tensorTwo{K}$ is the stiffness matrix, $\vec{U}$ nodal displacement vector - unknown - and $\vec{F}$ is the vector of external forces. In order to obtain this system, the Equation \ref{eq:assembled_eq} will serve as a starting point. The internal virtual work term ($\delta \vec{\mathcal{W}}_{int, a}^{(e)}$) will be used to generate the $\tensorTwo{K} \cdot \vec{U}$ term, while the external virtual work term ($\delta \vec{\mathcal{W}}_{ext, a}^{(e)}$) will be used to generate the $\vec{F}$ term.
+
+To obtain the stiffness matrix, we need to separate the nodal displacements from the rest of the terms in order to obtain the $\tensorTwo{K}$ and $\vec{U}$ vector. In order to do this, the linearity of the material along with the hypothesis of small displacements (Equation \ref{eq:small_disp}) are used. We will, first, developthe stress - strain relation:
+
+\begin{equation*}
+    \cauchy = \tensorFour{\mathcal{C}} : \tensorTwo{\varepsilon} \Longrightarrow \cauchy_{ij} = \mathcal{C}_{ijkl} \cdot \varepsilon_{kl}
+\end{equation*}
+
+Additionally, from the definition of strain (Equation \ref{eq:strain}) and the finite element discretization (Equation \ref{eq:disc_grad0_u}), the following relation is obtained:
+
+\begin{equation*}
+    \varepsilon_{kl} = \frac{1}{2} \left(\tensorTwoGrad{\vec{u}}_{kl} + \tensorTwoGrad{\vec{u}}_{lk} \right) = \frac{1}{2} \left(\vectorGradO{N_b} \left(\vec{\xi} \right) \otimes \vec{U}_b + \vec{U}_b \otimes \vectorGradO{N_b} \left(\vec{\xi} \right)  \right) \Longrightarrow
+\end{equation*}
+\begin{equation}
+    \varepsilon_{kl} = \frac{1}{2} \left(\nabla_\mathrm{0} N_{bk} \left(\vec{\xi} \right) \cdot \delta_{lm} + \nabla_\mathrm{0} N_{bl} \left(\vec{\xi} \right) \cdot \delta_{km}  \right) \cdot U_{bm} = B_{bmkl} \left(\vec{\xi} \right) \cdot U_{bm}
+\end{equation}
+
+So, it is possible to use Equation \ref{eq:integral_Wint} to obtaint the stiffness matrix:
+
+\begin{equation*}
+    \delta {\mathcal{W}}_{int,ai}^{(e)} \approx \left[ \sum_g \omega_g \cdot   \mathcal{C}_{ijkl} \cdot B_{bmkl} \left(\vec{\xi}_g \right) \cdot \nabla_\mathrm{0} N_{aj} \left(\vec{\xi}_g \right) \cdot \J_V^{(e)} \right] \cdot U_{bm} \Longrightarrow
+\end{equation*}
+\begin{equation}
+    \delta {\mathcal{W}}_{int,ai}^{(e)} \approx K_{aibm}^{(e)} \cdot U_{bm} \qquad \text{where} \qquad K_{aibm}^{(e)} = \sum_g \omega_g \cdot \mathcal{C}_{ijkl} \cdot B_{bmkl} \left(\vec{\xi}_g \right) \cdot \nabla_\mathrm{0} N_{aj} \left(\vec{\xi}_g \right) \cdot \J_V^{(e)}
+\end{equation}
+
+Additionally, the external force vector is obtained by summing the contribution of each element to the external virtual work, which is done by the expression in Equation \ref{eq:integral_Wext}. Once the assembly process is done, the following system will be solved \footnote{It is important to note that the indices $a, m and b, i$ represents the number of nodes and dimensions of the problem, respectively. To solve it numerically, the solver will need to combine them into a single index: $n_{nodes} \cdot dim$.}:
+
+\begin{equation}
+    K_{aibm} \cdot U_{bm} = F_{ai} 
+\end{equation}
