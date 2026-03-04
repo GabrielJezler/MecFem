@@ -1,9 +1,9 @@
 \chapter{Linear Solution}
 
-This chapter is dedicated to the solution of the linear system of equations obtained from the finite element formulation. This approach is used to the linear materials presented in Section \ref{sec:lin_mat}. The final system of equations has the form given by Equation \ref{eq:linear-form} \footnote{Note that the linear system is expressed with tensor and vector notation even if, technically, they are (N$\times$N) and (N$\times$1) matrices, respectively.}.
+This chapter is dedicated to the solution of the linear system of equations obtained from the finite element formulation. This approach is used to the linear materials presented in Section \ref{sec:lin_mat}. The final system of equations has the form given by Equation \ref{eq:linear-form}.
 
 \begin{equation} \label{eq:linear-form}
-    \tensorTwo{K} \cdot \vec{U} = \vec{F}
+    \left[K \right] \cdot \left\{U \right\} = \left\{F \right\}
 \end{equation}
 
 In this case, $\tensorTwo{K}$ is the stiffness matrix, $\vec{U}$ nodal displacement vector - unknown - and $\vec{F}$ is the vector of external forces. In order to obtain this system, the Equation \ref{eq:assembled_eq} will serve as a starting point. The internal virtual work term ($\delta \vec{\mathcal{W}}_{int, a}^{(e)}$) will be used to generate the $\tensorTwo{K} \cdot \vec{U}$ term, while the external virtual work term ($\delta \vec{\mathcal{W}}_{ext, a}^{(e)}$) will be used to generate the $\vec{F}$ term.
@@ -23,12 +23,13 @@ Additionally, from the definition of strain (Equation \ref{eq:strain}) and the f
     \varepsilon_{kl} = \frac{1}{2} \left(\nabla_\mathrm{0} N_{bk} \left(\vec{\xi} \right) \cdot \delta_{lm} + \nabla_\mathrm{0} N_{bl} \left(\vec{\xi} \right) \cdot \delta_{km}  \right) \cdot U_{bm} = B_{bmkl} \left(\vec{\xi} \right) \cdot U_{bm}
 \end{equation}
 
-So, it is possible to use Equation \ref{eq:integral_Wint} to obtaint the stiffness matrix:
+So, it is possible to use Equation \ref{eq:integral_Wint}\footnote{Note that in the original reference, $\vec{\mathcal{W}}_{int,a}^{(e)}$  is written as a vector, while in this section the vector's dimensions are unpacked with the additional indice $i$. The same is done for the gradient of the shape functions.} to obtaint the stiffness matrix, which is stated in Equation \ref{eq:lin_stiffness_matrix}.
 
 \begin{equation*}
     \delta {\mathcal{W}}_{int,ai}^{(e)} \approx \left[ \sum_g \omega_g \cdot   \mathcal{C}_{ijkl} \cdot B_{bmkl} \left(\vec{\xi}_g \right) \cdot \nabla_\mathrm{0} N_{aj} \left(\vec{\xi}_g \right) \cdot \J_V^{(e)} \right] \cdot U_{bm} \Longrightarrow
 \end{equation*}
-\begin{equation}
+
+\begin{equation} \label{eq:lin_stiffness_matrix}
     \delta {\mathcal{W}}_{int,ai}^{(e)} \approx K_{aibm}^{(e)} \cdot U_{bm} \qquad \text{where} \qquad K_{aibm}^{(e)} = \sum_g \omega_g \cdot \mathcal{C}_{ijkl} \cdot B_{bmkl} \left(\vec{\xi}_g \right) \cdot \nabla_\mathrm{0} N_{aj} \left(\vec{\xi}_g \right) \cdot \J_V^{(e)}
 \end{equation}
 
@@ -36,4 +37,30 @@ Additionally, the external force vector is obtained by summing the contribution 
 
 \begin{equation}
     K_{aibm} \cdot U_{bm} = F_{ai} 
+\end{equation}
+
+\section{Dirichlet Boundary Conditions} \label{sec:linear_solution_dirichlet}
+
+These conditions are applied by modifying the stiffness matrix and the external force vector. For that each degree of freedom is divided the each degree of freedom into two sets: the set of free degrees of freedom (F) and the set of fixed degrees of freedom (D). The system of equations can then be written as stated in Equation \ref{eq:linear_dirichlet_bc}. From this point, the solver will initially solve for the free degrees of freedom ($U_F$ in  Equation \ref{eq:linear_dirichlet_bc_free}), and then, the reactions at the fixed degrees of freedom can be obtained with Equation \ref{eq:linear_dirichlet_bc_fixed} \textbf{\textcolor{red}{(more details to be added somewhere)}}.
+
+\begin{equation} \label{eq:linear_dirichlet_bc}
+    \begin{bmatrix}
+    K_{FF} & K_{FD} \\
+    K_{DF} & K_{DD}
+    \end{bmatrix} \cdot
+    \begin{bmatrix}
+    U_F \\
+    U_D
+    \end{bmatrix} =
+    \begin{bmatrix}
+    F_F \\
+    F_D
+    \end{bmatrix}
+\end{equation}
+
+\begin{equation} \label{eq:linear_dirichlet_bc_free}
+    K_{FF} \cdot U_F = F_F - K_{FD} \cdot U_D
+\end{equation}
+\begin{equation} \label{eq:linear_dirichlet_bc_fixed}
+    K_{DF} \cdot U_F + K_{DD} \cdot U_D = F_D
 \end{equation}

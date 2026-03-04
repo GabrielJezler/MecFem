@@ -43,17 +43,20 @@ In order to apply the Newton-Raphson method to the finite element method, the eq
     \end{split}
 \end{equation}
 
-To solve for the next step, the virtual work of the system is composed of the sum of the internal virtual work and the external virtual work. Then, the directional derivative of each of them is computed separately. In both cases, it will be written as follows:
+To solve for the next step, the virtual work of the system is composed of the sum of the internal virtual work and the external virtual work. Then, the directional derivative of each of them is computed separately. However, the directional derivative of the virtual work has the following form:
 
 \begin{equation*}
-    D \delta \mathcal{W} \, \left[\Delta \vec{u} \right] = \sum_{a} \sum_{b} \vec{U}_a \cdot \tensorTwo{K}_{ik}^{(a,b)} \cdot \delta\vec{U}_b
+    D \delta \mathcal{W} \, \left[\Delta \vec{u} \right] = \sum_{a} \sum_{b} \Delta \vec{U}_a \cdot \tensorTwo{K}_{ik}^{(a,b)} \cdot \delta\vec{U}_b
 \end{equation*}
 
-The goal with this section is to find the tangent tensor $\tensorTwo{K}_{ik}^{(a,b)}$ for each node $a$ and $b$. Once this is done, the next step is to solve for the increment of displacement $\Delta \vec{U}$ by solving the following system of equations:
+The goal with this section is to find the tangent tensor $\tensorTwo{K}_{ik}^{(a,b)}$ for each combination of nodes $a$ and $b$ for both internal and external virtual work contributions. Once this is done, the next step is to solve for the increment of displacement $\Delta \vec{U}$ by solving the following system of equations:
 
 \begin{equation*}
-    \sum_{a} \sum_{b} \vec{U}_a \cdot \tensorTwo{K}_{ik}^{(a,b)} \cdot \delta\vec{U}_b = -\delta \mathcal{W} = \sum \quad \forall \, \delta \vec{u}
+    D \delta \mathcal{W} \, \left[\Delta \vec{u} \right] = - \delta \mathcal{W} \qquad \Longrightarrow \qquad \sum_{b} \left[\sum_{a} \Delta \vec{U}_a \cdot \tensorTwo{K}_{ik}^{(a,b)} \right] \cdot \delta\vec{U}_b = \sum_{b} \left[-\vec{R}_b \right] \cdot \delta \vec{U}_b \qquad \forall \, \delta\vec{U}_b \Longrightarrow
 \end{equation*}
+\begin{equation}
+    \qquad \sum_{b} \underbrace{\left[\sum_{a} \Delta \vec{U}_a \cdot \tensorTwo{K}_{ik}^{(a,b)} - \vec{R}_b \right]}_{\vec{0}} \cdot \delta \vec{U}_b = 0 \qquad \forall \, \delta\vec{U}_b
+\end{equation}
 
 \subsection{Internal virtual work}
 

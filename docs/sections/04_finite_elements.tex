@@ -2,7 +2,7 @@
 
 \section{Equilibrium Equation}
 
-The equation to be solved is given below:
+The equation to be solved is the \textbf{equilibrium equation for a stationary regime}, which is given by:
 
 \begin{equation}
     \vec{\mathrm{div}} \cauchy + \vec{f} = \vec{0}
@@ -95,7 +95,7 @@ In addition, the Galerkin method is used, which means that the virtual field is 
 
 \section{Elementary description}
 
-The total virtual work of the system can be given as the sum of the virtual work for each element as stated below. This means that the final equation will be the result of the sum of the contribution of each element. For that reason, it is possible to work with the element-wise contribution and then add them up in a process called assembly.
+The total virtual work of the system can be given as the sum of the virtual work for each element as stated below. This means that the final equation will be the result of the sum of the contribution of each element. For that reason, it is possible to work with the element-wise contribution and then add them up (this will be used in the assembly process - Section \ref{sec:4-assembly}).
 
 \begin{equation}
     \delta \mathcal{W} = \sum_e \delta \mathcal{W}^{(e)} = 0 \quad \forall \, \delta \vec{u}^{(e)}
@@ -110,8 +110,10 @@ Therefore, by analyzing the element contribution fro the virtual work, the follo
  By using the discretized functions in the equation above, it then becomes:
 
 \begin{equation} \label{eq:dW_disc}
-    \delta \mathcal{W}^{(e)} = \sum_{a \, \in \, e} \left[ \underbrace{\int_{V^{(e)}} \pkOne^{(e)} \vectorGradO{N_a} \dV}_{\vec{\delta \mathcal{W}}_{int, a}^{(e)}} - \underbrace{ \left(\int_{V^{(e)}} \vec{f_0}^{(e)} \cdot N_a  \dV + \int_{S^{(e)}} \vec{t_0}^{(e)} \cdot N_a \dS \right)}_{\vec{\delta \mathcal{W}}_{ext, a}^{(e)}} \right] \cdot \delta \vec{U}_a
- \end{equation}
+    \delta \mathcal{W}^{(e)} = \sum_{a \, \in \, e} \underbrace{\left[ \underbrace{\int_{V^{(e)}} \pkOne^{(e)} \cdot \vectorGradO{N_a} \dV}_{\vec{\delta \mathcal{W}}_{int, a}^{(e)}} - \underbrace{ \left(\int_{V^{(e)}} \vec{f_0}^{(e)} \cdot N_a  \dV + \int_{S^{(e)}} \vec{t_0}^{(e)} \cdot N_a \dS \right)}_{\vec{\delta \mathcal{W}}_{ext, a}^{(e)}} \right]}_{\vec{R}_a^{(e)}} \cdot \delta \vec{U}_a
+\end{equation}
+
+In this equation the term $\vec{R}_a^{(e)}$ is the residual of the element $e$ relative to node $a$. The goal of the finite element method is to find the values of $\vec{U}_a$ such that this residual is zero for all nodes $a$.
 
 \section{Numerical Integration}
 
@@ -126,7 +128,7 @@ Before using this process, one additional development needs to be done to Equati
     &= \int_{\hat{V}^{(e)}} \vec{f_0}^{(e)} \left(\psi^{(e)}\left(\vec{\xi}\right)\right) \cdot N_a \left(\vec{\xi} \right) \cdot \J_V^{(e)} \mathrm{d\hat V} + \int_{\hat{S}^{(e)}} \vec{t_0}^{(e)} \left(\psi^{(e)}\left(\vec{\xi}\right)\right) \cdot N_a \left(\vec{\xi} \right) \cdot \J_S^{(e)} \mathrm{d\hat S}
 \end{align*}
 
-Now, by using the quadrature's approximation, it is possible to write:
+Now, by using the Gauss quadrature's approximation\footnote{Note that the sum notation is used explicitly in the quadrature, while index notation is expressed implicitly for the remaining indices}, it is possible to write:
 
 \begin{equation} \label{eq:integral_Wint}
     \delta \vec{\mathcal{W}}_{int,a}^{(e)} \approx \sum_g \omega_g \cdot  \pkOne^{(e)} \left(\psi^{(e)}\left(\vec{\xi_g} \right) \right) \cdot \vectorGradO{N_a} \left(\vec{\xi_g} \right) \cdot \J_V^{(e)}
@@ -135,12 +137,28 @@ Now, by using the quadrature's approximation, it is possible to write:
     \delta \vec{\mathcal{W}}_{ext,a}^{(e)} \approx \sum_g \omega_g \cdot \vec{f_0^{(e)}} \left(\psi^{(e)}\left(\vec{\xi_g} \right) \right) \cdot N_a \left(\vec{\xi_g}\right) \cdot \J_V^{(e)} + \sum_{g_s} \vec{t_0^{(e)}} \left(\psi^{(e)}\left(\vec{\xi_{g_s}} \right) \right) \cdot N_a \left(\vec{\xi_{g_s}}\right) \cdot \J_S^{(e)}
 \end{equation}
 
-\section{Assembly}
+\section{Assembly} \label{sec:4-assembly}
 
-The final step is to assemble the contribution of each element to obtain the global system of equations. This is done by summing the contribution of each element connected to node $a$. This results in a system with $n_{nodes}$  vector equations with $a$ varying from 1 to $n_{nodes}$. So, the total number or equations is $n_{nodes} \cdot dim$, where $dim$ is the number of dimensions of the problem. The final system of equations is given by:
+The final step is to assemble the contribution of each element to obtain the global system of equations. This is done by summing the contribution of each element connected to node $a$. This results in a system with $n_{nodes}$  vector equations with $a$ varying from 1 to $n_{nodes}$. So, the total number or equations is $n_{nodes} \cdot dim$, where $dim$ is the number of dimensions of the problem. The final system of equations is, then, given by:
 
 \begin{equation} \label{eq:assembled_eq}
     \sum_{e \, \in \, E_a} \left[ {\delta \vec{\mathcal{W}}}_{int, a}^{(e)} - {\delta \vec{\mathcal{W}}}_{ext, a}^{(e)} \right] = \vec{0} \quad \forall \, a \in \{1, 2, ..., n_{nodes}\}
 \end{equation}
 
 Where $E_a$ is the set of element that are connected to node $a$. This results in a system of equations that can be solved for the unknowns $\vec{U}_a$.
+
+\section{Boundary Conditions}
+
+In this finite element solver, three types of external effects can be applied: volumetric forces, Dirichlet boundary conditions and Neumann boundary conditions. The first are forces that act on the volume of the body, such as gravity or body forces. They are represented by volumetric integral in external virtual work term (Equation \ref{eq:integral_Wext}). This is not a boundary condition, but simply an external effect that needs to be considered in the formulation. Therefore, only Dirichlet and Neumann boundary conditions are considered in this section.
+
+\subsection{Dirichlet Boundary Conditions}
+
+These are conditions that specify the value of the displacement at certain nodes. They are applied by directly setting the value of $\vec{U}_a$ for the nodes where the condition is applied. For the non linear solver this will be automaticaly taken into account in the residual, while for the linear solver it will be done by modifying the stiffness matrix and the force vector (disscussed below in Section \ref{sec:linear_solution_dirichlet}). 
+
+\subsection{Neumann Boundary Conditions}
+
+These are conditions that specify the value of the traction at certain nodes. They are applied by modifying surface integral of the external virtual work term (Equation \ref{eq:integral_Wext}) to include the contribution of the specified tractions at the nodes where the condition is applied. This is done by adding the contribution of the specified tractions to the force vector in the global system of equations.
+
+-----
+
+\textbf{\textcolor{red}{To do}}
