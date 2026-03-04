@@ -1,75 +1,19 @@
 import numpy as np
 
-from MecFEM.utils import kinematics, tensor
+from .linear_isotropic import LinearIsotropic
 
-class NonLinearIsotropic:
+from ...utils import kinematics, tensor
+
+class NonLinearIsotropic(LinearIsotropic):
     """
     This a base material class for isotropic materials. It defines the basic properties
     and methods that are common to all isotropic material models. To define a specific
     isotropic material model, you should inherit from this class and implement the 
-    following methods: 
-    
-    - `sigma`, `tau`, `pk1`, `pk2` and `material_elastic`.
+    necessary methods.
     """
     def __init__(self, E, nu):
-        """
-        Initialize the isotropic elastic material with Young's modulus and Poisson's ratio.
+        super().__init__(E, nu)
 
-        Parameters
-        ----------
-        E : float
-            Young's modulus.
-        nu : float
-            Poisson's ratio.
-
-        Returns
-        -------
-        None.
-
-        """
-        if nu == 0.5 or nu == -1:
-            raise ValueError("Poisson's ratio cannot be 0.5 or -1 for isotropic materials.")
-
-        self._E = E
-        self._nu = nu
-
-        self._lambda = self._E * self._nu / ((1 + self._nu) * (1 - 2 * self._nu))
-        self._mu = self._E / (2 * (1 + self._nu))
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}(E={self.E}, nu={self.nu})"
-    
-    def __eq__(self, value):
-        if isinstance(value, self.__class__):
-            if self.E == value.E and self.nu == value.nu:
-                return True
-
-        return False
-
-    @property
-    def params(self):
-        return f"E = {self.E}, nu = {self.nu}"
-
-    @property
-    def E(self):
-        """Young's modulus"""
-        return self._E
-    
-    @property
-    def nu(self):
-        """Poisson's ratio"""
-        return self._nu
-    
-    @property
-    def lame1(self):
-        """Lame's first parameter (lambda)"""
-        return self._lambda
-    
-    @property
-    def lame2(self):
-        """Lame's second parameter (mu)"""
-        return self._mu
-    
     def transformation_gradient(self, grad0_u):
         """
         Compute the transformation gradient tensor.
@@ -220,17 +164,43 @@ class NonLinearIsotropic:
         """
         return kinematics.euler_almansi(F)
 
-    def material_elastic(self, grad0_u):
+    def material_elastic_tangent(self, grad0_u):
+        """
+        Compute the material elastic tangent tensor.
+
+        Parameters
+        ----------
+        grad0_u : ndarray
+            Displacement gradient tensor. This is an array of shape (n_int_pts, dim, dim).
+
+        Returns
+        -------
+        dS/dE : ndarray
+            Material elastic tangent tensor. This is an array of shape (n_int_pts, dim, dim, dim, dim).
+        """
         raise NotImplementedError("This method should be implemented in the derived class.")
 
-    def stiffness(self, grad0_u):
+    def mixed_elastic_tangent(self, grad0_u):
+        """
+        Compute the mixed elastic tangent tensor.
+
+        Parameters
+        ----------
+        grad0_u : ndarray
+            Displacement gradient tensor. This is an array of shape (n_int_pts, dim, dim).
+
+        Returns
+        -------
+        dP/dF : ndarray
+            Mixed elastic tangent tensor. This is an array of shape (n_int_pts, dim, dim, dim, dim).
+        """
         F = self.transformation_gradient(grad0_u)
         I2 = np.eye(F.shape[1])
 
         dEdF = 1/2 * (np.einsum('gL,nkh->nghkL', I2, F) + np.einsum('hL,nkg->nghkL', I2, F))
 
         t1 = np.einsum('ik,nJL->niJkL', I2, self.pk2(grad0_u))
-        t2 = np.einsum('niN, nNJgh, nghkL->niJkL', F, self.material_elastic(grad0_u), dEdF)
+        t2 = np.einsum('niN, nNJgh, nghkL->niJkL', F, self.material_elastic_tangent(grad0_u), dEdF)
 
         return t1 + t2
 

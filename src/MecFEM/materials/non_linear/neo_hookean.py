@@ -116,7 +116,7 @@ class NeoHookean(NonLinearIsotropic):
         S = self._mu * (tensor.identity3(C.shape[1]) - C_inv) + self._lambda * np.einsum('n, nij->nij', np.log(J), C_inv)
         return S
 
-    def material_elastic(self, grad0_u):
+    def material_elastic_tangent(self, grad0_u):
         F = self.transformation_gradient(grad0_u)
 
         C = self.cauchy_green_right(F)

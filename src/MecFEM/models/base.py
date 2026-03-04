@@ -297,7 +297,7 @@ class Base:
         """
         for e in range(self.n_elements):
             u_node = self.extract(U, e)
-            self.elems[e].update(self.material, u_node  )
+            self.elems[e].update(self.material, u_node)
         
         return None
 

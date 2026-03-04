@@ -2,9 +2,7 @@ import numpy as np
 
 from .base import BaseFiniteElement
 
-from ..geometry import isoparametric_elements as iso_elem
 from ..mesh import Element
-from ..utils import tensor, cache_none
 
 class LinearFiniteElement(BaseFiniteElement):
     """
@@ -79,7 +77,7 @@ class LinearFiniteElement(BaseFiniteElement):
         stiffness = self.integrate(np.einsum('ijkl,gbmkl,gaj->gaibm', self.mat_stiffness, self.simetric_gradient(), self.dfshape()))
         return stiffness
     
-    def volumetric_force(self, f_int_pts) -> np.ndarray:
+    def volumetric_force(self, f_int_pts: np.ndarray) -> np.ndarray:
         """
         Compute the volumetric force vector for the element.
 
@@ -97,7 +95,7 @@ class LinearFiniteElement(BaseFiniteElement):
         f_vol = self.integrate(np.einsum('ik,ij->ijk', f_int_pts, self.fshape()[:,:,0]))
         return f_vol
     
-    def external_force(self, f_int_pts) -> np.ndarray:
+    def external_force(self, f_int_pts: np.ndarray) -> np.ndarray:
         """
         Compute the external force vector for the element.
 
@@ -114,45 +112,3 @@ class LinearFiniteElement(BaseFiniteElement):
         """
         f_ext = self.integrate(np.einsum('ik,ij->ijk', f_int_pts, self.fshape()[:,:,0]))
         return f_ext
-
-    def sigma(self, u_nodes, material) -> np.ndarray:
-        """
-        Compute the Cauchy stress tensor at integration points.
-
-        Parameters
-        ----------
-        u_nodes : ndarray
-            Nodal displacement field. This is an array of shape (n_nodes, dim).
-        material : mf.materials
-            Material model.
-
-        Returns
-        -------
-        sigma : ndarray
-            Cauchy stress tensor at integration points. This is an array of shape (n_int_pts, dim, dim).
-
-        """
-        grad0_u = self.gradient(u_nodes)
-        sigma = material.sigma(grad0_u)
-
-        return sigma
-    
-    def strain(self, u_nodes) -> np.ndarray:
-        """
-        Compute the strain tensor at integration points.
-
-        Parameters
-        ----------
-        u_nodes : ndarray
-            Nodal displacement field. This is an array of shape (n_nodes, dim).
-
-        Returns
-        -------
-        epsilon : ndarray
-            Strain tensor at integration points. This is an array of shape (n_int_pts, dim, dim).
-
-        """
-        grad0_u = self.gradient(u_nodes)
-        epsilon = 0.5 * (grad0_u + np.transpose(grad0_u, (0, 2, 1)))
-
-        return epsilon

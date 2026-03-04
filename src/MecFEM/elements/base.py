@@ -1,8 +1,9 @@
 import numpy as np
+import copy
 
 from ..geometry import isoparametric_elements as iso_elem
 from ..mesh import Element
-from ..utils import tensor, cache_none
+from ..utils import cache_none
 
 class BaseFiniteElement:
     """
@@ -196,8 +197,7 @@ class BaseFiniteElement:
         
         return U_bc
 
-
-    def gradient(self, u_nodes, x: np.ndarray | None = None) -> np.ndarray:
+    def gradient(self, u_nodes: np.ndarray, x: np.ndarray | None = None) -> np.ndarray:
         """
         Compute the gradient of a field u at integration points.
 
@@ -217,3 +217,45 @@ class BaseFiniteElement:
 
         grad0_u = np.einsum('inj,nk->ijk', self.dfshape(x), u_nodes)
         return grad0_u
+
+    def sigma(self, u_nodes: np.ndarray, material) -> np.ndarray:
+        """
+        Compute the Cauchy stress tensor at integration points.
+
+        Parameters
+        ----------
+        u_nodes : ndarray
+            Nodal displacement field. This is an array of shape (n_nodes, dim).
+        material : mf.materials
+            Material model.
+
+        Returns
+        -------
+        sigma : ndarray
+            Cauchy stress tensor at integration points. This is an array of shape (n_int_pts, dim, dim).
+
+        """
+        grad0_u = self.gradient(u_nodes)
+        sigma = material.sigma(grad0_u)
+
+        return sigma
+    
+    def strain(self, u_nodes: np.ndarray) -> np.ndarray:
+        """
+        Compute the strain tensor at integration points.
+
+        Parameters
+        ----------
+        u_nodes : ndarray
+            Nodal displacement field. This is an array of shape (n_nodes, dim).
+
+        Returns
+        -------
+        epsilon : ndarray
+            Strain tensor at integration points. This is an array of shape (n_int_pts, dim, dim).
+
+        """
+        grad0_u = self.gradient(u_nodes)
+        epsilon = 0.5 * (grad0_u + np.transpose(grad0_u, (0, 2, 1)))
+
+        return epsilon

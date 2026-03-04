@@ -110,7 +110,7 @@ class StVenantKirchhoffElasticity(NonLinearIsotropic):
         S = self._lambda * tensor.trace3(E) * tensor.identity3(E.shape[1]) + 2 * self._mu * E
         return S
 
-    def material_elastic(self, grad0_u):
+    def material_elastic_tangent(self, grad0_u):
         I3 = tensor.identity3(grad0_u.shape[1])
         return self._lambda * np.einsum('nNJ, ngh->nNJgh', I3, I3) + self._mu * (np.einsum('nNg, nJh->nNJgh', I3, I3) + np.einsum('nNh, nJg->nNJgh', I3, I3))
 
