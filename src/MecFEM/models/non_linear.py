@@ -1,7 +1,10 @@
+from fileinput import filename
+
 import matplotlib.pyplot as plt
 import numpy as np
 import copy
 import datetime
+from functools import wraps
 
 from .base import Base
 
@@ -199,3 +202,13 @@ class NonLinear(Base):
         self.messages = messages
 
         return None
+    
+    @wraps(Base.load_gmsh_results)
+    def load_gmsh_results(self, filename, U_values_name):
+        super().load_gmsh_results(filename, U_values_name)
+
+        self.R = []
+        for t, U in zip(self.T, self.U):
+            self.update_elements(U)
+            self.R.append(self.residual(U, t))
+        

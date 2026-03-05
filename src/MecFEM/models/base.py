@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import copy
-import datetime
+import gmsh
 
 from ..mesh import Mesh
 from ..elements import NonLinearFiniteElement, LinearFiniteElement
@@ -69,7 +69,6 @@ class Base:
         self._displacement_steps: list[(np.ndarray, BCStep)] = []
 
         self.U:np.ndarray | None = None # Displacement
-        # self.R:np.ndarray | None = None # Residual
         self.T:np.ndarray | None = None # Time steps
 
     def __repr__(self):
@@ -431,6 +430,61 @@ class Base:
                 sigma[step, e, :, :] = np.mean(sigma_elem, axis=0)
 
         return sigma
+    
+    def load_gmsh_results(self, filename: str, U_values_name: str) -> None:
+        """
+        Load results from a Gmsh .pos file.
+
+        Parameters
+        ----------
+        filename : str
+            Path to the .pos file containing the results.
+        U_values_name : str
+
+
+        Returns
+        -------
+        None.
+
+        """
+        gmsh.initialize()
+        gmsh.open(filename)
+
+        print("--- Loading results from Gmsh ---")
+        print(f"--- Filename: {filename}")
+
+        view_tag = None
+        for tag in gmsh.view.getTags():
+            name = gmsh.option.getString(f"View[{tag}].Name")
+            if name == U_values_name:
+                view_tag = tag
+                break
+
+        if view_tag is None:
+            raise ValueError(f"View with name '{U_values_name}' not found in the .pos file.")
+
+        n_steps = int(gmsh.option.getNumber(f"View[{view_tag}].NbTimeStep"))
+
+        times = []
+        values = []
+        for step in range(n_steps):
+            data_type, tags, data, time, num_components = gmsh.view.getModelData(
+                view_tag, step=step
+            )
+            if data_type.lower() != "nodedata":
+                raise ValueError(f"Expected nodal data, but got {data_type} in step {step}.")
+            
+            if num_components != 3:
+                raise ValueError(f"Expected {self.dim} components, but got {num_components} in step {step}.")
+
+            times.append(time)
+            values.append(data)
+
+        self.T = np.array(times)
+        self.U = np.array(values)[:,:, :self.dim]
+        self.messages = None
+
+        print(f"--- Successfully loaded {n_steps} steps for {self.U.shape[1]} nodes from Gmsh file ---")
 
     def solve(self):
         raise NotImplementedError("The solve method must be implemented in the subclass.")
