@@ -92,7 +92,7 @@ class NonLinear(Base):
         K = np.zeros((self.n_nodes, self.dim, self.n_nodes, self.dim))
 
         for i, elem in enumerate(self.elems):
-            self.assemble(i, elem.internal_tangent_matrix(), K)
+            self.assemble(i, elem.tangent_matrix(), K)
 
         return K
 

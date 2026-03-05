@@ -98,7 +98,7 @@ class NonLinearFiniteElement(BaseFiniteElement):
         f_ext = self.integrate(np.einsum('ik,ij->ijk', f_int_pts, self.fshape()[:,:,0]))
         return f_ext
     
-    def internal_tangent_matrix(self) -> np.ndarray:
+    def tangent_matrix(self) -> np.ndarray:
         """
         compute internal tangent matrix of the element
 
@@ -107,6 +107,6 @@ class NonLinearFiniteElement(BaseFiniteElement):
         Kint : 4-entry tensor
             internal tangent matrix of the element. This is an array of shape (n_nodes, dim, n_nodes, dim).
         """
-        Kint = self.integrate(np.einsum('naJ,niJkL,nbL->naibk', self.dfshape(), self.mixed_elastic_tangent, self.dfshape()))
+        Kint = self.integrate(np.einsum('nai,nijkl,nbk->najbl', self.dfshape(), self.mixed_elastic_tangent, self.dfshape()))
 
         return Kint
