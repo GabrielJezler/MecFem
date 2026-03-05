@@ -14,22 +14,22 @@ The ideia is to start with an initial guess for the solution and then iterativel
     x^{k+1} = x^k + \Delta x^k \qquad \text{where} \qquad \Delta x^k = -\frac{f(x^k)}{f'(x^k)}
 \end{equation}
 
-As we expand this formulation, it is possible to solve for a system of equations - where $f$ is now a vector - with $n$ unknowns:
+As we expand this formulation, it is possible to solve for a general $f$ that can be a scalar, vector, tensor or any type of function with a vector $\vec{x}$ as input:
 
 \begin{equation*}
-    \vec{f} \left(\vec{x} \right) = \vec{0}
+    f \left(\vec{x} \right) = 0
 \end{equation*}
 
 For this case, the definition of a directional derivative is needed. This can be defined as:
 
 \begin{equation} \label{eq:directiona-der}
-    D \vec{f} \left( \vec{x} \right) \, \left[\vec{u} \right] = \frac{d}{d \epsilon} \Bigr \rvert_{\epsilon = 0} \vec{f} \left(\vec{x} + \epsilon \vec{u} \right)
+    D f \left( \vec{x} \right) \, \left[\vec{u} \right] = \frac{d}{d \epsilon} \Bigr \rvert_{\epsilon = 0} f \left(\vec{x} + \epsilon \vec{u} \right)
 \end{equation}
 
 Therefore, the next guess for the solution is given by:
 
 \begin{equation} \label{eq:newton-raphson}
-    x^{k+1} = x^k + \Delta x^k \qquad \text{where} \qquad D \vec{f} \left( \vec{x}^k \right) \, \left[\Delta \vec{x}^k \right] = -\vec{f} \left(\vec{x}^k \right)
+    x^{k+1} = x^k + \Delta x^k \qquad \text{where} \qquad D f \left( \vec{x}^k \right) \, \left[\Delta \vec{x}^k \right] = -f \left(\vec{x}^k \right)
 \end{equation}
 
 \section{Application to Finite Elements}
@@ -46,35 +46,76 @@ In order to apply the Newton-Raphson method to the finite element method, the eq
 To solve for the next step, the virtual work of the system is composed of the sum of the internal virtual work and the external virtual work. Then, the directional derivative of each of them is computed separately. However, the directional derivative of the virtual work has the following form:
 
 \begin{equation*}
-    D \delta \mathcal{W} \, \left[\Delta \vec{u} \right] = \sum_{a} \sum_{b} \Delta \vec{U}_a \cdot \tensorTwo{K}_{ik}^{(a,b)} \cdot \delta\vec{U}_b
+    D \delta \mathcal{W} \, \left[\Delta \vec{u} \right] = \delta U_{aj} \cdot K_{ajbl} \cdot \Delta U_{bl}
 \end{equation*}
 
-The goal with this section is to find the tangent tensor $\tensorTwo{K}_{ik}^{(a,b)}$ for each combination of nodes $a$ and $b$ for both internal and external virtual work contributions. Once this is done, the next step is to solve for the increment of displacement $\Delta \vec{U}$ by solving the following system of equations:
+The goal with this section is to find the tangent tensor $K_{ajbl}$ for each combination of nodes $a$ and $b$ for both internal and external virtual work contributions. Once this is done, the next step is to solve for the increment of displacement $\Delta \vec{U}$ by solving the following system of equations:
 
 \begin{equation*}
-    D \delta \mathcal{W} \, \left[\Delta \vec{u} \right] = - \delta \mathcal{W} \qquad \Longrightarrow \qquad \sum_{b} \left[\sum_{a} \Delta \vec{U}_a \cdot \tensorTwo{K}_{ik}^{(a,b)} \right] \cdot \delta\vec{U}_b = \sum_{b} \left[-\vec{R}_b \right] \cdot \delta \vec{U}_b \qquad \forall \, \delta\vec{U}_b \Longrightarrow
+    D \delta \mathcal{W} \, \left[\Delta \vec{u} \right] = - \delta \mathcal{W} \qquad \Longrightarrow \qquad \delta U_{aj} \cdot K_{ajbl} \cdot \Delta U_{bl} = \left[-R_{aj} \right] \cdot \delta U_{aj} \qquad \forall \, \delta U_{aj} \Longrightarrow
 \end{equation*}
 \begin{equation}
-    \qquad \sum_{b} \underbrace{\left[\sum_{a} \Delta \vec{U}_a \cdot \tensorTwo{K}_{ik}^{(a,b)} - \vec{R}_b \right]}_{\vec{0}} \cdot \delta \vec{U}_b = 0 \qquad \forall \, \delta\vec{U}_b
+    \qquad \underbrace{\left[K_{ajbl} \cdot \Delta U_{bl} + R_{aj} \right]}_{0} \cdot \delta U_{aj} = 0 \qquad \forall \, \delta U_{aj}
 \end{equation}
 
 \subsection{Internal virtual work}
 
+The goal of this section is to compute the directional derivative of the internal virtual work. For that, the directional derivative of $\tensorTwo{P}$ is initially evaluated. This is done by using the chain rule of differentiation:
+
 \begin{equation}
-    \int_V D \pkOne \, [\Delta \vec{u}] : \tensorTwoGradO{\delta \vec{u}} \dV
+    D \pkOne \, [\Delta \vec{u}] = \pderiv{\pkOne}{\tensorTwo{F}} : D \F \, [\Delta \vec{u}] = \pderiv{\pkOne}{\F} : \tensorTwoGradO{\Delta \vec{u}}
 \end{equation}
 
-\subsubsection{Discretization}
+Then, using that into Equation \ref{eq:dir-der-W}, the following expression is obtained for the directional derivative of the internal virtual work:
 
-\subsubsection{Elementary Description}
+\begin{equation}
+    D \delta \mathcal{W}^{int} \, \left[\Delta \vec{u} \right] = \int_V D \pkOne \, [\Delta \vec{u}] : \tensorTwoGradO{\delta \vec{u}} \dV = \int_V \tensorTwoGradO{\delta \vec{u}} : \pderiv{\pkOne}{\F} : \tensorTwoGradO{\Delta \vec{u}} \dV
+\end{equation}
 
-\subsubsection{Numerical Integration}
+With this expression it is possible to isolate the tangent tensor $\tensorFour{K}$. This is done by using the definition of the finite element discretization of the displacement field. The final expression for the tangent tensor $\tensorFour{K}$ is given by:
+
+\begin{equation*}
+    D \delta \mathcal{W}^{int} \, \left[\Delta \vec{u} \right] = \int_V \tensorTwoGradO{\delta \vec{u}} : \pderiv{\pkOne}{\F} : \tensorTwoGradO{\Delta \vec{u}} \dV = \int_V \left( \vectorGradO{N_a} \otimes \delta \vec{U}_{a} \right) : \pderiv{\pkOne}{\F} : \left( \vectorGradO{N_b} \otimes \Delta \vec{U}_{b} \right) \dV \Longrightarrow
+\end{equation*}
+\begin{equation*}
+    D \delta \mathcal{W}^{int} \, \left[\Delta \vec{u} \right] = \delta U_{aj} \cdot \underbrace{\left[\int_V \nabla_0 N_{ai} \cdot \pderiv{\mathrm{P}_{ij}}{\mathrm{F}_{kl}} \cdot \nabla_0 N_{bk} \dV \right]}_{K_{ajbl}} \cdot \Delta U_{bl} = \delta U_{aj} \cdot K_{ajbl} \cdot \Delta U_{bl}
+\end{equation*}
+
+The derivative of $\pkOne$ with respect to $\F$, called the mixed elasticity tangent tensor, is expressed as a function of the material model used. The chain rule of differentiation is then used to express it as a function of the material tangent tensor $\tensorFour{\mathcal{C}}$:
+
+\begin{equation} \label{eq:dPdF}
+    \pderiv{\pkOne}{\F} = \pderiv{\left(\F \cdot \pkTwo \right)}{\F} = \pderiv{\F}{\F} \cdot \pkTwo + \F \cdot \pderiv{\pkTwo}{\F} = \pderiv{\F}{\F} \cdot \pkTwo + \F \cdot \underbrace{\pderiv{\pkTwo}{\E}}_{\tensorFour{\mathcal{C}}} \cdot \pderiv{\E}{\F}
+\end{equation}
+
+Two of the unknown terms ($\pderiv{\F}{\F}$ and $\pderiv{\E}{\F}$) are purely kinematic and can be evaluated generally for any material model:
+
+\begin{equation} \label{eq:dFdF}
+    \pderiv{\F}{\F}  \rightarrow \pderiv{\mathrm{F}_{ij}}{\mathrm{F}_{kl}}= \delta_{ik} \cdot \delta_{jl}
+\end{equation}
+\begin{equation}
+    \pderiv{\E}{\F} = \pderiv{\left(\frac{1}{2} \left(\F^T \cdot \F - \tensorTwo{I} \right) \right)}{\F} = \frac{1}{2} \left( \pderiv{\F^T}{\F} \cdot \F + \F^T \cdot \pderiv{\F}{\F}  \right) \rightarrow \pderiv{\mathrm{E}_{ij}}{\mathrm{F}_{kl}} = \frac{1}{2} \left( \delta_{il} \cdot \mathrm{F}_{kj} +  \delta_{jl} \cdot \mathrm{F}_{ki}  \right)
+\end{equation}
+
+However, the tensor $\tensorFour{\mathcal{C}}$ is the material tangent tensor, which is a function of the material model used. This is the information used in the code that each non linear material needs to provide. For that reason, the expression of $\tensorFour{\mathcal{C}}$ for each non linear material model is described below:
+
+\paragraph{Saint Venant - Kirchhoff:}
+
+\begin{equation*}
+    \tensorFour{\mathcal{C}} = \pderiv{\pkTwo}{\E} = \pderiv{\left( \lambda \, tr(\E) \tensorTwo{\mathrm{I}} + 2\mu \,\E \right)}{\E} \Longrightarrow
+\end{equation*}
+\begin{equation} \label{eq:C_stk}
+    \mathcal{C}_{ijkl} = \lambda \, \delta_{ij}\delta_{kl} + \mu \left( \delta_{ik}\delta_{jl} + \delta_{il}\delta_{jk} \right)
+\end{equation}
+
+\paragraph{Compressible Neo-Hookean:}
+
+\begin{equation*}
+    \tensorFour{\mathcal{C}} = \pderiv{\pkTwo}{\E} = \pderiv{\left( \mu \, \left(\tensorTwo{\mathrm{I}} - \C^{-1} \right) - \lambda \, \ln{\J} \, \C^{-1} \right)}{\E} \Longrightarrow
+\end{equation*}
+\begin{equation} \label{eq:C_nhk}
+    \mathcal{C}_{ijkl} = \left( \mu - \lambda \, \ln{\J} \right) \cdot \left( \mathrm{C}_{ik}^{-1} \cdot \mathrm{C}_{jl}^{-1} + \mathrm{C}_{il}^{-1} \cdot \mathrm{C}_{jk}^{-1} \right) + \lambda \cdot \mathrm{C}_{ij}^{-1} \cdot \mathrm{C}_{kl}^{-1}
+\end{equation}
 
 \subsection{External virtual work}
 
-\subsubsection{Discretization}
-
-\subsubsection{Elementary Description}
-
-\subsubsection{Numerical Integration}
-
+{\color{red}\textbf{To do}}
