@@ -94,10 +94,6 @@ def test():
     
     mesh = mf.mesh.Mesh("mesh/rect.msh", dim=2)
 
-    mesh.plot(nodes_ids=False, elems_ids=False, zoom_out=0.25)
-
-    plt.show()
-
     material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=200.0e9, nu=0.3)
 
     model = mf.models.NonLinear(
@@ -140,23 +136,15 @@ def test():
         )
     )
 
-    x_elements_cg = mesh.get_elements_cg_coordinates()
-
-    lower_elements = np.where(x_elements_cg[:, 1] < 0.25)[0]
-    upper_elements = np.where(x_elements_cg[:, 1] >= 0.25)[0]
-
-    lower_elements_id = [mesh.elems[mesh.dim][i].id for i in lower_elements]
-    upper_elements_id = [mesh.elems[mesh.dim][i].id for i in upper_elements]
-
     f = mf.boundary_conditions.VolumetricForce(lambda X: f_volumetric(X, g=-9.81 * 1e7))
 
-    # model.add_volumetric_force(
-    #     step=mf.boundary_conditions.BCStep(
-    #         times=[0.0, 1.0],
-    #         values=[f * 0.0, f * 1.0]
-    #     ),
-    #     elems_id=None # Apply to all elements
-    # )
+    model.add_volumetric_force(
+        step=mf.boundary_conditions.BCStep(
+            times=[0.0, 1.0],
+            values=[f * 0.0, f * 1.0]
+        ),
+        elems_id=None # Apply to all elements
+    )
 
     fig, ax = plt.subplots()
 
