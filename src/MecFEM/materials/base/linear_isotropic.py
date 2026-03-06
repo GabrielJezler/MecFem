@@ -1,6 +1,6 @@
 import numpy as np
 
-from ...utils import tensor
+from ...utils import classification as cl
 
 class LinearIsotropic:
     """
@@ -33,6 +33,10 @@ class LinearIsotropic:
 
         self._lambda = self._E * self._nu / ((1 + self._nu) * (1 - 2 * self._nu))
         self._mu = self._E / (2 * (1 + self._nu))
+
+        self._behavior = cl.MaterialBehavior.ELASTIC
+        self._symmetry = cl.MaterialSymmetry.ISOTROPIC
+        self._solver = cl.SolverClassification.LINEAR
 
     def __repr__(self):
         return f"{self.__class__.__name__}(E={self.E}, nu={self.nu})"

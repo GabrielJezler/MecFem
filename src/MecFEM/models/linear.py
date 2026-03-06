@@ -7,7 +7,7 @@ from .base import Base
 
 from ..mesh import Mesh
 from ..elements import LinearFiniteElement
-from ..boundary_conditions import BCStep
+from ..utils import classification as cl
 
 class Linear(Base):
     """
@@ -42,6 +42,8 @@ class Linear(Base):
     """
     def __init__(self, mesh: Mesh, material) -> None:
         super().__init__(mesh, material, LinearFiniteElement)
+        self._solver = cl.SolverClassification.LINEAR
+        self.check_compatibility()
 
     def stiffness_matrix(self) -> np.ndarray:
         """

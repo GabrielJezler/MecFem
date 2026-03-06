@@ -3,6 +3,7 @@ import numpy as np
 from .base import BaseFiniteElement
 
 from ..mesh import Element
+from ..utils import classification as cl
 
 class LinearFiniteElement(BaseFiniteElement):
     """
@@ -23,6 +24,7 @@ class LinearFiniteElement(BaseFiniteElement):
     """
     def __init__(self, elem: Element, x_nodes: np.ndarray) -> None:
         super().__init__(elem, x_nodes)
+        self._solver = cl.SolverClassification.LINEAR
 
     def update(self, material, *args, **kwargs) -> np.ndarray:
         """

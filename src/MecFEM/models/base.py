@@ -6,6 +6,7 @@ import gmsh
 from ..mesh import Mesh
 from ..elements import NonLinearFiniteElement, LinearFiniteElement
 from ..boundary_conditions import BCStep
+from ..utils import classification as cl
 
 class Base:
     """
@@ -42,6 +43,9 @@ class Base:
         if element_type not in [LinearFiniteElement, NonLinearFiniteElement]:
             raise ValueError(f"element_type must be either LinearFiniteElement or NonLinearFiniteElement, got {element_type}")
 
+        if not isinstance(mesh, Mesh):
+            raise TypeError(f"mesh must be an instance of Mesh, got {type(mesh)}")
+
         self.material = material
         self.mesh = mesh
 
@@ -71,6 +75,8 @@ class Base:
         self.U:np.ndarray | None = None # Displacement
         self.T:np.ndarray | None = None # Time steps
 
+        self._solver = cl.SolverClassification.NONE
+
     def __repr__(self):
         return f"{self.__class__.__name__}(mesh={self.mesh}, material: {self.material})"
     
@@ -85,6 +91,21 @@ class Base:
     def n_elements(self):
         """Get number of elements"""
         return len(self.elems)
+    
+    def check_compatibility(self) -> bool:
+        """
+        Check compatibility between model and material.
+
+        Returns
+        -------
+        bool
+            True if compatible, False otherwise.
+
+        """
+        if self._solver != self.material._solver:
+            raise ValueError(f"Incompatible solver types: model = {self._solver}, material = {self.material._solver}")
+        
+        return True
     
     def get_nodes_coordinates(self) -> np.ndarray:
         """

@@ -4,6 +4,7 @@ import copy
 from ..geometry import isoparametric_elements as iso_elem
 from ..mesh import Element
 from ..utils import cache_none
+from ..utils import classification as cl
 
 class BaseFiniteElement:
     """
@@ -35,6 +36,9 @@ class BaseFiniteElement:
         self.weights = np.array(
             [elem_data.integration_points.W[i] for i in range(elem_data.integration_points.N)]
         )
+
+        self._solver = cl.SolverClassification.NONE
+
 
     def __repr__(self):
         return f"{self.__class__.__name__}(dim={self.dim}, n_nodes={self.n_nodes}, n_int_pts={self.n_int_pts})"

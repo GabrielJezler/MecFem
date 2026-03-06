@@ -10,7 +10,7 @@ from .base import Base
 
 from ..mesh import Mesh
 from ..elements import NonLinearFiniteElement
-from ..boundary_conditions import BCStep
+from ..utils import classification as cl
 
 class NonLinear(Base):
     """
@@ -45,6 +45,8 @@ class NonLinear(Base):
     """
     def __init__(self, mesh: Mesh, material) -> None:
         super().__init__(mesh, material, NonLinearFiniteElement)
+        self._solver = cl.SolverClassification.NON_LINEAR
+        self.check_compatibility()
 
         self.R:np.ndarray | None = None # Residual
     

@@ -3,6 +3,7 @@ import numpy as np
 from .linear_isotropic import LinearIsotropic
 
 from ...utils import kinematics, tensor
+from ...utils import classification as cl
 
 class NonLinearIsotropic(LinearIsotropic):
     """
@@ -13,6 +14,10 @@ class NonLinearIsotropic(LinearIsotropic):
     """
     def __init__(self, E, nu):
         super().__init__(E, nu)
+
+        self._behavior = cl.MaterialBehavior.ELASTIC
+        self._symmetry = cl.MaterialSymmetry.ISOTROPIC
+        self._solver = cl.SolverClassification.NON_LINEAR
 
     def transformation_gradient(self, grad0_u):
         """
