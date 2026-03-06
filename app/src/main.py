@@ -7,7 +7,7 @@ from typing import Any
 import MecFEM as mf
 
 import themes
-import components
+import pages
 from utils import tomltools
 
 @dataclass(frozen=True)
@@ -237,7 +237,7 @@ def MecApp():
 
     home_page = Page(
         name="Home",
-        content=components.home(app),
+        content=pages.home(app),
         icon=ft.CupertinoIcons.HOME,
         route="/",
         index=0
@@ -245,7 +245,7 @@ def MecApp():
 
     material_page = Page(
         name="Material",
-        content=components.material(app),
+        content=pages.material(app),
         icon=ft.CupertinoIcons.LAB_FLASK,
         route="/material",
         index=1
@@ -253,7 +253,7 @@ def MecApp():
 
     mesh_page = Page(
         name="Mesh",
-        content=components.mesh(app),
+        content=pages.mesh(app),
         icon=ft.CupertinoIcons.SQUARE_GRID_4X3_FILL,
         route="/mesh",
         index=2
@@ -261,7 +261,7 @@ def MecApp():
 
     setup_page = Page(
         name="Setup",
-        content=components.setup(app),
+        content=pages.setup(app),
         icon=ft.CupertinoIcons.DOC_CHART,
         route="/setup",
         index=3
@@ -269,7 +269,7 @@ def MecApp():
 
     run_page = Page(
         name="Run",
-        content=components.run(app),
+        content=pages.run(app),
         icon=ft.CupertinoIcons.PLAY,
         route="/run",
         index=5
@@ -277,7 +277,7 @@ def MecApp():
 
     post_page = Page(
         name="Post",
-        content=components.post(app),
+        content=pages.post(app),
         icon=ft.CupertinoIcons.GRAPH_SQUARE,
         route="/post",
         index=6

@@ -9,6 +9,7 @@ import MecFEM as mf
 from utils import tomltools, stringtools
 from themes import text
 from ._base import BasePage
+from ._components import ErrorDialog
 
 @ft.component
 def MaterialContent(app) -> ft.Control:
@@ -69,54 +70,6 @@ def MaterialContent(app) -> ft.Control:
     parameters_ref = ft.use_ref(ft.Ref[ft.ResponsiveRow]())
     dropdown_ref = ft.use_ref(ft.Ref[ft.Dropdown]())
 
-    def no_material_dialog():
-        dialog = ft.AlertDialog(
-            title=ft.Text(
-                "No material selected", 
-                style=text.title_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["primary"])
-            ),
-            content=ft.Text(
-                "Please select a material model before saving.", 
-                style=text.body_medium(app.theme_mode)
-            ),
-            actions=[
-                ft.TextButton(
-                    "Dismiss",
-                    on_click=lambda e: ft.context.page.pop_dialog(),
-                    autofocus=True
-                )
-            ],
-            modal=True,
-        )
-        ft.context.page.show_dialog(dialog)
-
-    def material_not_saved_dialog(exception: Exception = None):
-        dialog = ft.AlertDialog(
-            title=ft.Text(
-                "Material not saved", 
-                style=text.title_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["primary"])
-            ),
-            content=ft.Text(
-                f"Please fill in all parameters and save the material model before proceeding.", 
-                spans=[
-                    ft.TextSpan(
-                        text=f"\nError details: {exception}",
-                        style=text.body_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["alert"], italic=True)
-                    )
-                ] if exception else None,
-                style=text.body_medium(app.theme_mode)
-            ),
-            actions=[
-                ft.TextButton(
-                    "Dismiss",
-                    on_click=lambda e: ft.context.page.pop_dialog(),
-                    autofocus=True
-                )
-            ],
-            modal=True,
-        )
-        ft.context.page.show_dialog(dialog)
-
     def update_parameter_controls(params_names: dict[str, str] | None):
         if params_names:            
             set_parameter_controls(
@@ -124,7 +77,6 @@ def MaterialContent(app) -> ft.Control:
                     ft.TextField(
                         label=param,
                         data=param,
-                        key=param,
                         value=params_names.get(param, None),
                         label_style=text.body_medium(app.theme_mode),
                         border_color=COLORS["ui"][app.theme_mode.value]["primary"],
@@ -174,7 +126,7 @@ def MaterialContent(app) -> ft.Control:
         material_name = dropdown_ref.current.data
         material = materials.get(material_name)
         if not material:
-            no_material_dialog()
+            ErrorDialog(app, "No material selected", "Please select a material model before saving.")
             return
         
         params = {}
@@ -191,9 +143,8 @@ def MaterialContent(app) -> ft.Control:
             set_material_parameters_span(material_parameters_str(params))
             set_material_status_span(material_status_str(True))
             set_material_status_color_span(material_status_color_str(True))
-            print("New material saved")
         except Exception as ex:
-            material_not_saved_dialog(ex)
+            ErrorDialog(app, "Material not saved", f"ERROR: {ex}")
 
     def mount():
         if not app.simulation_data.material:
@@ -213,7 +164,6 @@ def MaterialContent(app) -> ft.Control:
 
                 update_parameter_controls(initial_params)
 
-    # ft.on_mounted(mount)
     ft.use_effect(mount, [])
 
     return ft.Container(

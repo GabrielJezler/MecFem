@@ -4,4 +4,3 @@ from .mesh import mesh
 from .setup import setup
 from .post import post
 from .run import run
-from .bc import bc

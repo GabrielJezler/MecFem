@@ -9,6 +9,7 @@ import MecFEM as mf
 from utils import tomltools
 from themes import text
 from ._base import BasePage
+from ._components import ErrorDialog
 
 @ft.component
 def MeshContent(app) -> ft.Control:
@@ -25,27 +26,6 @@ def MeshContent(app) -> ft.Control:
     dim_ref = ft.Ref[ft.TextField]()
     mesh_path_ref = ft.Ref[ft.Container]()
 
-    def show_file_error_dialog():
-        dialog = ft.AlertDialog(
-            title=ft.Text(
-                "Invalid file type", 
-                # style=text.title_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["primary"])
-            ),
-            content=ft.Text(
-                "Please select a .msh file.", 
-                # style=text.body_medium(app.theme_mode)
-            ),
-            actions=[
-                ft.TextButton(
-                    "Dismiss",
-                    on_click=lambda e: ft.context.page.pop_dialog(),
-                    autofocus=True
-                )
-            ],
-            modal=True,
-        )
-        ft.context.page.show_dialog(dialog)
-
     async def handle_get_directory_path(e: ft.ControlEvent):
         files = await ft.FilePicker().pick_files()
         if files:
@@ -53,7 +33,8 @@ def MeshContent(app) -> ft.Control:
                 set_mesh_path_text(os.path.split(files[0].path)[-1])
                 set_mesh_fullpath_text(files[0].path)
             else:
-                show_file_error_dialog()
+                ErrorDialog(app, "Invalid file type", "Please select a .msh file.")
+
 
     def show_mesh(e: ft.ControlEvent):
         mesh_path = mesh_path_ref.current.data
@@ -69,7 +50,7 @@ def MeshContent(app) -> ft.Control:
                 set_mesh_status_str("Mesh loaded successfully: ")
                 set_mesh_status_path_str(mesh_path)
             except Exception as ex:
-                print(f"Error plotting mesh: {ex}")
+                ErrorDialog(app, "Error plotting mesh", f"ERROR: {ex}")
 
     def mount():
         if app.simulation_data.mesh_path is not None and app.simulation_data.mesh is not None:
@@ -79,14 +60,7 @@ def MeshContent(app) -> ft.Control:
             set_mesh_status_str("Mesh loaded successfully: ")
             set_mesh_status_path_str(app.simulation_data.mesh_path)
 
-    # ft.on_mounted(mount)
     ft.use_effect(mount, [])
-
-    # def test():
-    #     print(f"--New mesh ref: {mesh_path_ref.current.data}")
-    #     print(f"--New mesh ref: {mesh_path_ref.current.content.value}")
-
-    # ft.use_effect(test, [mesh_path_ref])
 
     return ft.Container(
         expand = True,

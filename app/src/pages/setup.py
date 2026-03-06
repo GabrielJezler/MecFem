@@ -9,6 +9,7 @@ import MecFEM as mf
 from utils import tomltools, stringtools
 import themes
 from ._base import BasePage
+from ._components import ErrorDialog
 
 @ft.component
 def SetupContent(app) -> ft.Control:    
@@ -38,27 +39,6 @@ def SetupContent(app) -> ft.Control:
 
     model_dropdown_ref = ft.Ref[ft.Dropdown]()
 
-    def error_dialog(title:str, text:str):
-        dialog = ft.AlertDialog(
-            title=ft.Text(
-                title, 
-                style=themes.text.title_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["primary"])
-            ),
-            content=ft.Text(
-                text, 
-                style=themes.text.body_medium(app.theme_mode)
-            ),
-            actions=[
-                ft.TextButton(
-                    "Dismiss",
-                    on_click=lambda e: ft.context.page.pop_dialog(),
-                    autofocus=True
-                )
-            ],
-            modal=True,
-        )
-        ft.context.page.show_dialog(dialog)
-
     def save_model(e: ft.ControlEvent) -> None:
         name = e.control.value
         model = MODELS.get(stringtools.string_to_pascal(name))
@@ -70,8 +50,6 @@ def SetupContent(app) -> ft.Control:
                 material = app.simulation_data.material
                 if mesh and material:
                     app.simulation_data.model = model(mesh=mesh, material=material)
-
-                    set_model_name_text(model_name_str(name))
                 else:
                     if mesh is None and material is None:
                         raise ValueError("Mesh and material must be defined to create the model.")
@@ -80,35 +58,11 @@ def SetupContent(app) -> ft.Control:
                     elif material is None:
                         raise ValueError("Material must be defined to create the model.")
             except Exception as ex:
+                ErrorDialog(app, "Model not saved", f"ERROR: {ex}")
                 set_model_name_text(model_name_str())
-                error_dialog("Model not saved", f"Error details: {ex}")
         else:
             set_model_name_text(model_name_str())
-            error_dialog("No model selected", "Please select a model before saving.")
-
-    def update_from_mesh_material():
-        print("--- Update_from_mesh_material called")
-        if app.simulation_data.model:
-            if app.simulation_data.mesh and app.simulation_data.material:
-                try:
-                    print("Updating model with new mesh and material...")
-                    app.simulation_data.model = app.simulation_data.model.__class__(
-                        mesh=app.simulation_data.mesh,
-                        material=app.simulation_data.material
-                    )
-                    print("Model updated with new mesh and material.")
-                except Exception as ex:
-                    print(f"Error updating model with new mesh and material: {ex}")
-            else:
-                app.simulation_data.model = None
-                print("Mesh or material not defined. Model reset to None.")
-        else:
-            print("Modelnot defined. Cannot update model.")
-    
-    # ft.use_effect(
-    #     update_from_mesh_material, 
-    #     [app.simulation_data]
-    # )
+            ErrorDialog(app, "No model selected", "Please select a model before saving.")
 
     def mount():
         if app.simulation_data.model:
@@ -117,9 +71,9 @@ def SetupContent(app) -> ft.Control:
     ft.use_effect(mount, [])
 
     return ft.Container(
-        expand = True,
-        padding = 2,
-        content = ft.Column(
+        expand=True,
+        padding=2,
+        content=ft.Column(
             controls=[
                 ft.Dropdown(
                     ref=model_dropdown_ref,
@@ -129,7 +83,7 @@ def SetupContent(app) -> ft.Control:
                     border_color=COLORS["ui"][app.theme_mode.value]["primary"],
                     options=[
                         ft.DropdownOption(
-                            text=model_name_str(name) # model name converted to display string as text
+                            text=model_name_str(name)
                         )
                         for name in MODELS.keys()
                     ],
