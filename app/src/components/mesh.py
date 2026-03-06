@@ -61,7 +61,7 @@ def MeshContent(app) -> ft.Control:
 
         if mesh_path and dim:
             try:
-                mesh = mf.mesh.read.read_gmsh_mesh(mesh_path, dim=int(dim))
+                mesh = mf.mesh.Mesh(mesh_path, dim=int(dim))
 
                 app.simulation_data.mesh_path = mesh_path
                 app.simulation_data.mesh = mesh
@@ -79,7 +79,8 @@ def MeshContent(app) -> ft.Control:
             set_mesh_status_str("Mesh loaded successfully: ")
             set_mesh_status_path_str(app.simulation_data.mesh_path)
 
-    ft.on_mounted(mount)
+    # ft.on_mounted(mount)
+    ft.use_effect(mount, [])
 
     # def test():
     #     print(f"--New mesh ref: {mesh_path_ref.current.data}")

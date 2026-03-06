@@ -72,7 +72,7 @@ class Base:
         self.T:np.ndarray | None = None # Time steps
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(n_nodes: {self.n_nodes}, n_elems: {self.n_elements}, dim: {self.dim}, material: {self.material})"
+        return f"{self.__class__.__name__}(mesh={self.mesh}, material: {self.material})"
     
     def __eq__(self, value):
         if isinstance(value, self.__class__):

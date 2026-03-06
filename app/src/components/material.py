@@ -21,11 +21,6 @@ def MaterialContent(app) -> ft.Control:
         if saved:
             return COLORS["ui"][app.theme_mode.value]["success"]
         return COLORS["ui"][app.theme_mode.value]["alert"]
-    
-    def material_name_str(model_name:str | None=None):
-        if model_name:
-            return stringtools.pascal_to_string(model_name)
-        return "None"
 
     def material_parameters_str(params:dict[str, str] | None=None):
         if params:
@@ -196,6 +191,7 @@ def MaterialContent(app) -> ft.Control:
             set_material_parameters_span(material_parameters_str(params))
             set_material_status_span(material_status_str(True))
             set_material_status_color_span(material_status_color_str(True))
+            print("New material saved")
         except Exception as ex:
             material_not_saved_dialog(ex)
 
@@ -217,7 +213,8 @@ def MaterialContent(app) -> ft.Control:
 
                 update_parameter_controls(initial_params)
 
-    ft.on_mounted(mount)
+    # ft.on_mounted(mount)
+    ft.use_effect(mount, [])
 
     return ft.Container(
         expand = True,

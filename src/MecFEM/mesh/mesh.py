@@ -27,7 +27,7 @@ class Mesh:
         self.read_gmsh()
 
     def __repr__(self):
-        return f"Mesh(dim={self.dim}, n_nodes={self.n_nodes}, n_elements={self.n_elements})"
+        return f"Mesh(filename={self.filename}, dim={self.dim})"
     
     def __eq__(self, value):
         if isinstance(value, self.__class__):
