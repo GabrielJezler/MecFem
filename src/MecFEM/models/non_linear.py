@@ -111,10 +111,26 @@ class NonLinear(Base):
         """
         Solve the nonlinear FE model using the Newton-Raphson method.
 
+        Parameters
+        ---------- 
+        dt : float
+            Time step size.
+        t_end : float
+            End time of the simulation.
+        F_VERBOSE : int
+            Frequency of verbose output (every F_VERBOSE time steps).
+        PRECISION : float
+            Minimum norm of the displacement increment for convergence.
+        TOLERANCE : float
+            Minimum norm of the residual for convergence.
+        MAX_ITER : int
+            Maximum number of iterations for the Newton-Raphson method.
+        FULL_VERBOSE : bool
+            If True, print verbose output for every iteration of the Newton-Raphson method.
+
         Returns
         -------
-        U : ndarray
-            Nodal displacement field. This is an array of shape (n_nodes, dim).
+        None
 
         """
         time = 0.0        
@@ -204,6 +220,17 @@ class NonLinear(Base):
         self.messages = messages
 
         return None
+    
+    def reactions(self) -> np.ndarray:
+        """
+        Compute global reaction force vector.
+
+        Returns
+        -------
+        R : ndarray
+            Global reaction force vector. This is an array of shape (n_times, n_nodes, dim).
+        """
+        return self.R
     
     @wraps(Base.load_gmsh_results)
     def load_gmsh_results(self, filename, U_values_name):

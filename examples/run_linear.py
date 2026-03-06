@@ -202,6 +202,14 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     ax = mesh.plot(ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
+    ax = mf.post.vector.plot_2d_arrows(model, model.reactions()[-1,:,:], ax=ax, scale=200, label='Reaction vectors')
+
+    fig.suptitle("Reaction vectors")
+    plt.show()
+
+    fig, ax = plt.subplots()
+    ax = mesh.plot(ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
+
     ax, ani = mf.post.vector.animate_2d_displacement(model, scale=1000, ax=ax, label='Displacement magnitude', zoom_out=0.25, interval=200)
 
     fig.suptitle("Displacement animation")

@@ -64,6 +64,19 @@ class Linear(Base):
         ) -> None:
         """
         Solve the linear FE model.
+
+        Parameters
+        ----------
+        dt : float, optional
+            Time step for the simulation. The default is 0.1.
+        t_end : float, optional
+            End time for the simulation. The default is 1.0.
+        F_VERBOSE : int, optional
+            Frequency of verbose output (in terms of time steps). The default is 10.
+        
+        Returns
+        -------
+        None
         """
         time =0.0
         n_step = 1
@@ -81,14 +94,10 @@ class Linear(Base):
         print("===== Starting linear solver =====")
         start_time = datetime.datetime.now()
         while time <= t_end:
-            # print(f"Time: {time:.4f} / {t_end:.4f}")
             Un = np.zeros((self.n_dofs))
             Un = self.apply_displacement(Un, time)
             F_fixed_dofs = K[np.ix_(self.free_dofs, self.fixed_dofs)] @ Un[self.fixed_dofs]
             F_external = (self.volumetric_forces(time) + self.external_forces(time)).reshape((self.n_dofs, ))
-            # print(K.shape)
-            # print(F_fixed_dofs.shape)
-            # print(F_external.shape)
 
             Un[self.free_dofs] = np.linalg.solve(K[np.ix_(self.free_dofs, self.free_dofs)], F_external[self.free_dofs] - F_fixed_dofs)
             
@@ -115,3 +124,27 @@ class Linear(Base):
         self.messages = messages
 
         return None
+    
+    def reactions(self) -> np.ndarray:
+        """
+        Compute the reaction forces at the fixed degrees of freedom.
+
+        Returns
+        -------
+        reactions : ndarray
+            Global reaction force vector. This is an array of shape (n_times, n_nodes, dim).
+        """
+        reactions = np.zeros((self.T.shape[0], self.n_nodes, self.dim))
+
+        self.update_elements(self.U[0,:,:].reshape((self.n_dofs)))
+        K = self.stiffness_matrix().reshape((self.n_dofs, self.n_dofs))
+
+        for i, time in enumerate(self.T):
+            Un = self.U[i]
+            self.update_elements(Un)
+
+            F_external = (self.volumetric_forces(time) + self.external_forces(time)).reshape((self.n_dofs, ))
+            
+            reactions[i, :, :] = (K @ (Un.reshape((self.n_dofs, ))) - F_external).reshape((self.n_nodes, self.dim))
+
+        return reactions

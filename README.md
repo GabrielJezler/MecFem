@@ -9,7 +9,6 @@
 
 - Add external forces to the solvers (*limited to volumetric with no spacial dependence for now*)
 - Add tangent matrices for external and volumetric forces to the non-linear solver (*currently only the internal forces are considered in the tangent matrix*)
-- Add reaction forces to the solvers (*partially done*)
 - Validation of solver (*done partially, but more cases to be analyzed*)
 - Add sparse matrix compatibility to the solvers (*currently using dense matrices, which is not efficient for large problems*)
 - Add support for 3d problems in the post-processing (*currently only 2d problems are supported*) --> Possibly PyVista although it is not yet supported in Flet

@@ -203,7 +203,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     ax = mesh.plot(ax=ax, nodes_marker=False, nodes_ids=False, elems_ids=False, zoom_out=0.25)
 
-    ax = mf.post.vector.plot_2d_arrows(model, model.R[-1], ax=ax, scale=200, label='Reaction vectors')
+    ax = mf.post.vector.plot_2d_arrows(model, model.reactions()[-1,:,:], ax=ax, scale=200, label='Reaction vectors')
 
     fig.suptitle("Reaction vectors")
     plt.show()
