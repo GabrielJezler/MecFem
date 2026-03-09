@@ -11,82 +11,6 @@ plt.rcParams.update({
     "savefig.format": "pdf",
 })
 
-def f_volumetric(x:np.ndarray) -> np.ndarray:
-    """
-    Example volumetric force function.
-
-    Parameters
-    ----------
-    x : ndarray
-        Coordinates where the force is evaluated. This is an array of shape (n_nodes, dim).
-
-    Returns
-    -------
-    f : ndarray
-        Volumetric force vector at the given coordinates. This is an array of shape (n_nodes, dim).
-
-    """
-    f = np.zeros_like(x)
-    f[:, 1] = -9.81  # Gravity in negative y-direction
-    return f
-
-def fixed_disp(X:np.ndarray) -> np.ndarray:
-    """
-    Example fixed displacement function.
-
-    Parameters
-    ----------
-    x : ndarray
-        Coordinates where the displacement is evaluated. This is an array of shape (n_dofs,).
-
-    Returns
-    -------
-    u : ndarray | float
-        Displacement vector at the given coordinates. This is an array of shape (n_dofs,).
-
-    """
-    return np.zeros(X.shape[0])
-
-def x_disp(X:np.ndarray) -> np.ndarray:
-    """
-    Example displacement function.
-
-    Parameters
-    ----------
-    X : ndarray
-        Coordinates where the displacement is evaluated. This is an array of shape (n_dofs,).
-
-    Returns
-    -------
-    u : ndarray | float
-        Displacement vector at the given coordinates. This is an array of shape (n_dofs,).
-
-    """
-
-    return 0.001 * np.ones(X.shape[0])
-
-def f_volumetric(x:np.ndarray, g) -> np.ndarray:
-    """
-    Example volumetric force function.
-
-    Parameters
-    ----------
-    x : ndarray
-        Coordinates where the force is evaluated. This is an array of shape (n_nodes, dim).
-    g : float
-        Gravity magnitude.
-
-    Returns
-    -------
-    f : ndarray
-        Volumetric force vector at the given coordinates. This is an array of shape (n_nodes, dim).
-
-    """
-    f = np.zeros_like(x)
-    f[:, 1] = g
-    return f
-
-
 def test():
     mf.mesh.generate.generate_rectangle_mesh(
         1.0, 0.5, 16, 8, "mesh/rect.msh"
@@ -106,8 +30,8 @@ def test():
     left_nodes = np.where(x_nodes[:, 0] == 0.0)[0]
     right_nodes = np.where(x_nodes[:, 0] == 1.0)[0]
 
-    fix_disp_step = mf.boundary_conditions.Displacement(fixed_disp)
-    x_disp_step = mf.boundary_conditions.Displacement(x_disp)
+    fix_disp_step = mf.boundary_conditions.functions.displacement.Fixed1Dof()
+    x_disp_step = mf.boundary_conditions.functions.displacement.Displacement1Dof(mag=0.001)
 
     # Fix X and Y displacements at the left edge
     model.add_displacement_bc(
@@ -136,7 +60,7 @@ def test():
         )
     )
 
-    f = mf.boundary_conditions.VolumetricForce(lambda X: f_volumetric(X, g=-9.81 * 1e7))
+    f = mf.boundary_conditions.functions.volumetric.Gravity(g=np.array([0.0, -9.81 * 1e4]), rho=1e3)
 
     model.add_volumetric_force(
         step=mf.boundary_conditions.BCStep(

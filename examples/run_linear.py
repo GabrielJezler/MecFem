@@ -13,42 +13,6 @@ plt.rcParams.update({
     "savefig.format": "pdf",
 })
 
-def f_volumetric(x:np.ndarray) -> np.ndarray:
-    """
-    Example volumetric force function.
-
-    Parameters
-    ----------
-    x : ndarray
-        Coordinates where the force is evaluated. This is an array of shape (n_nodes, dim).
-
-    Returns
-    -------
-    f : ndarray
-        Volumetric force vector at the given coordinates. This is an array of shape (n_nodes, dim).
-
-    """
-    f = np.zeros_like(x)
-    f[:, 1] = -9.81  # Gravity in negative y-direction
-    return f
-
-def fixed_disp(X:np.ndarray) -> np.ndarray:
-    """
-    Example fixed displacement function.
-
-    Parameters
-    ----------
-    x : ndarray
-        Coordinates where the displacement is evaluated. This is an array of shape (n_dofs,).
-
-    Returns
-    -------
-    u : ndarray | float
-        Displacement vector at the given coordinates. This is an array of shape (n_dofs,).
-
-    """
-    return np.zeros(X.shape[0])
-
 def rx_disp(X:np.ndarray, dr:float) -> np.ndarray:
     """
     Example radial displacement function along x axis.
@@ -122,8 +86,7 @@ if __name__ == "__main__":
     left_nodes = np.setdiff1d(left_nodes, arc_in)
     down_nodes = np.setdiff1d(down_nodes, arc_in)
 
-
-    fix_disp_step = mf.boundary_conditions.Displacement(fixed_disp)
+    fix_disp_step = mf.boundary_conditions.functions.displacement.Fixed1Dof()
     rx_disp_step = mf.boundary_conditions.Displacement(lambda X: rx_disp(X, dr=1e-5))
     ry_disp_step = mf.boundary_conditions.Displacement(lambda X: ry_disp(X, dr=1e-5))
 
