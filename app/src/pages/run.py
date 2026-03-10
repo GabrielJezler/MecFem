@@ -1,8 +1,9 @@
 import flet as ft
 import inspect
 
-from ._base import BasePage
 from utils import tomltools
+from components import BasePage, ErrorDialog
+
 
 @ft.component
 def RunContent(app) -> ft.Control:

@@ -8,8 +8,7 @@ import MecFEM as mf
 
 from utils import tomltools, stringtools
 import themes
-from ._base import BasePage
-from ._components import ErrorDialog
+from components import BasePage, ErrorDialog
 
 @ft.component
 def SetupContent(app) -> ft.Control:    

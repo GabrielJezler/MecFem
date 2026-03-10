@@ -1,6 +1,6 @@
 import flet as ft
 
-from ._base import BasePage
+from components import BasePage, ErrorDialog
 
 def post(
         app

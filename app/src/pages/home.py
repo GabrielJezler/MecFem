@@ -1,6 +1,6 @@
 import flet as ft
 
-from ._base import BasePage
+from components import BasePage
 
 @ft.component
 def home(
@@ -11,5 +11,5 @@ def home(
         app,
         title="Home",
         description="Welcome to the MecFEM application.",
-        # primary_content=primary_content
+        # primary_content=
     )

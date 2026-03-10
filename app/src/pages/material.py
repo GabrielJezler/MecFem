@@ -2,14 +2,13 @@ import flet as ft
 import inspect
 import pkgutil
 import importlib
-import asyncio
 
 import MecFEM as mf
 
 from utils import tomltools, stringtools
 from themes import text
-from ._base import BasePage
-from ._components import ErrorDialog
+from components import BasePage, ErrorDialog
+from contexts import *
 
 @ft.component
 def MaterialContent(app) -> ft.Control:
@@ -70,7 +69,31 @@ def MaterialContent(app) -> ft.Control:
     parameters_ref = ft.use_ref(ft.Ref[ft.ResponsiveRow]())
     dropdown_ref = ft.use_ref(ft.Ref[ft.Dropdown]())
 
-    def update_parameter_controls(params_names: dict[str, str] | None):
+    def save_material(e: ft.ControlEvent)-> None:
+        material_name = dropdown_ref.current.data
+        material = materials.get(material_name)
+        if not material:
+            ErrorDialog(app, "No material selected", "Please select a material model before saving.")
+            return
+        
+        params = {}
+        for control in parameters_ref.current.controls:
+            param_name = control.data
+            param_value = control.value
+            if not param_value:
+                return
+            params[param_name] = float(param_value)
+        
+        try:
+            material_instance = material(*params.values())
+            app.simulation_data.material = material_instance
+            set_material_parameters_span(material_parameters_str(params))
+            set_material_status_span(material_status_str(True))
+            set_material_status_color_span(material_status_color_str(True))
+        except Exception as ex:
+            ErrorDialog(app, "Material not saved", f"ERROR: {ex}")
+
+    def update_parameters_controls(params_names: dict[str, str] | None):
         if params_names:            
             set_parameter_controls(
                 [
@@ -112,7 +135,7 @@ def MaterialContent(app) -> ft.Control:
 
             params_names = get_material_parameters(material)[1:]
             
-            update_parameter_controls({name: None for name in params_names})
+            update_parameters_controls({name: None for name in params_names})
             if not params_names:
                 set_material_parameters_span(material_parameters_str({}))
                 set_material_name_dropdown(dropdown_material_str(None))
@@ -121,30 +144,6 @@ def MaterialContent(app) -> ft.Control:
             set_material_name_dropdown(dropdown_material_str(None))
             set_material_name_data_dropdown(None)
             set_parameter_controls([])
-
-    def save_material(e: ft.ControlEvent)-> None:
-        material_name = dropdown_ref.current.data
-        material = materials.get(material_name)
-        if not material:
-            ErrorDialog(app, "No material selected", "Please select a material model before saving.")
-            return
-        
-        params = {}
-        for control in parameters_ref.current.controls:
-            param_name = control.data
-            param_value = control.value
-            if not param_value:
-                return
-            params[param_name] = float(param_value)
-        
-        try:
-            material_instance = material(*params.values())
-            app.simulation_data.material = material_instance
-            set_material_parameters_span(material_parameters_str(params))
-            set_material_status_span(material_status_str(True))
-            set_material_status_color_span(material_status_color_str(True))
-        except Exception as ex:
-            ErrorDialog(app, "Material not saved", f"ERROR: {ex}")
 
     def mount():
         if not app.simulation_data.material:
@@ -162,9 +161,11 @@ def MaterialContent(app) -> ft.Control:
                 set_material_name_dropdown(dropdown_material_str(initial_material_name))
                 set_material_name_data_dropdown(initial_material_name)
 
-                update_parameter_controls(initial_params)
+                update_parameters_controls(initial_params)
 
     ft.use_effect(mount, [])
+
+    # app_context = ft.use_context(AppContext)
 
     return ft.Container(
         expand = True,
@@ -222,6 +223,7 @@ def MaterialContent(app) -> ft.Control:
                     controls=parameter_controls,
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
+                # ft.Text(app_context.theme_mode),
             ],
             alignment=ft.MainAxisAlignment.START,
         ),
