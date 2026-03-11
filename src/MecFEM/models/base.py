@@ -103,7 +103,7 @@ class Base:
 
         """
         if self._solver != self.material._solver:
-            raise ValueError(f"Incompatible solver types: model = {self._solver}, material = {self.material._solver}")
+            raise TypeError(f"Incompatible solver types: model = {self._solver}, material = {self.material._solver}")
         
         return True
     
