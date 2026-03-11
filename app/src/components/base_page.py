@@ -3,16 +3,16 @@ from typing import Any
 
 from themes import text
 from utils import tomltools
+from contexts import *
 
 @ft.component
 def BasePage(
-            app,
             title: str = "Base Page",
             description: str = "This is the base page for the application.",
             primary_content: ft.Control = ft.Text("No content provided."),
         ):
 
-        COLORS = tomltools.load_colors()
+        theme = ft.use_context(ThemeContext)
 
         return ft.Container(
             padding = ft.Padding.only(left=6, right=2, top=2, bottom=2),
@@ -21,17 +21,17 @@ def BasePage(
                 controls=[
                     ft.Text(
                         title, 
-                        style=text.title_large(app.theme_mode)
+                        style=text.title_large(theme.mode)
                     ),
                     ft.Divider(
                         height=4.,
                         thickness=4., 
-                        color=COLORS["ui"][app.theme_mode.value]["primary"],
+                        color=theme.colors["primary"],
                         radius=2,
                     ),
                     ft.Text(
                         description, 
-                        style=text.body_medium(app.theme_mode, italic=True),
+                        style=text.body_medium(theme.mode, italic=True),
                     ),
                     primary_content
                 ],

@@ -9,11 +9,13 @@ import MecFEM as mf
 from utils import tomltools
 from themes import text
 from components import BasePage, ErrorDialog
+from contexts import *
 
 
 @ft.component
-def MeshContent(app) -> ft.Control:
-    COLORS = tomltools.load_colors()
+def MeshContent() -> ft.Control:
+    theme = ft.use_context(ThemeContext)
+    simulation = ft.use_context(SimulationContext)
 
     mesh_path_text, set_mesh_path_text = ft.use_state("Select a mesh file (.msh)")
     mesh_fullpath_text, set_mesh_fullpath_text = ft.use_state(None)
@@ -33,8 +35,7 @@ def MeshContent(app) -> ft.Control:
                 set_mesh_path_text(os.path.split(files[0].path)[-1])
                 set_mesh_fullpath_text(files[0].path)
             else:
-                ErrorDialog(app, "Invalid file type", "Please select a .msh file.")
-
+                ErrorDialog(theme, "Invalid file type", "Please select a .msh file.")
 
     def show_mesh(e: ft.ControlEvent):
         mesh_path = mesh_path_ref.current.data
@@ -44,21 +45,20 @@ def MeshContent(app) -> ft.Control:
             try:
                 mesh = mf.mesh.Mesh(mesh_path, dim=int(dim))
 
-                app.simulation_data.mesh_path = mesh_path
-                app.simulation_data.mesh = mesh
+                simulation.state.mesh = mesh
 
                 set_mesh_status_str("Mesh loaded successfully: ")
                 set_mesh_status_path_str(mesh_path)
             except Exception as ex:
-                ErrorDialog(app, "Error plotting mesh", f"ERROR: {ex}")
+                ErrorDialog(theme, "Error plotting mesh", f"ERROR: {ex}")
 
     def mount():
-        if app.simulation_data.mesh_path is not None and app.simulation_data.mesh is not None:
-            set_mesh_path_text(os.path.split(app.simulation_data.mesh_path)[-1])
-            set_mesh_fullpath_text(app.simulation_data.mesh_path)
-            set_dim_text(str(app.simulation_data.mesh.dim))
+        if simulation.state.mesh is not None:
+            set_mesh_path_text(os.path.split(simulation.state.mesh.filename)[-1])
+            set_mesh_fullpath_text(simulation.state.mesh.filename)
+            set_dim_text(str(simulation.state.mesh.dim))
             set_mesh_status_str("Mesh loaded successfully: ")
-            set_mesh_status_path_str(app.simulation_data.mesh_path)
+            set_mesh_status_path_str(simulation.state.mesh.filename)
 
     ft.use_effect(mount, [])
 
@@ -71,9 +71,9 @@ def MeshContent(app) -> ft.Control:
                     controls=[
                         ft.Container(
                             ref=mesh_path_ref,
-                            content=ft.Text(mesh_path_text, style=text.body_medium(app.theme_mode), expand=True),
+                            content=ft.Text(mesh_path_text, style=text.body_medium(theme.mode), expand=True),
                             data=mesh_fullpath_text,
-                            border=ft.Border.all(1, COLORS["ui"][app.theme_mode.value]["primary"]),
+                            border=ft.Border.all(1, theme.colors["primary"]),
                             border_radius=4,
                             padding=ft.Padding(16, 12, 16, 12),
                             col={
@@ -89,8 +89,8 @@ def MeshContent(app) -> ft.Control:
                             ref=dim_ref,
                             value=dim_text,
                             label="Mesh Dimension",
-                            label_style=text.body_medium(app.theme_mode),
-                            border_color=COLORS["ui"][app.theme_mode.value]["primary"],
+                            label_style=text.body_medium(theme.mode),
+                            border_color=theme.colors["primary"],
                             col={
                                 ft.ResponsiveRowBreakpoint.XS: 12,
                                 ft.ResponsiveRowBreakpoint.MD: 6,
@@ -121,11 +121,11 @@ def MeshContent(app) -> ft.Control:
                 ),
                 ft.Text(
                     mesh_status_str,
-                    style=text.body_medium(app.theme_mode),
+                    style=text.body_medium(theme.mode),
                     spans=[
                         ft.TextSpan(
                             text=mesh_status_path_str,
-                            style=text.body_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["primary"], italic=True)
+                            style=text.body_medium(theme.mode, color=theme.colors["primary"], italic=True)
                         ),
                     ]
                 ),
@@ -139,13 +139,9 @@ def MeshContent(app) -> ft.Control:
     )
     
 @ft.component
-def mesh(
-        app,
-    ):
-
+def mesh():
     return BasePage(
-        app,
         title="Mesh",
         description="Manage meshes for your model.",
-        primary_content=MeshContent(app)
+        primary_content=MeshContent()
     )

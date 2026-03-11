@@ -2,14 +2,14 @@ import flet as ft
 import inspect
 
 from utils import tomltools
-from components import BasePage, ErrorDialog
-
+from components import BasePage
+from contexts import *
 
 @ft.component
-def RunContent(app) -> ft.Control:
+def RunContent() -> ft.Control:
     def get_model_params() -> dict[str, dict[str, str | None]]:
-        if app.simulation_data.model:
-            sig = inspect.signature(app.simulation_data.model.solve)
+        if simulation.state.model:
+            sig = inspect.signature(simulation.state.model.solve)
 
             params = {}
             for param in sig.parameters:
@@ -23,13 +23,14 @@ def RunContent(app) -> ft.Control:
 
         return None
     
-    COLORS = tomltools.load_colors()
+    theme = ft.use_context(ThemeContext)
+    simulation = ft.use_context(SimulationContext)
     
     def number_input(param_name:str, param_info:dict[str, str | None]):
         return ft.TextField(
             label=param_name,
             value=str(param_info["default"]) if param_info["default"] is not None else None,
-            border_color=COLORS["ui"][app.theme_mode.value]["primary"],
+            border_color=theme.colors["primary"],
             input_filter=ft.InputFilter(
                 regex_string=r"^[0-9]*\.?[0-9]*$",
                 allow=True,
@@ -47,9 +48,9 @@ def RunContent(app) -> ft.Control:
             adaptive=True,
             label=param_name,
             value=param_info["default"] if param_info["default"] is not None else False,
-            active_color=COLORS["ui"][app.theme_mode.value]["primary"],
-            inactive_track_color=COLORS["ui"][app.theme_mode.value]["bg"],
-            inactive_thumb_color=COLORS["ui"][app.theme_mode.value]["text"],
+            active_color=theme.colors["primary"],
+            inactive_track_color=theme.colors["bg"],
+            inactive_thumb_color=theme.colors["text"],
             col={
                 ft.ResponsiveRowBreakpoint.XS: 12,
                 ft.ResponsiveRowBreakpoint.MD: 4,
@@ -80,20 +81,15 @@ def RunContent(app) -> ft.Control:
                     content=ft.Text("Run Simulation"),
                     expand=False,
                     height=48,
-                    # on_click=lambda e: show_mesh(e),
                 )
             ],
             alignment=ft.MainAxisAlignment.START,
         )
     )
 
-def run(
-        app
-    ):
-
+def run():
     return BasePage(
-        app,
         title="Run",
         description="Execute the simulation with the defined parameters",
-        primary_content=RunContent(app)
+        primary_content=RunContent()
     )

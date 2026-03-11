@@ -8,8 +8,8 @@ def theme(theme_mode:ft.ThemeMode) -> ft.TextButtonTheme:
     
     return ft.TextButtonTheme(
         style=ft.ButtonStyle(
-            color=COLORS["ui"][theme_mode.value]["bg"],
-            bgcolor=COLORS["ui"][theme_mode.value]["primary"],
+            color=COLORS[theme_mode.value]["bg"],
+            bgcolor=COLORS[theme_mode.value]["primary"],
             shape=ft.RoundedRectangleBorder(radius=4),
             padding=ft.Padding(16, 12, 16, 12),
             text_style=text.body_large(theme_mode, bold=True),

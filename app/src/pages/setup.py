@@ -9,9 +9,10 @@ import MecFEM as mf
 from utils import tomltools, stringtools
 import themes
 from components import BasePage, ErrorDialog
+from contexts import *
 
 @ft.component
-def SetupContent(app) -> ft.Control:    
+def SetupContent() -> ft.Control:    
     def model_name_str(name:str | None=None):
         if name:
             return stringtools.pascal_to_string(name)
@@ -31,9 +32,12 @@ def SetupContent(app) -> ft.Control:
                         models[name] = cls
 
         return models
+    
+    theme = ft.use_context(ThemeContext)
+    simulation = ft.use_context(SimulationContext)
 
-    COLORS = tomltools.load_colors()
     MODELS = get_models()
+
     model_name_text, set_model_name_text = ft.use_state(model_name_str())
 
     model_dropdown_ref = ft.Ref[ft.Dropdown]()
@@ -42,30 +46,31 @@ def SetupContent(app) -> ft.Control:
         name = e.control.value
         model = MODELS.get(stringtools.string_to_pascal(name))
 
-        app.simulation_data.model = None
+        simulation.state.model = None
         if model:
             try:
-                mesh = app.simulation_data.mesh
-                material = app.simulation_data.material
+                mesh = simulation.state.mesh
+                material = simulation.state.material
                 if mesh and material:
-                    app.simulation_data.model = model(mesh=mesh, material=material)
+                    simulation.state.model = model(mesh=mesh, material=material)
+                    set_model_name_text(model_name_str(name))
                 else:
                     if mesh is None and material is None:
-                        raise ValueError("Mesh and material must be defined to create the model.")
+                        raise AttributeError("Mesh and material must be defined to create the model.")
                     elif mesh is None:
-                        raise ValueError("Mesh must be defined to create the model.")
+                        raise AttributeError("Mesh must be defined to create the model.")
                     elif material is None:
-                        raise ValueError("Material must be defined to create the model.")
+                        raise AttributeError("Material must be defined to create the model.")
             except Exception as ex:
-                ErrorDialog(app, "Model not saved", f"ERROR: {ex}")
+                ErrorDialog(theme, "Model not saved", f"ERROR: {ex}")
                 set_model_name_text(model_name_str())
         else:
             set_model_name_text(model_name_str())
-            ErrorDialog(app, "No model selected", "Please select a model before saving.")
+            ErrorDialog(theme, "No model selected", "Please select a model before saving.")
 
     def mount():
-        if app.simulation_data.model:
-            set_model_name_text(model_name_str(app.simulation_data.model.__class__.__name__))
+        if simulation.state.model:
+            set_model_name_text(model_name_str(simulation.state.model.__class__.__name__))
 
     ft.use_effect(mount, [])
 
@@ -78,8 +83,8 @@ def SetupContent(app) -> ft.Control:
                     ref=model_dropdown_ref,
                     value=model_name_text,
                     label="Select Model",
-                    label_style=themes.text.body_medium(app.theme_mode),
-                    border_color=COLORS["ui"][app.theme_mode.value]["primary"],
+                    label_style=themes.text.body_medium(theme.mode),
+                    border_color=theme.colors["primary"],
                     options=[
                         ft.DropdownOption(
                             text=model_name_str(name)
@@ -98,13 +103,9 @@ def SetupContent(app) -> ft.Control:
         ),
     )
 
-def setup(
-        app,
-    ):
-
+def setup():
     return BasePage(
-        app,
         title="Model",
         description="Define the model for the simulation",
-        primary_content=SetupContent(app)
+        primary_content=SetupContent()
     )

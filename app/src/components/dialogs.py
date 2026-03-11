@@ -1,19 +1,20 @@
 import flet as ft
 
 import themes
-import utils
+from contexts import *
 
-def ErrorDialog(app, title:str, text:str):
-    COLORS = utils.tomltools.load_colors()
+# @ft.component
+def ErrorDialog(theme:ThemeContextValue, title:str, text:str):
+    # theme = ft.use_context(ThemeContext)
     
     dialog = ft.AlertDialog(
         title=ft.Text(
             title, 
-            style=themes.text.title_medium(app.theme_mode, color=COLORS["ui"][app.theme_mode.value]["primary"])
+            style=themes.text.title_medium(theme.mode, color=theme.colors["primary"])
         ),
         content=ft.Text(
             text, 
-            style=themes.text.body_medium(app.theme_mode)
+            style=themes.text.body_medium(theme.mode)
         ),
         actions=[
             ft.TextButton(

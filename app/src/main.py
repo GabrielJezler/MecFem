@@ -7,14 +7,13 @@ from utils import tomltools
 from components import AppNavigationRail
 from contexts import *
 from states import *
-from page_data import Page
 
 @ft.component
 def MecApp():
     def update_page_config():
         page.title = "MecApp"
         page.theme_mode = app.theme_mode
-        page.bgcolor = app.colors["ui"][str(app.theme_mode.value)]["bg"]
+        page.bgcolor = theme_value.colors["bg"]
         page.padding = 8
         page.theme = ft.Theme(
             text_theme=themes.text.theme(app.theme_mode),
@@ -24,93 +23,67 @@ def MecApp():
             text_button_theme=themes.text_button.theme(app.theme_mode),
             tooltip_theme=themes.tooltip.theme(app.theme_mode)
         )
-
-    def navigate(e: ft.ControlEvent):
-        route = main_pages[e.control.selected_index].route
-        if route != app.route:
-            asyncio.create_task(page.push_route(route))
-
-    def get_page_by_route() -> Page:
-        routes = [page.route for page in main_pages]
-        if app.route in routes:
-            return main_pages[routes.index(app.route)]
-        else :
-            return main_pages[routes.index("/")]
     
     page = ft.context.page
 
-    colors = tomltools.load_colors()
     config = tomltools.load_config()
 
-    simulation_data = SimulationState()
+    simulation, _ = ft.use_state(
+        SimulationState()
+    )
 
     app, _ = ft.use_state(
         AppState(
             route=page.route,
             theme_mode=ft.ThemeMode.DARK if config["theme"]["mode"] == "dark" else ft.ThemeMode.LIGHT,
-            colors=colors,
             config=config,
-            simulation_data=simulation_data
+            pages=[
+                PageState(
+                    name="Home",
+                    content_function=pages.home,
+                    icon=ft.CupertinoIcons.HOME,
+                    route="/",
+                    index=0
+                ),
+                PageState(
+                    name="Material",
+                    content_function=pages.material,
+                    icon=ft.CupertinoIcons.LAB_FLASK,
+                    route="/material",
+                    index=1
+                ),
+                PageState(
+                    name="Mesh",
+                    content_function=pages.mesh,
+                    icon=ft.CupertinoIcons.SQUARE_GRID_4X3_FILL,
+                    route="/mesh",
+                    index=2
+                ),
+                PageState(
+                    name="Setup",
+                    content_function=pages.setup,
+                    icon=ft.CupertinoIcons.DOC_CHART,
+                    route="/setup",
+                    index=3
+                ),
+                PageState(
+                    name="Run",
+                    content_function=pages.run,
+                    icon=ft.CupertinoIcons.PLAY,
+                    route="/run",
+                    index=4
+                ),
+                PageState(
+                    name="Post",
+                    content_function=pages.post,
+                    icon=ft.CupertinoIcons.GRAPH_SQUARE,
+                    route="/post",
+                    index=5
+                )
+            ]
         )
     )
 
-    home_page = Page(
-        name="Home",
-        content=pages.home(app),
-        icon=ft.CupertinoIcons.HOME,
-        route="/",
-        index=0
-    )
-
-    material_page = Page(
-        name="Material",
-        content=pages.material(app),
-        icon=ft.CupertinoIcons.LAB_FLASK,
-        route="/material",
-        index=1
-    )
-
-    mesh_page = Page(
-        name="Mesh",
-        content=pages.mesh(app),
-        icon=ft.CupertinoIcons.SQUARE_GRID_4X3_FILL,
-        route="/mesh",
-        index=2
-    )
-
-    setup_page = Page(
-        name="Setup",
-        content=pages.setup(app),
-        icon=ft.CupertinoIcons.DOC_CHART,
-        route="/setup",
-        index=3
-    )
-
-    run_page = Page(
-        name="Run",
-        content=pages.run(app),
-        icon=ft.CupertinoIcons.PLAY,
-        route="/run",
-        index=5
-    )
-
-    post_page = Page(
-        name="Post",
-        content=pages.post(app),
-        icon=ft.CupertinoIcons.GRAPH_SQUARE,
-        route="/post",
-        index=6
-    )
-
-    main_pages = [
-        home_page, 
-        material_page, 
-        mesh_page,
-        setup_page,
-        run_page,
-        post_page
-    ]
-    
     page.on_route_change = app.route_change
     page.on_view_pop = app.view_popped
 
@@ -121,34 +94,36 @@ def MecApp():
         dependencies=[app.theme_mode, toggle],
     )
 
-    ft.on_mounted(update_page_config)
-    ft.on_updated(update_page_config, [app.theme_mode])
+    simulation_value = ft.use_memo(
+        lambda: SimulationContextValue(state=simulation),
+        dependencies=[simulation],
+    )
+
+    ft.use_effect(update_page_config, [])
+    ft.use_effect(update_page_config, [app.theme_mode])
 
     return ThemeContext(
         theme_value,
-        # lambda: AppContext(
-        #     app,
+        lambda: SimulationContext(
+            simulation_value,
             lambda: ft.Row(
                 expand=True,
                 spacing=0,
                 controls=[
                     AppNavigationRail(
                         app=app,
-                        pages=main_pages,
-                        selected_index=main_pages.index(get_page_by_route()),
-                        on_change=navigate
                     ),
                     ft.VerticalDivider(
                         width=1,
-                        color=app.colors["ui"][str(app.theme_mode.value)]["text"]
+                        color=theme_value.colors["text"]
                     ),
                     ft.Container(
-                        content=get_page_by_route().content,
+                        content=app.build_page(),
                         expand=True
                     ),
                 ],
             )
-        # )
+        )
     )
 
 
