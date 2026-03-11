@@ -141,7 +141,7 @@ def MaterialContent() -> ft.Control:
         padding = 2,
         content = ft.Column(
             controls=[
-                ft.ResponsiveRow(
+                ft.Row(
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     controls=[
                         ft.Dropdown(
@@ -159,10 +159,6 @@ def MaterialContent() -> ft.Control:
                                 for material_name in materials.keys()
                             ],
                             on_select=lambda e: update_from_material_model(e),
-                            col={
-                                ft.ResponsiveRowBreakpoint.XS: 12,
-                                ft.ResponsiveRowBreakpoint.MD: 4,
-                            },
                             expand=True
                         ),
                     ]

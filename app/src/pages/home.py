@@ -9,7 +9,7 @@ def HomeContent() -> ft.Control:
     simulation = ft.use_context(SimulationContext)
 
     return ft.Text(
-        f"Hello, \ntheme: {theme.mode.value}\ncolors: {theme.colors}\nconfig: {theme.config} \nsimulation: {simulation.state}", 
+        f"Hello!", 
     )
 
 

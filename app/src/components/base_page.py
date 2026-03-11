@@ -33,7 +33,19 @@ def BasePage(
                         description, 
                         style=text.body_medium(theme.mode, italic=True),
                     ),
-                    primary_content
+                    ft.Container(
+                        content=ft.Column(
+                            controls=[
+                                primary_content
+                            ],
+                            expand=True,
+                            scroll=ft.ScrollMode.AUTO,
+                            margin=0,
+                        ),
+                        expand=True,
+                        margin=0,
+                        padding=0,
+                    )
                 ],
                 spacing=12,
             )

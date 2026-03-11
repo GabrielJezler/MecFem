@@ -28,3 +28,5 @@ class SimulationContextValue:
     state: SimulationState
 
 SimulationContext = ft.create_context(SimulationContextValue(SimulationState()))
+
+OrientationContext = ft.create_context(ft.Orientation.LANDSCAPE)

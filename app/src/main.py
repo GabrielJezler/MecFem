@@ -4,9 +4,49 @@ import asyncio
 import themes
 import pages
 from utils import tomltools
-from components import AppNavigationRail
+from components import AppNavigationRail, AppNavigationBar, AppBar
 from contexts import *
 from states import *
+
+@ft.component
+def Content(app:AppState):
+    theme = ft.use_context(ThemeContext)
+    orientation = ft.use_context(OrientationContext)
+
+    ft.context.page.appbar = AppBar(app=app)
+
+    if orientation == ft.Orientation.LANDSCAPE:
+        ft.context.page.navigation_bar = None
+
+        return ft.Row(
+            expand=True,
+            spacing=0,
+            controls=[
+                AppNavigationRail(
+                    app=app,
+                ),
+                ft.Container(
+                    content=app.build_page(),
+                    expand=True
+                ),
+            ],
+        )
+
+    elif orientation == ft.Orientation.PORTRAIT:
+        ft.context.page.navigation_bar = AppNavigationBar(app=app)
+
+        return ft.Column(
+            expand=True,
+            spacing=0,
+            controls=[
+                ft.Container(
+                    content=app.build_page(),
+                    expand=True
+                ),
+            ]
+        )
+    else:
+        raise ValueError("Unknown orientation")
 
 @ft.component
 def MecApp():
@@ -21,16 +61,13 @@ def MecApp():
             dropdown_theme=themes.dropdown.theme(app.theme_mode),
             button_theme=themes.button.theme(app.theme_mode),
             text_button_theme=themes.text_button.theme(app.theme_mode),
-            tooltip_theme=themes.tooltip.theme(app.theme_mode)
+            tooltip_theme=themes.tooltip.theme(app.theme_mode),
+            navigation_bar_theme=themes.navigation_bar.theme(app.theme_mode),
         )
     
     page = ft.context.page
 
     config = tomltools.load_config()
-
-    simulation, _ = ft.use_state(
-        SimulationState()
-    )
 
     app, _ = ft.use_state(
         AppState(
@@ -84,8 +121,26 @@ def MecApp():
         )
     )
 
+    simulation, _ = ft.use_state(
+        SimulationState()
+    )
+
+    orientation, set_orientation = ft.use_state(
+        page.media.orientation
+    )
+
+    def resize(e: ft.ControlEvent):
+        print("Resizing, new orientation:", page.media.orientation)
+        set_orientation(page.media.orientation)
+
+    def on_keyboard(e: ft.KeyboardEvent):
+        if e.shift and e.key == "S":
+            page.show_semantics_debugger = not page.show_semantics_debugger
+
     page.on_route_change = app.route_change
     page.on_view_pop = app.view_popped
+    page.on_resize = resize
+    page.on_keyboard_event = on_keyboard
 
     toggle = ft.use_callback(lambda: app.toggle_theme(), dependencies=[app.theme_mode])
 
@@ -99,29 +154,21 @@ def MecApp():
         dependencies=[simulation],
     )
 
+    orientation_value = ft.use_memo(
+        lambda: orientation,
+        dependencies=[orientation],
+    )
+
     ft.use_effect(update_page_config, [])
     ft.use_effect(update_page_config, [app.theme_mode])
 
-    return ThemeContext(
-        theme_value,
-        lambda: SimulationContext(
-            simulation_value,
-            lambda: ft.Row(
-                expand=True,
-                spacing=0,
-                controls=[
-                    AppNavigationRail(
-                        app=app,
-                    ),
-                    ft.VerticalDivider(
-                        width=1,
-                        color=theme_value.colors["text"]
-                    ),
-                    ft.Container(
-                        content=app.build_page(),
-                        expand=True
-                    ),
-                ],
+    return OrientationContext(
+        orientation_value,
+        lambda: ThemeContext(
+            theme_value,
+            lambda: SimulationContext(
+                simulation_value,
+                lambda: Content(app)
             )
         )
     )
