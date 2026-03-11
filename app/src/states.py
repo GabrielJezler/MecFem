@@ -52,7 +52,6 @@ class AppState:
         tomltools.update_config(self.config)
 
     def route_change(self, e: ft.RouteChangeEvent):
-        print(f"Route changed to {e.route}")
         self.route = e.route
 
     async def view_popped(self, e: ft.ViewPopEvent):

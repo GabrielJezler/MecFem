@@ -1,12 +1,11 @@
 import flet as ft
-import flet_charts
+import flet_charts as fch
 import matplotlib.pyplot as plt
 import os
 import asyncio
 
 import MecFEM as mf
 
-from utils import tomltools
 from themes import text
 from components import BasePage, ErrorDialog
 from contexts import *
@@ -44,8 +43,12 @@ def MeshContent() -> ft.Control:
         if mesh_path and dim:
             try:
                 mesh = mf.mesh.Mesh(mesh_path, dim=int(dim))
+                if simulation.state.mesh != mesh:
+                    simulation.state.mesh = mesh
 
-                simulation.state.mesh = mesh
+                # fig, ax = plt.subplots()
+                # mesh.plot(ax=ax)
+                # set_mesh_fig(fig)
 
                 set_mesh_status_str("Mesh loaded successfully: ")
                 set_mesh_status_path_str(mesh_path)
@@ -129,7 +132,7 @@ def MeshContent() -> ft.Control:
                         ),
                     ]
                 ),
-                # flet_charts.MatplotlibChart(
+                # fch.MatplotlibChart(
                 #     figure=mesh_fig,
                 #     expand=True,
                 # )
@@ -142,6 +145,5 @@ def MeshContent() -> ft.Control:
 def mesh():
     return BasePage(
         title="Mesh",
-        description="Manage meshes for your model.",
         primary_content=MeshContent()
     )

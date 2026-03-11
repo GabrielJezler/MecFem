@@ -44,7 +44,7 @@ def MaterialContent() -> ft.Control:
 
     material_name_dropdown, set_material_name_dropdown = ft.use_state(dropdown_material_str(None))
     material_name_data_dropdown, set_material_name_data_dropdown = ft.use_state(None)
-    parameter_controls, set_parameter_controls = ft.use_state([])
+    parameters_names, set_parameters_names = ft.use_state({})
 
     parameters_ref = ft.use_ref(ft.Ref[ft.ResponsiveRow]())
     dropdown_ref = ft.use_ref(ft.Ref[ft.Dropdown]())
@@ -66,42 +66,19 @@ def MaterialContent() -> ft.Control:
         
         try:
             material_instance = material(*params.values())
-            simulation.state.material = material_instance
+            if material_instance != simulation.state.material:
+                simulation.state.model = None
+                simulation.state.material = material_instance
         except Exception as ex:
             ErrorDialog(theme, "Material not saved", f"ERROR: {ex}")
-
-    def update_parameters_controls(params_names: dict[str, str] | None):
-        if params_names:            
-            set_parameter_controls(
-                [
-                    ft.TextField(
-                        label=param,
-                        data=param,
-                        value=params_names.get(param, None),
-                        label_style=text.body_medium(theme.mode),
-                        border_color=theme.colors["primary"],
-                        col={
-                            ft.ResponsiveRowBreakpoint.XS: 12,
-                            ft.ResponsiveRowBreakpoint.MD: 6,
-                        },
-                        input_filter=ft.InputFilter(
-                            regex_string=r"^[0-9]*\.?[0-9]*$",
-                            allow=True,
-                            replacement_string="",
-                        ),
-                        on_submit=lambda e: save_material(e),
-                    ) for param in params_names
-                ]
-            )
-        else:
-            set_parameter_controls([])
 
     def update_from_material_model(e:ft.ControlEvent) -> None:
         material_name = e.control.value
         material = materials.get(material_name)
 
-        # Reset the material
-        simulation.state.material = None
+        if material.__name__ != simulation.state.material.__class__.__name__:
+            simulation.state.model = None
+            simulation.state.material = None
 
         if material:
             set_material_name_dropdown(dropdown_material_str(material_name))
@@ -109,14 +86,14 @@ def MaterialContent() -> ft.Control:
 
             params_names = get_material_parameters(material)[1:]
             
-            update_parameters_controls({name: None for name in params_names})
+            set_parameters_names({name: None for name in params_names})
             if not params_names:
                 set_material_name_dropdown(dropdown_material_str(None))
                 set_material_name_data_dropdown(None)
         else:
             set_material_name_dropdown(dropdown_material_str(None))
             set_material_name_data_dropdown(None)
-            set_parameter_controls([])
+            set_parameters_names({})
 
     def mount():
         if not simulation.state.material:
@@ -130,11 +107,9 @@ def MaterialContent() -> ft.Control:
                 set_material_name_dropdown(dropdown_material_str(initial_material_name))
                 set_material_name_data_dropdown(initial_material_name)
 
-                update_parameters_controls(initial_params)
+                set_parameters_names(initial_params)
 
     ft.use_effect(mount, [])
-
-    # app_context = ft.use_context(AppContext)
 
     return ft.Container(
         expand = True,
@@ -165,8 +140,26 @@ def MaterialContent() -> ft.Control:
                 ),
                 ft.ResponsiveRow(
                     ref=parameters_ref,
-                    controls=parameter_controls,
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    controls=[
+                        ft.TextField(
+                            label=name,
+                            data=name,
+                            value=value,
+                            label_style=text.body_medium(theme.mode),
+                            border_color=theme.colors["primary"],
+                            col={
+                                ft.ResponsiveRowBreakpoint.XS: 12,
+                                ft.ResponsiveRowBreakpoint.MD: 6,
+                            },
+                            input_filter=ft.InputFilter(
+                                regex_string=r"^[0-9]*\.?[0-9]*$",
+                                allow=True,
+                                replacement_string="",
+                            ),
+                            on_submit=lambda e: save_material(e),
+                        ) for name, value in parameters_names.items()
+                    ]
                 ),
             ],
             alignment=ft.MainAxisAlignment.START,
@@ -177,6 +170,5 @@ def material():
 
     return BasePage(
         title="Material",
-        description="Manage materials for your model.",
         primary_content=MaterialContent()
     )

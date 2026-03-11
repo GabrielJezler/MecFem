@@ -12,7 +12,6 @@
 - Validation of solver (*done partially, but more cases to be analyzed*)
 - Add sparse matrix compatibility to the solvers (*currently using dense matrices, which is not efficient for large problems*)
 - Add support for 3d problems in the post-processing (*currently only 2d problems are supported*) --> Possibly PyVista although it is not yet supported in Flet
-- Add commands for each boundary condition (simplify the application of boundary conditions in the app and in the examples)
 - Finish the app (currently waiting for Matplotlib to be supported in Flet - [bug reported in Flet repo](https://github.com/flet-dev/flet/issues/6155))
 - Finish documentation
 

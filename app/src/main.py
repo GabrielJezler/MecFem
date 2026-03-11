@@ -10,7 +10,6 @@ from states import *
 
 @ft.component
 def Content(app:AppState):
-    theme = ft.use_context(ThemeContext)
     orientation = ft.use_context(OrientationContext)
 
     ft.context.page.appbar = AppBar(app=app)
@@ -31,7 +30,6 @@ def Content(app:AppState):
                 ),
             ],
         )
-
     elif orientation == ft.Orientation.PORTRAIT:
         ft.context.page.navigation_bar = AppNavigationBar(app=app)
 
@@ -50,21 +48,6 @@ def Content(app:AppState):
 
 @ft.component
 def MecApp():
-    def update_page_config():
-        page.title = "MecApp"
-        page.theme_mode = app.theme_mode
-        page.bgcolor = theme_value.colors["bg"]
-        page.padding = 8
-        page.theme = ft.Theme(
-            text_theme=themes.text.theme(app.theme_mode),
-            navigation_rail_theme=themes.navigation_rail.theme(app.theme_mode),
-            dropdown_theme=themes.dropdown.theme(app.theme_mode),
-            button_theme=themes.button.theme(app.theme_mode),
-            text_button_theme=themes.text_button.theme(app.theme_mode),
-            tooltip_theme=themes.tooltip.theme(app.theme_mode),
-            navigation_bar_theme=themes.navigation_bar.theme(app.theme_mode),
-        )
-    
     page = ft.context.page
 
     config = tomltools.load_config()
@@ -130,7 +113,6 @@ def MecApp():
     )
 
     def resize(e: ft.ControlEvent):
-        print("Resizing, new orientation:", page.media.orientation)
         set_orientation(page.media.orientation)
 
     def on_keyboard(e: ft.KeyboardEvent):
@@ -143,6 +125,24 @@ def MecApp():
     page.on_keyboard_event = on_keyboard
 
     toggle = ft.use_callback(lambda: app.toggle_theme(), dependencies=[app.theme_mode])
+
+    def update_page_config():
+        page.title = "MecApp"
+        page.theme_mode = app.theme_mode
+        page.bgcolor = theme_value.colors["bg"]
+        page.padding = 8
+        page.theme = ft.Theme(
+            text_theme=themes.text.theme(app.theme_mode),
+            navigation_rail_theme=themes.navigation_rail.theme(app.theme_mode),
+            dropdown_theme=themes.dropdown.theme(app.theme_mode),
+            button_theme=themes.button.theme(app.theme_mode),
+            text_button_theme=themes.text_button.theme(app.theme_mode),
+            tooltip_theme=themes.tooltip.theme(app.theme_mode),
+            navigation_bar_theme=themes.navigation_bar.theme(app.theme_mode),
+        )
+    
+    ft.use_effect(update_page_config, [])
+    ft.use_effect(update_page_config, [app.theme_mode])
 
     theme_value = ft.use_memo(
         lambda: ThemeContextValue(mode=app.theme_mode, toggle=toggle),
@@ -158,9 +158,6 @@ def MecApp():
         lambda: orientation,
         dependencies=[orientation],
     )
-
-    ft.use_effect(update_page_config, [])
-    ft.use_effect(update_page_config, [app.theme_mode])
 
     return OrientationContext(
         orientation_value,

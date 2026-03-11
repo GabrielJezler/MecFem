@@ -106,6 +106,5 @@ def SetupContent() -> ft.Control:
 def setup():
     return BasePage(
         title="Model",
-        description="Define the model for the simulation",
         primary_content=SetupContent()
     )

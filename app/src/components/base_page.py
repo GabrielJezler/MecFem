@@ -8,7 +8,6 @@ from contexts import *
 @ft.component
 def BasePage(
             title: str = "Base Page",
-            description: str = "This is the base page for the application.",
             primary_content: ft.Control = ft.Text("No content provided."),
         ):
 
@@ -28,10 +27,6 @@ def BasePage(
                         thickness=4., 
                         color=theme.colors["primary"],
                         radius=2,
-                    ),
-                    ft.Text(
-                        description, 
-                        style=text.body_medium(theme.mode, italic=True),
                     ),
                     ft.Container(
                         content=ft.Column(

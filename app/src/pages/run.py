@@ -90,6 +90,5 @@ def RunContent() -> ft.Control:
 def run():
     return BasePage(
         title="Run",
-        description="Execute the simulation with the defined parameters",
         primary_content=RunContent()
     )

@@ -17,6 +17,5 @@ def HomeContent() -> ft.Control:
 def home():
     return BasePage(
         title="Home",
-        description="Welcome to the MecFEM application.",
         primary_content=HomeContent()
     )
