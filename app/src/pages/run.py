@@ -32,7 +32,7 @@ def RunContent() -> ft.Control:
             value=str(param_info["default"]) if param_info["default"] is not None else None,
             border_color=theme.colors["primary"],
             input_filter=ft.InputFilter(
-                regex_string=r"^[0-9]*\.?[0-9]*$",
+                regex_string=r"^[0-9]*\.?[0-9]*([eE][+-]?[0-9]*)?$",
                 allow=True,
                 replacement_string="",
             ),

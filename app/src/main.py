@@ -115,9 +115,30 @@ def MecApp():
     def resize(e: ft.ControlEvent):
         set_orientation(page.media.orientation)
 
-    def on_keyboard(e: ft.KeyboardEvent):
+    async def on_keyboard(e: ft.KeyboardEvent):
         if e.shift and e.key == "S":
             page.show_semantics_debugger = not page.show_semantics_debugger
+
+        if e.ctrl and e.key.upper() == "T":
+            app.toggle_theme()
+        
+        if e.ctrl and e.key.upper() == "M":
+            page.window.maximized = not page.window.maximized
+            page.update()
+        
+        if e.ctrl and e.key.upper() == "W":
+            print("Closing window...")
+            await page.window.close()
+
+        if e.ctrl and e.key == "Tab" and not e.shift:
+            current_index = app.get_page_index()
+            next_index = (current_index + 1) % len(app.pages)
+            await page.push_route(app.pages[next_index].route)
+        
+        if not e.ctrl and e.key == "Tab" and e.shift:
+            current_index = app.get_page_index()
+            next_index = (current_index - 1) % len(app.pages)
+            await page.push_route(app.pages[next_index].route)
 
     page.on_route_change = app.route_change
     page.on_view_pop = app.view_popped
@@ -131,6 +152,7 @@ def MecApp():
         page.theme_mode = app.theme_mode
         page.bgcolor = theme_value.colors["bg"]
         page.padding = 8
+        # page.window.title_bar_hidden = True
         page.theme = ft.Theme(
             text_theme=themes.text.theme(app.theme_mode),
             navigation_rail_theme=themes.navigation_rail.theme(app.theme_mode),
