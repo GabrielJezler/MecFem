@@ -14,7 +14,7 @@ def BasePage(
         theme = ft.use_context(ThemeContext)
 
         return ft.Container(
-            padding = ft.Padding.only(left=6, right=2, top=2, bottom=2),
+            padding = ft.Padding.only(left=4, right=4, top=2, bottom=2),
             expand=True,
             content=ft.Column(
                 controls=[
@@ -28,20 +28,9 @@ def BasePage(
                         color=theme.colors["primary"],
                         radius=2,
                     ),
-                    ft.Container(
-                        content=ft.Column(
-                            controls=[
-                                primary_content
-                            ],
-                            expand=True,
-                            scroll=ft.ScrollMode.AUTO,
-                            margin=0,
-                        ),
-                        expand=True,
-                        margin=0,
-                        padding=0,
-                    )
+                    primary_content
                 ],
                 spacing=12,
+                expand=True
             )
         )

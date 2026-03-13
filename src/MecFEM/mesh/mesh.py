@@ -369,6 +369,16 @@ class Mesh:
             node_list = connectivity[i].tolist()
             self.add_element(elem_id, type, node_list)
 
+    def get_vertices_ids(self, elem:Element, close_polygon:bool=True):
+        """
+        Get the IDs of the vertices of an element. 
+        This is useful for plotting the element, as the vertices are used to define the shape of the element.
+        """
+        vertices_ids = np.arange(ReferenceElements().get_by_type(elem.type).association[0]).tolist()
+        if close_polygon:
+            vertices_ids.append(vertices_ids[0])  # Close the polygon
+        return vertices_ids
+
     def plot(self, ax:plt.Axes | None=None, nodes_marker:bool=True, nodes_ids:bool=False, elems_ids:bool=False, zoom_out:float=0.1) -> plt.Axes:
         """
         Plots the mesh on the given Axes object.
@@ -410,8 +420,7 @@ class Mesh:
         for elem in self._elems[self.dim]:
             elem_coords = nodes_coords[elem.nodes]
 
-            vertices_ids = np.arange(ReferenceElements().get_by_type(elem.type).association[0]).tolist()
-            vertices_ids.append(vertices_ids[0])  # Close the polygon
+            vertices_ids = self.get_vertices_ids(elem, close_polygon=True)
             ax.plot(
                 elem_coords[vertices_ids, 0], 
                 elem_coords[vertices_ids, 1], 

@@ -1,6 +1,4 @@
 import flet as ft
-import flet_charts as fch
-import matplotlib.pyplot as plt
 import os
 import asyncio
 
@@ -8,8 +6,8 @@ import MecFEM as mf
 
 from themes import text
 from components import BasePage, ErrorDialog
+from components.charts import MeshChart
 from contexts import *
-
 
 @ft.component
 def MeshContent() -> ft.Control:
@@ -19,11 +17,7 @@ def MeshContent() -> ft.Control:
     mesh_path_text, set_mesh_path_text = ft.use_state("Select a mesh file (.msh)")
     mesh_fullpath_text, set_mesh_fullpath_text = ft.use_state(None)
     dim_text, set_dim_text = ft.use_state(None)
-    mesh_status_str, set_mesh_status_str = ft.use_state("No mesh loaded.")
-    mesh_status_path_str, set_mesh_status_path_str = ft.use_state(None)
-
-    mesh_fig, set_mesh_fig = ft.use_state(None)
-
+    
     dim_ref = ft.Ref[ft.TextField]()
     mesh_path_ref = ft.Ref[ft.Container]()
 
@@ -43,15 +37,11 @@ def MeshContent() -> ft.Control:
         if mesh_path and dim:
             try:
                 mesh = mf.mesh.Mesh(mesh_path, dim=int(dim))
+                print(f"Mesh loaded")
                 if simulation.state.mesh != mesh:
                     simulation.state.mesh = mesh
+                print(f"Mesh set in simulation state")
 
-                # fig, ax = plt.subplots()
-                # mesh.plot(ax=ax)
-                # set_mesh_fig(fig)
-
-                set_mesh_status_str("Mesh loaded successfully: ")
-                set_mesh_status_path_str(mesh_path)
             except Exception as ex:
                 ErrorDialog(theme, "Error plotting mesh", f"ERROR: {ex}")
 
@@ -60,14 +50,12 @@ def MeshContent() -> ft.Control:
             set_mesh_path_text(os.path.split(simulation.state.mesh.filename)[-1])
             set_mesh_fullpath_text(simulation.state.mesh.filename)
             set_dim_text(str(simulation.state.mesh.dim))
-            set_mesh_status_str("Mesh loaded successfully: ")
-            set_mesh_status_path_str(simulation.state.mesh.filename)
 
     ft.use_effect(mount, [])
 
     return ft.Container(
-        expand = True,
-        padding = 2,
+        expand=True,
+        padding=2,
         content=ft.Column(
             controls=[
                 ft.ResponsiveRow(
@@ -122,25 +110,21 @@ def MeshContent() -> ft.Control:
                     ],
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
-                ft.Text(
-                    mesh_status_str,
-                    style=text.body_medium(theme.mode),
-                    spans=[
-                        ft.TextSpan(
-                            text=mesh_status_path_str,
-                            style=text.body_medium(theme.mode, color=theme.colors["primary"], italic=True)
-                        ),
-                    ]
+                ft.Container(
+                    bgcolor=theme.colors["bg_secondary"],
+                    border_radius=24,
+                    content=MeshChart(simulation.state.mesh),
+                    alignment=ft.Alignment.CENTER,
+                    padding=0,
+                    # margin=ft.Margin(8, 8, 8, 8),
+                    expand=True,
                 ),
-                # fch.MatplotlibChart(
-                #     figure=mesh_fig,
-                #     expand=True,
-                # )
             ],
             alignment=ft.MainAxisAlignment.START,
+            expand=True,
         ),
     )
-    
+
 @ft.component
 def mesh():
     return BasePage(

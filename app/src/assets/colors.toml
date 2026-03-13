@@ -1,5 +1,6 @@
 [light]
 bg = "#ffffff"
+bg_secondary = "#f2f4f8"
 text = "#232E3F"
 text_secondary = "#ffffff"
 primary = "#2759CD"
@@ -8,6 +9,7 @@ success = "#3DD378"
 
 [dark]
 bg = "#121212"
+bg_secondary = "#181c22"
 text = "#ffffff"
 text_secondary = "#ffffff"
 primary = "#2759CD"

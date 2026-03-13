@@ -9,6 +9,7 @@ import MecFEM as mf
 from utils import tomltools, stringtools
 import themes
 from components import BasePage, ErrorDialog
+from components.charts import MeshNodeSelectorChart
 from contexts import *
 
 @ft.component
@@ -79,27 +80,63 @@ def SetupContent() -> ft.Control:
         padding=2,
         content=ft.Column(
             controls=[
-                ft.Dropdown(
-                    ref=model_dropdown_ref,
-                    value=model_name_text,
-                    label="Select Model",
-                    label_style=themes.text.body_medium(theme.mode),
-                    border_color=theme.colors["primary"],
-                    options=[
-                        ft.DropdownOption(
-                            text=model_name_str(name)
-                        )
-                        for name in MODELS.keys()
+                ft.Row(
+                    controls=[
+                        ft.Dropdown(
+                            ref=model_dropdown_ref,
+                            value=model_name_text,
+                            label="Select Model",
+                            label_style=themes.text.body_medium(theme.mode),
+                            border_color=theme.colors["primary"],
+                            options=[
+                                ft.DropdownOption(
+                                    text=model_name_str(name)
+                                )
+                                for name in MODELS.keys()
+                            ],
+                            on_select=lambda e: save_model(e),
+                            expand=True,
+                        ),
                     ],
-                    col={
-                        ft.ResponsiveRowBreakpoint.XS: 12,
-                        ft.ResponsiveRowBreakpoint.MD: 6,
-                    },
-                    on_select=lambda e: save_model(e),
-                    expand=True
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                ),
+                # ft.Row(
+                #     controls=[
+                #         ft.Chip(
+                #             color=theme.colors["bg_secondary"],
+                #             selected=True,
+                #             label=ft.Text("Rectangular", style=themes.text.body_medium(theme.mode)),
+                #             leading=ft.Icon(
+                #                 icon=ft.CupertinoIcons.RECTANGLE,
+                #                 color=theme.colors["primary"]
+                #             ),
+                #         ),
+                #         ft.Chip(
+                #             color=theme.colors["bg_secondary"],
+                #             selected=False,
+                #             label=ft.Text("Lasso", style=themes.text.body_medium(theme.mode)),
+                #             leading=ft.Icon(
+                #                 icon=ft.CupertinoIcons.LASSO,
+                #                 color=theme.colors["primary"]
+                #             ),
+                #         ),
+                #     ],
+                #     alignment=ft.MainAxisAlignment.SPACE_AROUND,
+                #     vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                # ),
+                ft.Container(
+                    bgcolor=theme.colors["bg_secondary"],
+                    border_radius=24,
+                    content=MeshNodeSelectorChart(simulation.state.mesh),
+                    alignment=ft.Alignment.CENTER,
+                    padding=0,
+                    # margin=ft.Margin(8, 8, 8, 8),
+                    expand=True,
                 ),
             ],
             alignment=ft.MainAxisAlignment.START,
+            expand=True,
+            height=1000
         ),
     )
 

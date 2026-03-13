@@ -163,6 +163,7 @@ def MaterialContent() -> ft.Control:
                 ),
             ],
             alignment=ft.MainAxisAlignment.START,
+            scroll=ft.ScrollMode.AUTO,
         ),
     )
 
