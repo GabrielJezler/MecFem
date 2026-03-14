@@ -10,7 +10,7 @@ def theme(theme_mode:ft.ThemeMode) -> ft.ButtonTheme:
         style=ft.ButtonStyle(
             color=COLORS[theme_mode.value]["text"],
             bgcolor=COLORS[theme_mode.value]["primary"],
-            shape=ft.RoundedRectangleBorder(radius=4),
+            shape=ft.RoundedRectangleBorder(radius=8),
             padding=ft.Padding(16, 8, 16, 8),
             text_style=text.body_medium(theme_mode, bold=True),
         )

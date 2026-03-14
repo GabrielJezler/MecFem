@@ -163,6 +163,8 @@ def MecApp():
             navigation_bar_theme=themes.navigation_bar.theme(app.theme_mode),
         )
     
+    # page.window.icon = "icon.png"
+
     ft.use_effect(update_page_config, [])
     ft.use_effect(update_page_config, [app.theme_mode])
 

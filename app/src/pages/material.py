@@ -126,6 +126,7 @@ def MaterialContent() -> ft.Control:
                             label="Select Material Model",
                             label_style=text.body_medium(theme.mode),
                             border_color=theme.colors["primary"],
+                            border_radius=8,
                             options=[
                                 ft.dropdown.Option(
                                     key=material_name, 
@@ -148,6 +149,7 @@ def MaterialContent() -> ft.Control:
                             value=value,
                             label_style=text.body_medium(theme.mode),
                             border_color=theme.colors["primary"],
+                            border_radius=8,
                             col={
                                 ft.ResponsiveRowBreakpoint.XS: 12,
                                 ft.ResponsiveRowBreakpoint.MD: 6,

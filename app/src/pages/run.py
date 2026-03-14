@@ -26,11 +26,12 @@ def RunContent() -> ft.Control:
     theme = ft.use_context(ThemeContext)
     simulation = ft.use_context(SimulationContext)
     
-    def number_input(param_name:str, param_info:dict[str, str | None]):
+    def float_input(param_name:str, param_info:dict[str, str | None]):
         return ft.TextField(
             label=param_name,
             value=str(param_info["default"]) if param_info["default"] is not None else None,
             border_color=theme.colors["primary"],
+            border_radius=8,
             input_filter=ft.InputFilter(
                 regex_string=r"^[0-9]*\.?[0-9]*([eE][+-]?[0-9]*)?$",
                 allow=True,
@@ -43,6 +44,25 @@ def RunContent() -> ft.Control:
             # on_change=lambda e: update_param_value(param_name, e.control.value),
         )
     
+    def int_input(param_name:str, param_info:dict[str, str | None]):
+        return ft.TextField(
+            label=param_name,
+            value=str(param_info["default"]) if param_info["default"] is not None else None,
+            border_color=theme.colors["primary"],
+            border_radius=8,
+            input_filter=ft.InputFilter(
+                regex_string=r"^[0-9]*$",
+                allow=True,
+                replacement_string="",
+            ),
+            col={
+                ft.ResponsiveRowBreakpoint.XS: 12,
+                ft.ResponsiveRowBreakpoint.MD: 4,
+            },
+            # on_change=lambda e: update_param_value(param_name, e.control.value),
+        )
+    
+
     def bool_input(param_name:str, param_info:dict[str, str | None]):
         return ft.Switch(
             adaptive=True,
@@ -66,7 +86,11 @@ def RunContent() -> ft.Control:
 
         return ft.ResponsiveRow(
             controls=[
-                number_input(param_name, param_info) if param_info["type"] in (int, float) else bool_input(param_name, param_info)
+                float_input(param_name, param_info) if param_info["type"] is float else 
+                (
+                    int_input(param_name, param_info) if param_info["type"] is int 
+                    else bool_input(param_name, param_info)
+                )
                 for param_name, param_info in PARAMS.items()
             ]
         )

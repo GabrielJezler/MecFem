@@ -37,11 +37,8 @@ def MeshContent() -> ft.Control:
         if mesh_path and dim:
             try:
                 mesh = mf.mesh.Mesh(mesh_path, dim=int(dim))
-                print(f"Mesh loaded")
                 if simulation.state.mesh != mesh:
                     simulation.state.mesh = mesh
-                print(f"Mesh set in simulation state")
-
             except Exception as ex:
                 ErrorDialog(theme, "Error plotting mesh", f"ERROR: {ex}")
 
@@ -65,7 +62,7 @@ def MeshContent() -> ft.Control:
                             content=ft.Text(mesh_path_text, style=text.body_medium(theme.mode), expand=True),
                             data=mesh_fullpath_text,
                             border=ft.Border.all(1, theme.colors["primary"]),
-                            border_radius=4,
+                            border_radius=8,
                             padding=ft.Padding(16, 12, 16, 12),
                             col={
                                 ft.ResponsiveRowBreakpoint.XS: 12,
@@ -82,6 +79,7 @@ def MeshContent() -> ft.Control:
                             label="Mesh Dimension",
                             label_style=text.body_medium(theme.mode),
                             border_color=theme.colors["primary"],
+                            border_radius=8,
                             col={
                                 ft.ResponsiveRowBreakpoint.XS: 12,
                                 ft.ResponsiveRowBreakpoint.MD: 6,

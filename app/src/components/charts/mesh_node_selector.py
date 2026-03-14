@@ -11,12 +11,7 @@ from .data import *
 from contexts import *
 
 @ft.component
-def MeshNodeSelectorChart(mesh: mf.mesh.Mesh | None) -> ft.Control:
-    if mesh is None:
-        return ft.Container()
-    
-    nodes_coords = mesh.get_nodes_coordinates()[:, :2]
-
+def MeshNodeSelectorChart() -> ft.Control:
     def _on_chart_resize(e):
         _set_widget_size({"w": e.width, "h": e.height})
 
@@ -39,14 +34,14 @@ def MeshNodeSelectorChart(mesh: mf.mesh.Mesh | None) -> ft.Control:
                 cv.Rect(
                     x=x0, y=y0, width=w, height=h,
                     paint=ft.Paint(
-                        color=ft.Colors.with_opacity(0.15, ft.Colors.RED),
+                        color=ft.Colors.with_opacity(0.15, theme.colors["success"]),
                         style=ft.PaintingStyle.FILL,
                     ),
                 ),
                 cv.Rect(
                     x=x0, y=y0, width=w, height=h,
                     paint=ft.Paint(
-                        color=ft.Colors.RED,
+                        color=theme.colors["success"],
                         style=ft.PaintingStyle.STROKE,
                         stroke_width=1.5,
                     ),
@@ -131,27 +126,38 @@ def MeshNodeSelectorChart(mesh: mf.mesh.Mesh | None) -> ft.Control:
         return min_x, max_x, min_y, max_y
 
     def get_chart_data():
+        nodes_ids = []
+        for elem in simulation.state.mesh.elems[simulation.state.mesh.dim - 1]:
+            nodes_ids.extend(elem.nodes)
+        nodes_ids = np.unique(nodes_ids)
+
         spots = [
             SpotData(
-                x=coord[0],
-                y=coord[1],
+                x=node.X[0],
+                y=node.X[1],
                 radius=4.0,
                 color=theme.colors["text"],
                 selected_color=theme.colors["primary"],
-            ) for coord in nodes_coords
+            ) for node in simulation.state.mesh.nodes if node.id in nodes_ids
         ]
+
         return ChartState(spots=spots, selected=[])
     
     theme = ft.use_context(ThemeContext)
+    simulation = ft.use_context(SimulationContext)
+
+    if simulation.state.mesh is None:
+        return None
 
     chart, set_chart = ft.use_state(get_chart_data())
     rect_shapes, set_rect_shapes = ft.use_state([])
 
-    ft.use_effect(lambda: set_chart(get_chart_data()), [mesh])
+    ft.use_effect(lambda: set_chart(get_chart_data()), [simulation.state.mesh])
 
     chart_ref = ft.Ref[fch.ScatterChart]()
     gd_ref = ft.Ref[ft.GestureDetector]()
 
+    nodes_coords = simulation.state.mesh.get_nodes_coordinates()[:, :2]
 
     min_x, max_x, min_y, max_y = get_data_bounding_box()
 
@@ -193,12 +199,12 @@ def MeshNodeSelectorChart(mesh: mf.mesh.Mesh | None) -> ft.Control:
                                 fch.LineChartDataPoint(
                                     x=nodes_coords[elem.nodes][node_id, 0],
                                     y=nodes_coords[elem.nodes][node_id, 1],
-                                ) for node_id in mesh.get_vertices_ids(elem)
+                                ) for node_id in simulation.state.mesh.get_vertices_ids(elem)
                             ]
                         )
                     ]
 
-                ) for elem in mesh.elems[mesh.dim - 1]
+                ) for elem in simulation.state.mesh.elems[simulation.state.mesh.dim - 1]
             ],
             fch.ScatterChart(
                 aspect_ratio=1.0,

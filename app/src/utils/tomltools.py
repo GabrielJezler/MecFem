@@ -7,5 +7,5 @@ def load_config():
     return toml.load(r"src/assets/config.toml")
 
 def update_config(new_config: dict):
-    with open("src/assets/config.toml", "w") as f:
+    with open(r"src/assets/config.toml", "w") as f:
         toml.dump(dict(new_config), f)

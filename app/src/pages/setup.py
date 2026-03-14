@@ -88,6 +88,7 @@ def SetupContent() -> ft.Control:
                             label="Select Model",
                             label_style=themes.text.body_medium(theme.mode),
                             border_color=theme.colors["primary"],
+                            border_radius=8,
                             options=[
                                 ft.DropdownOption(
                                     text=model_name_str(name)
@@ -100,39 +101,81 @@ def SetupContent() -> ft.Control:
                     ],
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
-                # ft.Row(
-                #     controls=[
-                #         ft.Chip(
-                #             color=theme.colors["bg_secondary"],
-                #             selected=True,
-                #             label=ft.Text("Rectangular", style=themes.text.body_medium(theme.mode)),
-                #             leading=ft.Icon(
-                #                 icon=ft.CupertinoIcons.RECTANGLE,
-                #                 color=theme.colors["primary"]
-                #             ),
-                #         ),
-                #         ft.Chip(
-                #             color=theme.colors["bg_secondary"],
-                #             selected=False,
-                #             label=ft.Text("Lasso", style=themes.text.body_medium(theme.mode)),
-                #             leading=ft.Icon(
-                #                 icon=ft.CupertinoIcons.LASSO,
-                #                 color=theme.colors["primary"]
-                #             ),
-                #         ),
-                #     ],
-                #     alignment=ft.MainAxisAlignment.SPACE_AROUND,
-                #     vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                # ),
-                ft.Container(
-                    bgcolor=theme.colors["bg_secondary"],
-                    border_radius=24,
-                    content=MeshNodeSelectorChart(simulation.state.mesh),
-                    alignment=ft.Alignment.CENTER,
-                    padding=0,
-                    # margin=ft.Margin(8, 8, 8, 8),
+                ft.ResponsiveRow(
+                    controls=[
+                        ft.Column(
+                            controls=[
+                                ft.SegmentedButton(
+                                    allow_multiple_selection=False,
+                                    selected=["none"],
+                                    segments=[
+                                        ft.Segment(
+                                            value="none",
+                                            label=ft.Text("None"),
+                                        ),
+                                        ft.Segment(
+                                            value="rectangular",
+                                            label=ft.Text("Rectangular"),
+                                            icon=ft.Icon(ft.CupertinoIcons.RECTANGLE),
+                                        ),
+                                        ft.Segment(
+                                            value="lasso",
+                                            label=ft.Text("Lasso"),
+                                            icon=ft.Icon(ft.CupertinoIcons.LASSO),
+                                        ),
+                                    ],
+                                    show_selected_icon=False,
+                                    style=ft.ButtonStyle(
+                                        color={
+                                            ft.ControlState.DEFAULT: theme.colors["text"],
+                                            ft.ControlState.SELECTED: theme.colors["bg"],
+                                        },
+                                        bgcolor={
+                                            ft.ControlState.DEFAULT: theme.colors["bg_secondary"],
+                                            ft.ControlState.SELECTED: theme.colors["primary"],
+                                        },
+                                        shape=ft.RoundedRectangleBorder(radius=8),
+                                        text_style=themes.text.body_small(theme.mode, bold=True),
+                                    ),
+                                ),
+                                ft.Container(
+                                    bgcolor=theme.colors["bg_secondary"],
+                                    border_radius=24,
+                                    content=MeshNodeSelectorChart(),
+                                    alignment=ft.Alignment.CENTER,
+                                    padding=0,
+                                    # margin=ft.Margin(8, 8, 8, 8),
+                                    expand=True,
+                                ),
+                            ],
+                            col={
+                                ft.ResponsiveRowBreakpoint.SM: 12,
+                                ft.ResponsiveRowBreakpoint.MD: 8,
+                            },
+                        ),
+                        ft.Container(
+                            # bgcolor=theme.colors["bg_secondary"],
+                            # border_radius=24,
+                            content=ft.Column(
+                                controls=[
+                                    ft.Text("Model details will be shown here.", style=themes.text.body_medium(theme.mode))
+                                ],
+                                alignment=ft.MainAxisAlignment.START,
+                                expand=True,
+                            ),
+                            alignment=ft.Alignment.CENTER,
+                            padding=0,
+                            # margin=ft.Margin(8, 8, 8, 8),
+                            expand=True,
+                            col={
+                                ft.ResponsiveRowBreakpoint.SM: 12,
+                                ft.ResponsiveRowBreakpoint.MD: 4,
+                            },
+                        )
+                    ],
+                    alignment=ft.MainAxisAlignment.START,
                     expand=True,
-                ),
+                )
             ],
             alignment=ft.MainAxisAlignment.START,
             expand=True,
