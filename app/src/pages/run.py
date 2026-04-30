@@ -1,8 +1,6 @@
 import flet as ft
 import inspect
 
-from utils import tomltools
-from components import BasePage
 from contexts import *
 
 @ft.component
@@ -30,7 +28,7 @@ def RunContent() -> ft.Control:
         return ft.TextField(
             label=param_name,
             value=str(param_info["default"]) if param_info["default"] is not None else None,
-            border_color=theme.colors["primary"],
+            border_color=theme.colors["bg_01"],
             border_radius=8,
             input_filter=ft.InputFilter(
                 regex_string=r"^[0-9]*\.?[0-9]*([eE][+-]?[0-9]*)?$",
@@ -48,7 +46,7 @@ def RunContent() -> ft.Control:
         return ft.TextField(
             label=param_name,
             value=str(param_info["default"]) if param_info["default"] is not None else None,
-            border_color=theme.colors["primary"],
+            border_color=theme.colors["bg_01"],
             border_radius=8,
             input_filter=ft.InputFilter(
                 regex_string=r"^[0-9]*$",
@@ -62,7 +60,6 @@ def RunContent() -> ft.Control:
             # on_change=lambda e: update_param_value(param_name, e.control.value),
         )
     
-
     def bool_input(param_name:str, param_info:dict[str, str | None]):
         return ft.Switch(
             adaptive=True,
@@ -97,7 +94,9 @@ def RunContent() -> ft.Control:
 
     return ft.Container(
         expand=True,
-        padding=2,
+        padding=8,
+        border_radius=16,
+        bgcolor=theme.colors["bg"],
         content=ft.Column(
             controls=[
                 build_input_controls(),
@@ -107,13 +106,9 @@ def RunContent() -> ft.Control:
                     height=48,
                 )
             ],
-            alignment=ft.MainAxisAlignment.START,
+            expand=True,
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             scroll=ft.ScrollMode.AUTO,
         )
-    )
-
-def run():
-    return BasePage(
-        title="Run",
-        primary_content=RunContent()
     )

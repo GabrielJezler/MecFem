@@ -1,19 +1,27 @@
 [light]
 bg = "#ffffff"
 bg_secondary = "#f2f4f8"
+bg_01 = "#E6E6E6"
+bg_02 = "#CCCCCC"
+bg_03 = "#B3B3B3"
+bg_04 = "#999999"
 text = "#232E3F"
 text_secondary = "#ffffff"
 primary = "#2759CD"
 alert = "#FE7102"
 success = "#3DD378"
+danger = "#ff383c"
 
 [dark]
 bg = "#121212"
 bg_secondary = "#181c22"
+bg_01 = "#2A2A2A"
+bg_02 = "#414141"
+bg_03 = "#595959"
+bg_04 = "#717171"
 text = "#ffffff"
 text_secondary = "#ffffff"
 primary = "#2759CD"
 alert = "#FE7102"
 success = "#3DD378"
-
-
+danger = "#ff383c"

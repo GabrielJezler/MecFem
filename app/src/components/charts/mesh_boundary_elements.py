@@ -1,26 +1,24 @@
 import flet as ft
 import flet.canvas as cv
-import flet_charts as fch
 import numpy as np
 
 import MecFEM as mf
 
-from .states import *
-from .data import *
+from ._states import *
+from ._data import *
+from ._mesh_lines import MeshLinesChart
+from ._mesh_nodes import MeshNodesChart
 
 from contexts import *
 
 @ft.component
-def MeshNodeSelectorChart() -> ft.Control:
-    def _on_chart_resize(e):
-        _set_widget_size({"w": e.width, "h": e.height})
-
+def MeshBoundaryElementsChart() -> ft.Control:
     def _px_to_data_x(px: float) -> float:
-        w = (_widget_size["w"] or 1.0) - _pad["left"] - _pad["right"]
+        w = (chart.size["width"] or 1.0) - _pad["left"] - _pad["right"]
         return min_x + ((px - _pad["left"]) / w) * (max_x - min_x)
 
     def _px_to_data_y(py: float) -> float:
-        h = (_widget_size["h"] or 1.0) - _pad["top"] - _pad["bottom"]
+        h = (chart.size["height"] or 1.0) - _pad["top"] - _pad["bottom"]
         return min_y + (1.0 - (py - _pad["top"]) / h) * (max_y - min_y)
 
     def _draw_rect():
@@ -29,7 +27,7 @@ def MeshNodeSelectorChart() -> ft.Control:
         w = abs(selection_box.x1 - selection_box.x0)
         h = abs(selection_box.y1 - selection_box.y0)
 
-        set_rect_shapes(
+        set_selection_shapes(
             [
                 cv.Rect(
                     x=x0, y=y0, width=w, height=h,
@@ -80,15 +78,14 @@ def MeshNodeSelectorChart() -> ft.Control:
         x_max = _px_to_data_x(px_x1)
         y_min = _px_to_data_y(px_y1)
         y_max = _px_to_data_y(px_y0)
-        
+
         selected_indices = [
-            i for i, s in enumerate(chart.spots)
-            if x_min <= s.x <= x_max and y_min <= s.y <= y_max
+            s.id for s in chart.spots if x_min <= s.x <= x_max and y_min <= s.y <= y_max
         ]
 
-        chart.update_selected(selected_indices)
+        chart.update_spots_selection(selected_indices)
 
-        set_rect_shapes([])
+        set_selection_shapes([])
         selection_box.reset()
 
     def get_data_bounding_box():
@@ -126,6 +123,8 @@ def MeshNodeSelectorChart() -> ft.Control:
         return min_x, max_x, min_y, max_y
 
     def get_chart_data():
+        nodes_coords = simulation.state.mesh.get_nodes_coordinates()[:, :2]
+
         nodes_ids = []
         for elem in simulation.state.mesh.elems[simulation.state.mesh.dim - 1]:
             nodes_ids.extend(elem.nodes)
@@ -138,32 +137,35 @@ def MeshNodeSelectorChart() -> ft.Control:
                 radius=4.0,
                 color=theme.colors["text"],
                 selected_color=theme.colors["primary"],
-            ) for node in simulation.state.mesh.nodes if node.id in nodes_ids
+                id=node.id
+            ) for node in simulation.state.mesh.nodes if (node.id in nodes_ids)
         ]
 
-        return ChartState(spots=spots, selected=[])
+        elements = [
+            [
+                [
+                    nodes_coords[elem.nodes][node_id, 0], 
+                    nodes_coords[elem.nodes][node_id, 1]
+                ] for node_id in simulation.state.mesh.get_vertices_ids(elem)
+            ] for elem in simulation.state.mesh.elems[simulation.state.mesh.dim - 1]
+        ]
+
+        return ChartState(spots=spots, elements=elements, spots_selected=[])
     
     theme = ft.use_context(ThemeContext)
     simulation = ft.use_context(SimulationContext)
-
+    
     if simulation.state.mesh is None:
         return None
 
+    selection_shapes, set_selection_shapes = ft.use_state([])
     chart, set_chart = ft.use_state(get_chart_data())
-    rect_shapes, set_rect_shapes = ft.use_state([])
 
-    ft.use_effect(lambda: set_chart(get_chart_data()), [simulation.state.mesh])
-
-    chart_ref = ft.Ref[fch.ScatterChart]()
-    gd_ref = ft.Ref[ft.GestureDetector]()
-
-    nodes_coords = simulation.state.mesh.get_nodes_coordinates()[:, :2]
+    ft.use_effect(lambda: set_chart(get_chart_data()), [chart])
 
     min_x, max_x, min_y, max_y = get_data_bounding_box()
 
-    selection_box, set_selection_box = ft.use_state(SelectionBoxState())
-
-    _widget_size, _set_widget_size = ft.use_state({"w": None, "h": None})
+    selection_box, _ = ft.use_state(SelectionBoxState())
     
     _pad = {
         "left": 0,
@@ -175,64 +177,13 @@ def MeshNodeSelectorChart() -> ft.Control:
     return ft.Stack(
         expand=True,
         aspect_ratio=1.0,
-        data=chart.selected,
         controls=[
-            *[
-                fch.LineChart(
-                    aspect_ratio=1.0,
-                    expand=True,
-                    tooltip=None,
-                    interactive=False,
-                    min_x=min_x,
-                    max_x=max_x,
-                    min_y=min_y,
-                    max_y=max_y,
-                    left_axis = fch.ChartAxis(show_labels=False, label_size=0),
-                    right_axis = fch.ChartAxis(show_labels=False, label_size=0),
-                    top_axis = fch.ChartAxis(show_labels=False, label_size=0),
-                    bottom_axis = fch.ChartAxis(show_labels=False, label_size=0),
-                    data_series=[
-                        fch.LineChartData(
-                            color=theme.colors["text"],
-                            stroke_width=1,
-                            points=[
-                                fch.LineChartDataPoint(
-                                    x=nodes_coords[elem.nodes][node_id, 0],
-                                    y=nodes_coords[elem.nodes][node_id, 1],
-                                ) for node_id in simulation.state.mesh.get_vertices_ids(elem)
-                            ]
-                        )
-                    ]
-
-                ) for elem in simulation.state.mesh.elems[simulation.state.mesh.dim - 1]
-            ],
-            fch.ScatterChart(
-                aspect_ratio=1.0,
-                ref=chart_ref,
-                expand=True,
-                min_x=min_x,
-                max_x=max_x,
-                min_y=min_y,
-                max_y=max_y,
-                left_axis = fch.ChartAxis(show_labels=False, label_size=0),
-                right_axis = fch.ChartAxis(show_labels=False, label_size=0),
-                top_axis = fch.ChartAxis(show_labels=False, label_size=0),
-                bottom_axis = fch.ChartAxis(show_labels=False, label_size=0),
-                spots=[
-                    fch.ScatterChartSpot(
-                        x=s.x,
-                        y=s.y,
-                        radius=s.radius,
-                        color=theme.colors["text"] if i not in chart.selected else theme.colors["primary"],
-                    ) for i, s in enumerate(chart.spots)
-                ],
-                on_size_change=_on_chart_resize,
-            ),
+            MeshLinesChart(chart, *get_data_bounding_box()),
+            MeshNodesChart(chart, *get_data_bounding_box()),
             ft.GestureDetector(
                 aspect_ratio=1.0,
-                ref=gd_ref,
                 content=cv.Canvas(
-                    shapes=rect_shapes, 
+                    shapes=selection_shapes, 
                     expand=True,
                     aspect_ratio=1.0,
                 ),

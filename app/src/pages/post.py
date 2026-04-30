@@ -1,9 +1,15 @@
 import flet as ft
 
-from components import BasePage
+from contexts import ThemeContext
 
-def post():
-    return BasePage(
-        title="Post-Processing",
-        # primary_content=primary_content
+@ft.component
+def PostContent():
+    theme = ft.use_context(ThemeContext)
+
+    return ft.Container(
+        expand=True,
+        padding=8,
+        border_radius=16,
+        bgcolor=theme.colors["bg"],
+        content=None
     )

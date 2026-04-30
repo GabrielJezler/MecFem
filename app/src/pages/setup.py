@@ -6,10 +6,10 @@ import asyncio
 
 import MecFEM as mf
 
-from utils import tomltools, stringtools
+from utils import stringtools
 import themes
-from components import BasePage, ErrorDialog
-from components.charts import MeshNodeSelectorChart
+from components import ErrorDialog, Panel
+from components.charts import MeshBoundaryElementsChart, MeshVolumeElementsChart
 from contexts import *
 
 @ft.component
@@ -75,19 +75,23 @@ def SetupContent() -> ft.Control:
 
     ft.use_effect(mount, [])
 
-    return ft.Container(
+    return ft.ResponsiveRow(
+        spacing=8,
         expand=True,
-        padding=2,
-        content=ft.Column(
-            controls=[
-                ft.Row(
-                    controls=[
-                        ft.Dropdown(
+        controls=[
+            ft.Column(
+                controls=[
+                    ft.Container(
+                        padding=8,
+                        border_radius=16,
+                        bgcolor=theme.colors["bg"],
+                        content=ft.Dropdown(
                             ref=model_dropdown_ref,
                             value=model_name_text,
                             label="Select Model",
                             label_style=themes.text.body_medium(theme.mode),
-                            border_color=theme.colors["primary"],
+                            border_color=theme.colors["bg_01"],
+                            border_width=2,
                             border_radius=8,
                             options=[
                                 ft.DropdownOption(
@@ -98,93 +102,169 @@ def SetupContent() -> ft.Control:
                             on_select=lambda e: save_model(e),
                             expand=True,
                         ),
-                    ],
-                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                ),
-                ft.ResponsiveRow(
-                    controls=[
-                        ft.Column(
+                    ),
+                    ft.Container(
+                        expand=True,
+                        padding=8,
+                        bgcolor=theme.colors["bg"],
+                        border_radius=16,
+                        content=ft.Column(
                             controls=[
-                                ft.SegmentedButton(
-                                    allow_multiple_selection=False,
-                                    selected=["none"],
-                                    segments=[
-                                        ft.Segment(
-                                            value="none",
-                                            label=ft.Text("None"),
-                                        ),
-                                        ft.Segment(
-                                            value="rectangular",
-                                            label=ft.Text("Rectangular"),
-                                            icon=ft.Icon(ft.CupertinoIcons.RECTANGLE),
-                                        ),
-                                        ft.Segment(
-                                            value="lasso",
-                                            label=ft.Text("Lasso"),
-                                            icon=ft.Icon(ft.CupertinoIcons.LASSO),
-                                        ),
+                                ft.Text("Boundary conditions:", style=themes.text.title_medium(theme.mode)),
+                                ft.ListView(
+                                    controls=[
+                                        Panel(
+                                            ft.Text("Panel title"),
+                                            ft.Text("Expanded content"),
+                                            expand_panel=False,
+                                            selected=False,
+                                        ) for _ in range(3)
                                     ],
-                                    show_selected_icon=False,
-                                    style=ft.ButtonStyle(
-                                        color={
-                                            ft.ControlState.DEFAULT: theme.colors["text"],
-                                            ft.ControlState.SELECTED: theme.colors["bg"],
-                                        },
-                                        bgcolor={
-                                            ft.ControlState.DEFAULT: theme.colors["bg_secondary"],
-                                            ft.ControlState.SELECTED: theme.colors["primary"],
-                                        },
-                                        shape=ft.RoundedRectangleBorder(radius=8),
-                                        text_style=themes.text.body_small(theme.mode, bold=True),
-                                    ),
-                                ),
-                                ft.Container(
-                                    bgcolor=theme.colors["bg_secondary"],
-                                    border_radius=24,
-                                    content=MeshNodeSelectorChart(),
-                                    alignment=ft.Alignment.CENTER,
-                                    padding=0,
-                                    # margin=ft.Margin(8, 8, 8, 8),
-                                    expand=True,
-                                ),
+                                    spacing=8,
+                                    expand=True
+                                )
                             ],
-                            col={
-                                ft.ResponsiveRowBreakpoint.SM: 12,
-                                ft.ResponsiveRowBreakpoint.MD: 8,
-                            },
-                        ),
-                        ft.Container(
-                            # bgcolor=theme.colors["bg_secondary"],
-                            # border_radius=24,
-                            content=ft.Column(
-                                controls=[
-                                    ft.Text("Model details will be shown here.", style=themes.text.body_medium(theme.mode))
-                                ],
-                                alignment=ft.MainAxisAlignment.START,
-                                expand=True,
-                            ),
-                            alignment=ft.Alignment.CENTER,
-                            padding=0,
-                            # margin=ft.Margin(8, 8, 8, 8),
+                            alignment=ft.MainAxisAlignment.START,
                             expand=True,
-                            col={
-                                ft.ResponsiveRowBreakpoint.SM: 12,
-                                ft.ResponsiveRowBreakpoint.MD: 4,
-                            },
-                        )
-                    ],
-                    alignment=ft.MainAxisAlignment.START,
+                        ),
+                        alignment=ft.Alignment.CENTER,
+                    ),
+                ],
+                spacing=8,
+                col={
+                    ft.ResponsiveRowBreakpoint.SM: 12,
+                    ft.ResponsiveRowBreakpoint.MD: 4,
+                },
+                expand=True,
+            ),
+            ft.Container(
+                expand=True,
+                bgcolor=theme.colors["bg"],
+                border_radius=16,
+                alignment=ft.Alignment.CENTER,
+                padding=8,
+                content=ft.Tabs(
+                    length=2,
+                    selected_index=0,
                     expand=True,
-                )
-            ],
-            alignment=ft.MainAxisAlignment.START,
-            expand=True,
-            height=1000
-        ),
-    )
-
-def setup():
-    return BasePage(
-        title="Model",
-        primary_content=SetupContent()
+                    content=ft.Column(
+                        expand=True,
+                        controls=[
+                            ft.TabBar(
+                                indicator_color=theme.colors["primary"],
+                                tabs=[
+                                    ft.Tab(
+                                        label=ft.Text("External forces", style=themes.text.body_medium(theme.mode, bold=False)),
+                                    ),
+                                    ft.Tab(
+                                        label=ft.Text("Volumetric forces", style=themes.text.body_medium(theme.mode, bold=False)),
+                                    ),
+                                ],
+                            ),
+                            ft.TabBarView(
+                                expand=True,
+                                controls=[
+                                    ft.Column(
+                                        controls=[
+                                            ft.SegmentedButton(
+                                                allow_multiple_selection=False,
+                                                selected=["none"],
+                                                segments=[
+                                                    ft.Segment(
+                                                        value="none",
+                                                        label=ft.Text("None"),
+                                                    ),
+                                                    ft.Segment(
+                                                        value="rectangular",
+                                                        label=ft.Text("Rectangular"),
+                                                        icon=ft.Icon(ft.CupertinoIcons.RECTANGLE),
+                                                    ),
+                                                    ft.Segment(
+                                                        value="lasso",
+                                                        label=ft.Text("Lasso"),
+                                                        icon=ft.Icon(ft.CupertinoIcons.LASSO),
+                                                    ),
+                                                ],
+                                                show_selected_icon=False,
+                                                style=ft.ButtonStyle(
+                                                    color={
+                                                        ft.ControlState.DEFAULT: theme.colors["text"],
+                                                        ft.ControlState.SELECTED: theme.colors["text"],
+                                                    },
+                                                    bgcolor={
+                                                        ft.ControlState.DEFAULT: theme.colors["bg"],
+                                                        ft.ControlState.SELECTED: theme.colors["bg_01"],
+                                                    },
+                                                    shape=ft.RoundedRectangleBorder(radius=8),
+                                                    text_style=themes.text.body_small(theme.mode, bold=True),
+                                                    side=ft.BorderSide(2, theme.colors["bg_01"]),
+                                                ),
+                                            ),
+                                            ft.Container(
+                                                border_radius=8,
+                                                border=ft.Border.all(2, theme.colors["bg_01"]),
+                                                content=MeshBoundaryElementsChart(),
+                                                alignment=ft.Alignment.CENTER,
+                                                padding=0,
+                                                expand=True,
+                                            ),
+                                        ],
+                                    ),
+                                    ft.Column(
+                                        controls=[
+                                            ft.SegmentedButton(
+                                                allow_multiple_selection=False,
+                                                selected=["none"],
+                                                segments=[
+                                                    ft.Segment(
+                                                        value="none",
+                                                        label=ft.Text("None"),
+                                                    ),
+                                                    ft.Segment(
+                                                        value="rectangular",
+                                                        label=ft.Text("Rectangular"),
+                                                        icon=ft.Icon(ft.CupertinoIcons.RECTANGLE),
+                                                    ),
+                                                    ft.Segment(
+                                                        value="lasso",
+                                                        label=ft.Text("Lasso"),
+                                                        icon=ft.Icon(ft.CupertinoIcons.LASSO),
+                                                    ),
+                                                ],
+                                                show_selected_icon=False,
+                                                style=ft.ButtonStyle(
+                                                    color={
+                                                        ft.ControlState.DEFAULT: theme.colors["text"],
+                                                        ft.ControlState.SELECTED: theme.colors["text"],
+                                                    },
+                                                    bgcolor={
+                                                        ft.ControlState.DEFAULT: theme.colors["bg"],
+                                                        ft.ControlState.SELECTED: theme.colors["bg_01"],
+                                                    },
+                                                    shape=ft.RoundedRectangleBorder(radius=8),
+                                                    text_style=themes.text.body_small(theme.mode, bold=True),
+                                                    side=ft.BorderSide(2, theme.colors["bg_01"]),
+                                                ),
+                                            ),
+                                            ft.Container(
+                                                border_radius=8,
+                                                border=ft.Border.all(2, theme.colors["bg_01"]),
+                                                content=MeshVolumeElementsChart(),
+                                                alignment=ft.Alignment.CENTER,
+                                                padding=0,
+                                                expand=True,
+                                            ),
+                                        ],
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                ),
+                col={
+                    ft.ResponsiveRowBreakpoint.SM: 12,
+                    ft.ResponsiveRowBreakpoint.MD: 8,
+                },
+            )
+        ]
     )

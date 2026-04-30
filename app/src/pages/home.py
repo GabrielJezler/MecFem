@@ -1,21 +1,16 @@
 import flet as ft
 
-from components import BasePage
-from contexts import ThemeContext, SimulationContext
+from contexts import ThemeContext
+from components import Panel
 
 @ft.component
 def HomeContent() -> ft.Control:
     theme = ft.use_context(ThemeContext)
-    simulation = ft.use_context(SimulationContext)
 
-    return ft.Text(
-        f"Hello!", 
-    )
-
-
-@ft.component
-def home():
-    return BasePage(
-        title="Home",
-        primary_content=HomeContent()
+    return ft.Container(
+        expand=True,
+        padding=8,
+        border_radius=16,
+        bgcolor=theme.colors["bg"],
+        content=None
     )

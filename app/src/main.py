@@ -11,8 +11,9 @@ from states import *
 @ft.component
 def Content(app:AppState):
     orientation = ft.use_context(OrientationContext)
+    colors = ft.use_context(ThemeContext).colors
 
-    ft.context.page.appbar = AppBar(app=app)
+    # ft.context.page.appbar = AppBar(app=app)
 
     if orientation == ft.Orientation.LANDSCAPE:
         ft.context.page.navigation_bar = None
@@ -25,7 +26,18 @@ def Content(app:AppState):
                     app=app,
                 ),
                 ft.Container(
-                    content=app.build_page(),
+                    bgcolor=colors["bg_01"],
+                    border_radius=24,
+                    border=ft.Border.all(2, colors["bg_01"]),
+                    padding=8,
+                    margin=0,
+                    content=ft.Column(
+                        controls=[
+                            AppBar(app=app),
+                            app.build_page()
+                        ],
+                        spacing=8,
+                    ),
                     expand=True
                 ),
             ],
@@ -33,15 +45,20 @@ def Content(app:AppState):
     elif orientation == ft.Orientation.PORTRAIT:
         ft.context.page.navigation_bar = AppNavigationBar(app=app)
 
-        return ft.Column(
-            expand=True,
-            spacing=0,
-            controls=[
-                ft.Container(
-                    content=app.build_page(),
-                    expand=True
-                ),
-            ]
+        return ft.Container(
+            bgcolor=colors["bg_01"],
+            border_radius=24,
+            border=ft.Border.all(2, colors["bg_01"]),
+            padding=8,
+            margin=0,
+            content=ft.Column(
+                controls=[
+                    AppBar(app=app),
+                    app.build_page()
+                ],
+                spacing=8,
+            ),
+            expand=True
         )
     else:
         raise ValueError("Unknown orientation")
@@ -60,42 +77,42 @@ def MecApp():
             pages=[
                 PageState(
                     name="Home",
-                    content_function=pages.home,
+                    content_function=pages.HomeContent,
                     icon=ft.CupertinoIcons.HOME,
                     route="/",
                     index=0
                 ),
                 PageState(
                     name="Material",
-                    content_function=pages.material,
+                    content_function=pages.MaterialContent,
                     icon=ft.CupertinoIcons.LAB_FLASK,
                     route="/material",
                     index=1
                 ),
                 PageState(
                     name="Mesh",
-                    content_function=pages.mesh,
+                    content_function=pages.MeshContent,
                     icon=ft.CupertinoIcons.SQUARE_GRID_4X3_FILL,
                     route="/mesh",
                     index=2
                 ),
                 PageState(
                     name="Setup",
-                    content_function=pages.setup,
+                    content_function=pages.SetupContent,
                     icon=ft.CupertinoIcons.DOC_CHART,
                     route="/setup",
                     index=3
                 ),
                 PageState(
                     name="Run",
-                    content_function=pages.run,
+                    content_function=pages.RunContent,
                     icon=ft.CupertinoIcons.PLAY,
                     route="/run",
                     index=4
                 ),
                 PageState(
                     name="Post",
-                    content_function=pages.post,
+                    content_function=pages.PostContent,
                     icon=ft.CupertinoIcons.GRAPH_SQUARE,
                     route="/post",
                     index=5
@@ -153,7 +170,14 @@ def MecApp():
         page.bgcolor = theme_value.colors["bg"]
         page.padding = 8
         # page.window.title_bar_hidden = True
+        page.fonts = {
+            "Lora": "fonts/Lora/Lora-VariableFont_wght.ttf",
+            "Lora-italic": "fonts/Lora/Lora-Italic-VariableFont_wght.ttf",
+            "Nunito": "fonts/Nunito/Nunito-VariableFont_wght.ttf",
+            "Nunito-italic": "fonts/Nunito/Nunito-Italic-VariableFont_wght.ttf",
+        }
         page.theme = ft.Theme(
+            font_family="Nunito",
             text_theme=themes.text.theme(app.theme_mode),
             navigation_rail_theme=themes.navigation_rail.theme(app.theme_mode),
             dropdown_theme=themes.dropdown.theme(app.theme_mode),

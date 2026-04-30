@@ -11,6 +11,6 @@ def theme(theme_mode:ft.ThemeMode) -> ft.NavigationBarTheme:
         elevation=0,
         label_behavior=ft.NavigationBarLabelBehavior.ONLY_SHOW_SELECTED,
         label_text_style=text.body_medium(theme_mode, size=15, color=COLORS[theme_mode.value]["primary"], bold=True),
-        indicator_color=COLORS[theme_mode.value]["primary"],
+        indicator_color=COLORS[theme_mode.value]["bg"],
         indicator_shape=ft.RoundedRectangleBorder(radius=12)
     )

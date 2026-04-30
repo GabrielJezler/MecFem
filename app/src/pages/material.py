@@ -5,9 +5,9 @@ import importlib
 
 import MecFEM as mf
 
-from utils import tomltools, stringtools
+from utils import stringtools
 from themes import text
-from components import BasePage, ErrorDialog
+from components import ErrorDialog
 from contexts import *
 
 @ft.component
@@ -113,7 +113,9 @@ def MaterialContent() -> ft.Control:
 
     return ft.Container(
         expand = True,
-        padding = 2,
+        padding = 8,
+        border_radius = 16,
+        bgcolor = theme.colors["bg"],
         content = ft.Column(
             controls=[
                 ft.Row(
@@ -125,7 +127,8 @@ def MaterialContent() -> ft.Control:
                             data=material_name_data_dropdown,
                             label="Select Material Model",
                             label_style=text.body_medium(theme.mode),
-                            border_color=theme.colors["primary"],
+                            border_color=theme.colors["bg_01"],
+                            border_width=2,
                             border_radius=8,
                             options=[
                                 ft.dropdown.Option(
@@ -148,7 +151,8 @@ def MaterialContent() -> ft.Control:
                             data=name,
                             value=value,
                             label_style=text.body_medium(theme.mode),
-                            border_color=theme.colors["primary"],
+                            border_color=theme.colors["bg_01"],
+                            border_width=2,
                             border_radius=8,
                             col={
                                 ft.ResponsiveRowBreakpoint.XS: 12,
@@ -167,11 +171,4 @@ def MaterialContent() -> ft.Control:
             alignment=ft.MainAxisAlignment.START,
             scroll=ft.ScrollMode.AUTO,
         ),
-    )
-
-def material():
-
-    return BasePage(
-        title="Material",
-        primary_content=MaterialContent()
     )

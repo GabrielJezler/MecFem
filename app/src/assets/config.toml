@@ -1,7 +1,7 @@
 [fonts]
-body = "Roboto Mono"
-title = "Roboto Mono"
-label = "Roboto Mono"
+body = "Nunito"
+title = "Lora"
+label = "Nunito"
 
 [theme]
-mode = "light"
+mode = "dark"

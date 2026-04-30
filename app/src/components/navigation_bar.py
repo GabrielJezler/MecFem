@@ -20,8 +20,8 @@ def AppNavigationBar(app:AppState) -> ft.Control:
             ft.NavigationBarDestination(
                 icon=ft.Icon(
                     icon=page.icon,
-                    color=theme.colors["text"] if app.get_page_index() != i else theme.colors["bg"]
-                ), 
+                    color=theme.colors["text"] if app.get_page_index() != i else theme.colors["primary"],
+                ),
                 label=page.name,
             ) for i, page in enumerate(app.pages)
             

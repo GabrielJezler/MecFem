@@ -1,4 +1,5 @@
 import flet as ft
+import flet.canvas as cv
 import numpy as np
 
 import MecFEM as mf
@@ -6,15 +7,23 @@ import MecFEM as mf
 from ._states import *
 from ._data import *
 from ._mesh_lines import MeshLinesChart
-from ._mesh_nodes import MeshNodesChart
 
 from contexts import *
 
 @ft.component
-def MeshChart() -> ft.Control:
-    theme = ft.use_context(ThemeContext)
-    simulation = ft.use_context(SimulationContext)
+def MeshVolumeElementsChart() -> ft.Control:
+    def _px_to_data_x(px: float) -> float:
+        print('entering _px_to_data_x')
+        w = (chart.size["width"] or 1.0) - _pad["left"] - _pad["right"]
+        print(f"Widget width: {chart.size['width']}, w: {w}, px: {px}")
+        return min_x + ((px - _pad["left"]) / w) * (max_x - min_x)
 
+    def _px_to_data_y(py: float) -> float:
+        print('entering _px_to_data_y')
+        h = (chart.size["height"] or 1.0) - _pad["top"] - _pad["bottom"]
+        print(f"Widget height: {chart.size['height']}, h: {h}, py: {py}")
+        return min_y + (1.0 - (py - _pad["top"]) / h) * (max_y - min_y)
+    
     def get_data_bounding_box():
         X = [s.x for s in chart.spots]
         Y = [s.y for s in chart.spots]
@@ -70,17 +79,49 @@ def MeshChart() -> ft.Control:
                 ] for node_id in simulation.state.mesh.get_vertices_ids(elem)
             ] for elem in simulation.state.mesh.elems[simulation.state.mesh.dim]
         ]
-        return ChartState(spots=spots, elements=elements, spots_selected=[])
+        # print(ChartState(spots=spots, elements=elements))
+        return ChartState(spots=spots, elements=elements)
+
+    theme = ft.use_context(ThemeContext)
+    simulation = ft.use_context(SimulationContext)
+
+    if simulation.state.mesh is None:
+        return None
 
     chart, set_chart = ft.use_state(get_chart_data())
- 
+
     ft.use_effect(lambda: set_chart(get_chart_data()), [simulation.state.mesh])
+
+    min_x, max_x, min_y, max_y = get_data_bounding_box()
+
+    selection_box, _ = ft.use_state(SelectionBoxState())
+
+    _pad = {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0,
+    }
 
     return ft.Stack(
         expand=True,
         aspect_ratio=1.0,
         controls=[
-            MeshNodesChart(chart, *get_data_bounding_box()),
-            MeshLinesChart(chart, *get_data_bounding_box())
+            MeshLinesChart(chart, *get_data_bounding_box()),
+            ft.Container() # Delete later
+            # ft.GestureDetector(
+            #     aspect_ratio=1.0,
+            #     ref=gd_ref,
+            #     content=cv.Canvas(
+            #         shapes=rect_shapes, 
+            #         expand=True,
+            #         aspect_ratio=1.0,
+            #     ),
+            #     on_tap_down=_on_tap_down,
+            #     on_pan_update=_on_pan_update,
+            #     on_pan_end=_on_pan_end,
+            #     expand=True,
+            # ),
         ]
     )
+

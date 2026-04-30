@@ -5,7 +5,7 @@ import asyncio
 import MecFEM as mf
 
 from themes import text
-from components import BasePage, ErrorDialog
+from components import ErrorDialog, Tooltip
 from components.charts import MeshChart
 from contexts import *
 
@@ -30,6 +30,9 @@ def MeshContent() -> ft.Control:
             else:
                 ErrorDialog(theme, "Invalid file type", "Please select a .msh file.")
 
+    async def handle_reset(e: ft.Event[ft.Button]):
+        await viewer.reset(animation_duration=ft.Duration(milliseconds=500))
+
     def show_mesh(e: ft.ControlEvent):
         mesh_path = mesh_path_ref.current.data
         dim = dim_ref.current.value
@@ -50,18 +53,23 @@ def MeshContent() -> ft.Control:
 
     ft.use_effect(mount, [])
 
-    return ft.Container(
-        expand=True,
-        padding=2,
-        content=ft.Column(
-            controls=[
-                ft.ResponsiveRow(
+    return ft.Column(
+        controls=[
+            ft.Container(
+                padding=8,
+                border_radius=16,
+                bgcolor=theme.colors["bg"],
+                content=ft.ResponsiveRow(
                     controls=[
                         ft.Container(
                             ref=mesh_path_ref,
-                            content=ft.Text(mesh_path_text, style=text.body_medium(theme.mode), expand=True),
+                            content=ft.Text(
+                                mesh_path_text, 
+                                style=text.body_medium(theme.mode,), 
+                                expand=True
+                            ),
                             data=mesh_fullpath_text,
-                            border=ft.Border.all(1, theme.colors["primary"]),
+                            border=ft.Border.all(2, theme.colors["bg_01"]),
                             border_radius=8,
                             padding=ft.Padding(16, 12, 16, 12),
                             col={
@@ -78,7 +86,8 @@ def MeshContent() -> ft.Control:
                             value=dim_text,
                             label="Mesh Dimension",
                             label_style=text.body_medium(theme.mode),
-                            border_color=theme.colors["primary"],
+                            border_color=theme.colors["bg_01"],
+                            border_width=2,
                             border_radius=8,
                             col={
                                 ft.ResponsiveRowBreakpoint.XS: 12,
@@ -108,24 +117,43 @@ def MeshContent() -> ft.Control:
                     ],
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
-                ft.Container(
-                    bgcolor=theme.colors["bg_secondary"],
-                    border_radius=24,
-                    content=MeshChart(simulation.state.mesh),
-                    alignment=ft.Alignment.CENTER,
-                    padding=0,
-                    # margin=ft.Margin(8, 8, 8, 8),
+            ),
+            ft.Container(
+                expand=True,
+                padding=8,
+                border_radius=16,
+                bgcolor=theme.colors["bg"],
+                content=ft.Stack(
                     expand=True,
+                    controls=[
+                        viewer := ft.InteractiveViewer(
+                            # min_scale=0.1,
+                            # max_scale=10,
+                            expand=True,
+                            content=ft.Container(
+                                content=ft.Container() if simulation.state.mesh is None else MeshChart(),
+                            ),
+                        ),
+                        ft.FloatingActionButton(
+                            icon=ft.Icon(
+                                ft.CupertinoIcons.ARROW_CLOCKWISE,
+                                color=theme.colors["text"],
+                            ),
+                            bgcolor=theme.colors["bg_01"],
+                            margin=0,
+                            mini=True,
+                            shape=ft.RoundedRectangleBorder(radius=16),
+                            tooltip=Tooltip(
+                                message="Reset view",
+                                wait_duration=ft.Duration(seconds=1),
+                            ),
+                            on_click=lambda e: asyncio.create_task(handle_reset(e)),
+                        ),
+                    ]
                 ),
-            ],
-            alignment=ft.MainAxisAlignment.START,
-            expand=True,
-        ),
-    )
-
-@ft.component
-def mesh():
-    return BasePage(
-        title="Mesh",
-        primary_content=MeshContent()
+                alignment=ft.Alignment.CENTER,
+            ),
+        ],
+        spacing=8,
+        expand=True,
     )

@@ -4,110 +4,25 @@ import themes
 from states import *
 from contexts import *
 
+from .tooltip import Tooltip
+
 @ft.component
-def VerticalSimulationStatus(app:AppState) -> ft.Control:
+def SimulationStatus(app:AppState) -> ft.Control:
+
     theme = ft.use_context(ThemeContext)
     simulation = ft.use_context(SimulationContext)
 
-    # Determine colors based on current state
-    material_color = theme.colors["success"] if simulation.state.material else theme.colors["alert"]
-    mesh_color = theme.colors["success"] if simulation.state.mesh else theme.colors["alert"]
-    model_color = theme.colors["success"] if simulation.state.model else theme.colors["alert"]
-    ran_color = theme.colors["success"] if simulation.state.ran else theme.colors["alert"]
+    material_color = theme.colors["success"] if simulation.state.material else theme.colors["danger"]
+    mesh_color = theme.colors["success"] if simulation.state.mesh else theme.colors["danger"]
+    model_color = theme.colors["success"] if simulation.state.model else theme.colors["danger"]
+    ran_color = theme.colors["success"] if simulation.state.ran else theme.colors["danger"]
 
-    icon_size = 25
-
-    return ft.Container(
-        padding=6,
-        border_radius=12,
-        # bgcolor=theme.colors["primary"],
-        border=ft.Border.all(1, theme.colors["primary"]),
-        content=ft.Column(
-            spacing=8,
-            alignment=ft.MainAxisAlignment.SPACE_AROUND,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            controls=[
-                ft.Text(
-                    "Status",
-                    style=themes.text.theme(app.theme_mode).title_small,
-                    text_align=ft.TextAlign.CENTER
-                ),
-                ft.Row(
-                    controls=[
-                        ft.Icon(
-                            icon=ft.CupertinoIcons.LAB_FLASK,
-                            color=material_color,
-                            size=icon_size,
-                            tooltip=ft.Tooltip(
-                                message=simulation.state.material.__repr__() if simulation.state.material else "No material defined",
-                                decoration=ft.BoxDecoration(
-                                    bgcolor=theme.colors["primary"],
-                                    border=ft.Border.all(1, theme.colors["text"]),
-                                )
-                            )
-                        ),
-                        ft.Icon(
-                            icon=ft.CupertinoIcons.SQUARE_GRID_4X3_FILL,
-                            color=mesh_color,
-                            size=icon_size,
-                            tooltip=ft.Tooltip(
-                                message=simulation.state.mesh.__repr__() if simulation.state.mesh else "No mesh defined",
-                                decoration=ft.BoxDecoration(
-                                    bgcolor=theme.colors["primary"],
-                                    border=ft.Border.all(1, theme.colors["text"]),
-                                )
-                            )
-                        ),
-                    ],
-                    spacing=8,
-                    alignment=ft.MainAxisAlignment.SPACE_AROUND,
-                ),
-                ft.Row(
-                    controls=[
-                        ft.Icon(
-                            icon=ft.CupertinoIcons.DOC_CHART,
-                            color=model_color,
-                            size=icon_size,
-                            tooltip=ft.Tooltip(
-                                message=simulation.state.model.__repr__() if simulation.state.model else "No model defined",
-                                decoration=ft.BoxDecoration(
-                                    bgcolor=theme.colors["primary"],
-                                    border=ft.Border.all(1, theme.colors["text"]),
-                                )
-                            )
-                        ),
-                        ft.Icon(
-                            icon=ft.CupertinoIcons.PLAY,
-                            color=ran_color,
-                            size=icon_size,
-                        ),
-                    ],
-                    spacing=8,
-                    alignment=ft.MainAxisAlignment.SPACE_AROUND,
-                )
-            ]
-        )
-    )
-
-@ft.component
-def HorizontalSimulationStatus(app:AppState) -> ft.Control:
-    theme = ft.use_context(ThemeContext)
-    simulation = ft.use_context(SimulationContext)
-
-    material_color = theme.colors["success"] if simulation.state.material else theme.colors["alert"]
-    mesh_color = theme.colors["success"] if simulation.state.mesh else theme.colors["alert"]
-    model_color = theme.colors["success"] if simulation.state.model else theme.colors["alert"]
-    ran_color = theme.colors["success"] if simulation.state.ran else theme.colors["alert"]
-
-    icon_size = 25
+    icon_size = 20
 
     return ft.Container(
-        padding=6,
-        margin=8,
-        border_radius=12,
-        expand=True,
-        # bgcolor=theme.colors["primary"],
-        border=ft.Border.all(1, theme.colors["primary"]),
+        padding=8,
+        border_radius=16,
+        bgcolor=theme.colors["bg_02"],
         content=ft.Row(
             spacing=8,
             alignment=ft.MainAxisAlignment.SPACE_AROUND,
@@ -115,49 +30,64 @@ def HorizontalSimulationStatus(app:AppState) -> ft.Control:
             controls=[
                 ft.Text(
                     "Status  ",
-                    style=themes.text.theme(app.theme_mode).title_small,
+                    style=themes.text.body_large(theme.mode, bold=True),
                     text_align=ft.TextAlign.CENTER
                 ),
-                ft.Icon(
-                    icon=ft.CupertinoIcons.LAB_FLASK,
-                    color=material_color,
-                    size=icon_size,
-                    tooltip=ft.Tooltip(
-                        message=simulation.state.material.__repr__() if simulation.state.material else "No material defined",
-                        decoration=ft.BoxDecoration(
-                            bgcolor=theme.colors["primary"],
-                            border=ft.Border.all(1, theme.colors["text"]),
+                ft.Container(
+                    bgcolor=ft.Colors.with_opacity(0.1, material_color),
+                    border_radius=8,
+                    border=ft.Border.all(1, material_color),
+                    padding=4,
+                    content=ft.Icon(
+                        icon=ft.CupertinoIcons.LAB_FLASK,
+                        color=material_color,
+                        size=icon_size,
+                        tooltip=Tooltip(
+                            message=simulation.state.material.__repr__() if simulation.state.material else "No material defined"
                         )
-                    )
+                    ),
                 ),
-                ft.Icon(
-                    icon=ft.CupertinoIcons.SQUARE_GRID_4X3_FILL,
-                    color=mesh_color,
-                    size=icon_size,
-                    tooltip=ft.Tooltip(
-                        message=simulation.state.mesh.__repr__() if simulation.state.mesh else "No mesh defined",
-                        decoration=ft.BoxDecoration(
-                            bgcolor=theme.colors["primary"],
-                            border=ft.Border.all(1, theme.colors["text"]),
+                ft.Container(
+                    bgcolor=ft.Colors.with_opacity(0.1, mesh_color),
+                    border_radius=8,
+                    border=ft.Border.all(1, mesh_color),
+                    padding=4,
+                    content=ft.Icon(
+                        icon=ft.CupertinoIcons.SQUARE_GRID_4X3_FILL,
+                        color=mesh_color,
+                        size=icon_size,
+                        tooltip=Tooltip(
+                            message=simulation.state.mesh.__repr__() if simulation.state.mesh else "No mesh defined"
                         )
-                    )
+                    ),
                 ),
-                ft.Icon(
-                    icon=ft.CupertinoIcons.DOC_CHART,
-                    color=model_color,
-                    size=icon_size,
-                    tooltip=ft.Tooltip(
-                        message=simulation.state.model.__repr__() if simulation.state.model else "No model defined",
-                        decoration=ft.BoxDecoration(
-                            bgcolor=theme.colors["primary"],
-                            border=ft.Border.all(1, theme.colors["text"]),
+                ft.Container(
+                    bgcolor=ft.Colors.with_opacity(0.1, model_color),
+                    border_radius=8,
+                    border=ft.Border.all(1, model_color),
+                    padding=4,
+                    content=ft.Icon(
+                        icon=ft.CupertinoIcons.DOC_CHART,
+                        color=model_color,
+                        size=icon_size,
+                        tooltip=Tooltip(
+                            message=simulation.state.model.__repr__() if simulation.state.model else "No model defined"
                         )
-                    )
+                    ),
                 ),
-                ft.Icon(
-                    icon=ft.CupertinoIcons.PLAY,
-                    color=ran_color,
-                    size=icon_size,
+                ft.Container(
+                    bgcolor=ft.Colors.with_opacity(0.1, ran_color),
+                    border_radius=8,
+                    border=ft.Border.all(1, ran_color),
+                    padding=4,
+                    content=ft.Icon(
+                        icon=ft.CupertinoIcons.PLAY,
+                        color=ran_color,
+                        size=icon_size,
+                        tooltip=Tooltip(
+                            message="Simulation has been run" if simulation.state.ran else "Simulation has not been run"
+                        )
+                    ),
                 ),
             ]
         )
