@@ -5,8 +5,8 @@ import themes
 import pages
 from utils import tomltools
 from components import AppNavigationRail, AppNavigationBar, AppBar
-from contexts import *
-from states import *
+from structures.contexts import ThemeContext, SimulationContext, OrientationContext, ThemeContextValue, SimulationContextValue
+from structures.states import AppState, PageState, SimulationState
 
 @ft.component
 def Content(app:AppState):
@@ -130,7 +130,8 @@ def MecApp():
     )
 
     def resize(e: ft.ControlEvent):
-        set_orientation(page.media.orientation)
+        if page.media.orientation != orientation:
+            set_orientation(page.media.orientation)
 
     async def on_keyboard(e: ft.KeyboardEvent):
         if e.shift and e.key == "S":
@@ -144,7 +145,6 @@ def MecApp():
             page.update()
         
         if e.ctrl and e.key.upper() == "W":
-            print("Closing window...")
             await page.window.close()
 
         if e.ctrl and e.key == "Tab" and not e.shift:

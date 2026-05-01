@@ -1,8 +1,8 @@
 import flet as ft
 import asyncio
 
-from states import *
-from contexts import *
+from structures.states import AppState
+from structures.contexts import ThemeContext
 
 @ft.component
 def AppNavigationBar(app:AppState) -> ft.Control:

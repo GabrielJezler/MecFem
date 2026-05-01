@@ -1,6 +1,6 @@
 import flet as ft
 
-from contexts import ThemeContext
+from structures.contexts import ThemeContext
 
 from .tooltip import Tooltip
 

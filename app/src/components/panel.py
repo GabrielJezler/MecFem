@@ -1,7 +1,6 @@
 import flet as ft
 
-from contexts import *
-
+from structures.contexts import ThemeContext
 
 @ft.component
 def Panel(

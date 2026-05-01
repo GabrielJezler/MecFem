@@ -55,7 +55,6 @@ class AppState:
         self.route = e.route
 
     async def view_popped(self, e: ft.ViewPopEvent):
-        print("View popped")
         views = ft.unwrap_component(ft.context.page.views)
         if len(views) > 1:
             await ft.context.page.push_route(views[-2].route)

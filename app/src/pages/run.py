@@ -1,7 +1,7 @@
 import flet as ft
 import inspect
 
-from contexts import *
+from structures.contexts import ThemeContext, SimulationContext
 
 @ft.component
 def RunContent() -> ft.Control:

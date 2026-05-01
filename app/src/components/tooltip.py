@@ -1,7 +1,6 @@
 import flet as ft
 
-from states import *
-from contexts import *
+from structures.contexts import ThemeContext
 
 @ft.component
 def Tooltip(message:str, wait_duration:ft.DurationValue | None = None) -> ft.Control:

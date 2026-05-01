@@ -1,8 +1,8 @@
 import flet as ft
 import asyncio
 
-from contexts import *
-from states import AppState
+from structures.contexts import ThemeContext
+from structures.states import AppState
 
 @ft.component
 def ToggleRailButton(extended) -> ft.Control:

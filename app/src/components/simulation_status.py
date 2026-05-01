@@ -1,8 +1,8 @@
 import flet as ft
 
 import themes
-from states import *
-from contexts import *
+from structures.states import AppState
+from structures.contexts import ThemeContext, SimulationContext
 
 from .tooltip import Tooltip
 

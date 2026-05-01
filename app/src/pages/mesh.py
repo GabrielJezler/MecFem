@@ -7,7 +7,7 @@ import MecFEM as mf
 from themes import text
 from components import ErrorDialog, Tooltip
 from components.charts import MeshChart
-from contexts import *
+from structures.contexts import ThemeContext, SimulationContext
 
 @ft.component
 def MeshContent() -> ft.Control:
@@ -61,6 +61,15 @@ def MeshContent() -> ft.Control:
                 bgcolor=theme.colors["bg"],
                 content=ft.ResponsiveRow(
                     controls=[
+                        ft.Text(
+                            "Mesh",
+                            style=text.title_medium(theme.mode),
+                            col={
+                                ft.ResponsiveRowBreakpoint.XS: 3,
+                                ft.ResponsiveRowBreakpoint.MD: 2,
+                                ft.ResponsiveRowBreakpoint.LG: 1,
+                            },
+                        ),
                         ft.Container(
                             ref=mesh_path_ref,
                             content=ft.Text(
@@ -73,9 +82,9 @@ def MeshContent() -> ft.Control:
                             border_radius=8,
                             padding=ft.Padding(16, 12, 16, 12),
                             col={
-                                ft.ResponsiveRowBreakpoint.XS: 12,
-                                ft.ResponsiveRowBreakpoint.MD: 12,
-                                ft.ResponsiveRowBreakpoint.LG: 6,
+                                ft.ResponsiveRowBreakpoint.XS: 9,
+                                ft.ResponsiveRowBreakpoint.MD: 10,
+                                ft.ResponsiveRowBreakpoint.LG: 7,
                             },
                             expand=True,
                             height=48,
@@ -92,10 +101,10 @@ def MeshContent() -> ft.Control:
                             col={
                                 ft.ResponsiveRowBreakpoint.XS: 12,
                                 ft.ResponsiveRowBreakpoint.MD: 6,
-                                ft.ResponsiveRowBreakpoint.LG: 4,
+                                ft.ResponsiveRowBreakpoint.LG: 2,
                             },
                             input_filter=ft.InputFilter(
-                                regex_string=r"^[1-3]?$",
+                                regex_string=r"^[1-2]?$",
                                 allow=True,
                                 replacement_string="",
                             ),

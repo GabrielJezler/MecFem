@@ -3,8 +3,11 @@ from dataclasses import dataclass, field
 from collections.abc import Callable
 from typing import Dict
 
-from states import AppState, SimulationState
+from structures.states import SimulationState
 from utils import tomltools
+
+from .enums import GestureSelectionMode
+from .chart import SelectionData
 
 @dataclass(frozen=True)
 class ThemeContextValue:
@@ -21,12 +24,15 @@ class ThemeContextValue:
     def config(self):
         return self._config
 
-ThemeContext = ft.create_context(ThemeContextValue(ft.ThemeMode.LIGHT, lambda: None))
 
 @dataclass
 class SimulationContextValue:
     state: SimulationState
 
+ThemeContext = ft.create_context(ThemeContextValue(ft.ThemeMode.LIGHT, lambda: None))
+
 SimulationContext = ft.create_context(SimulationContextValue(SimulationState()))
 
 OrientationContext = ft.create_context(ft.Orientation.LANDSCAPE)
+
+SelectionDataContext = ft.create_context(SelectionData())

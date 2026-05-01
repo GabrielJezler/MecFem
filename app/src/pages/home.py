@@ -1,7 +1,6 @@
 import flet as ft
 
-from contexts import ThemeContext
-from components import Panel
+from structures.contexts import ThemeContext
 
 @ft.component
 def HomeContent() -> ft.Control:

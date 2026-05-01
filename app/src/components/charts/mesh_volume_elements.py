@@ -1,14 +1,10 @@
 import flet as ft
-import flet.canvas as cv
 import numpy as np
 
-import MecFEM as mf
+from structures.contexts import ThemeContext, SimulationContext
+from structures.chart import ChartData, SpotData
 
-from ._states import *
-from ._data import *
 from ._mesh_lines import MeshLinesChart
-
-from contexts import *
 
 @ft.component
 def MeshVolumeElementsChart() -> ft.Control:
@@ -79,8 +75,7 @@ def MeshVolumeElementsChart() -> ft.Control:
                 ] for node_id in simulation.state.mesh.get_vertices_ids(elem)
             ] for elem in simulation.state.mesh.elems[simulation.state.mesh.dim]
         ]
-        # print(ChartState(spots=spots, elements=elements))
-        return ChartState(spots=spots, elements=elements)
+        return ChartData(spots=spots, elements=elements)
 
     theme = ft.use_context(ThemeContext)
     simulation = ft.use_context(SimulationContext)
@@ -94,7 +89,7 @@ def MeshVolumeElementsChart() -> ft.Control:
 
     min_x, max_x, min_y, max_y = get_data_bounding_box()
 
-    selection_box, _ = ft.use_state(SelectionBoxState())
+    # selection_box, _ = ft.use_state(SelectionBoxState())
 
     _pad = {
         "left": 0,

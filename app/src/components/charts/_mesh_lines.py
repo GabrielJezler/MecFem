@@ -1,12 +1,11 @@
 import flet as ft
 import flet_charts as fch
 
-from ._states import *
-
-from contexts import *
+from structures.contexts import ThemeContext
+from structures.chart import ChartData
 
 @ ft.component
-def mesh_lines_chart(chart: ChartState, min_x: float, max_x: float, min_y: float, max_y: float):
+def mesh_lines_chart(chart: ChartData, min_x: float, max_x: float, min_y: float, max_y: float):
     def _on_chart_resize(e):
         chart.update_size(width=e.width, height=e.height)
 

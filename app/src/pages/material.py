@@ -8,7 +8,7 @@ import MecFEM as mf
 from utils import stringtools
 from themes import text
 from components import ErrorDialog
-from contexts import *
+from structures.contexts import ThemeContext, SimulationContext
 
 @ft.component
 def MaterialContent() -> ft.Control:
@@ -118,6 +118,10 @@ def MaterialContent() -> ft.Control:
         bgcolor = theme.colors["bg"],
         content = ft.Column(
             controls=[
+                ft.Text(
+                    "Material", 
+                    style=text.title_medium(theme.mode)
+                ),
                 ft.Row(
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     controls=[

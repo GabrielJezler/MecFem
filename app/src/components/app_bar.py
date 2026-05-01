@@ -1,7 +1,7 @@
 import flet as ft
 
-from states import *
-from contexts import *
+from structures.states import AppState
+from structures.contexts import ThemeContext
 
 from .simulation_status import SimulationStatus
 from .buttons import LoadSimulationButton, SaveSimulationButton, ThemeButton

@@ -3,12 +3,12 @@ import numpy as np
 
 import MecFEM as mf
 
-from ._states import *
-from ._data import *
+from structures.contexts import ThemeContext, SimulationContext
+from structures.chart import ChartData, SpotData
+
 from ._mesh_lines import MeshLinesChart
 from ._mesh_nodes import MeshNodesChart
 
-from contexts import *
 
 @ft.component
 def MeshChart() -> ft.Control:
@@ -70,7 +70,7 @@ def MeshChart() -> ft.Control:
                 ] for node_id in simulation.state.mesh.get_vertices_ids(elem)
             ] for elem in simulation.state.mesh.elems[simulation.state.mesh.dim]
         ]
-        return ChartState(spots=spots, elements=elements, spots_selected=[])
+        return ChartData(spots=spots, elements=elements, spots_selected=[])
 
     chart, set_chart = ft.use_state(get_chart_data())
  

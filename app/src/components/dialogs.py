@@ -1,7 +1,7 @@
 import flet as ft
 
 import themes
-from contexts import *
+from structures.contexts import ThemeContextValue
 
 # @ft.component
 def ErrorDialog(theme:ThemeContextValue, title:str, text:str):
