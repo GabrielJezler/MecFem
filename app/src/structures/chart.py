@@ -3,7 +3,9 @@ import flet as ft
 import flet.canvas as cv
 import numpy as np
 
-@dataclass
+from .enums import MeshSelectionMode
+
+@dataclass(frozen=True)
 class SpotData:
     x: float
     y: float
@@ -12,23 +14,40 @@ class SpotData:
     radius: float = 8.0
     id: int | None = None
 
+@dataclass(frozen=True)
+class ElementData:
+    vertices: list[tuple[float, float]]
+    color: ft.Colors | str
+    selected_color: ft.Colors | str
+    id: int | None = None
+
+    def get_centroid(self):
+        return np.mean(np.array(self.vertices), axis=0)
+
 @ft.observable
 @dataclass
 class ChartData:
     spots_selected: list[int] = field(default_factory=list)
     spots: list[SpotData] = field(default_factory=list)
     elements_selected: list[int] = field(default_factory=list)
-    elements: list[list[float]] = field(default_factory=list)
+    elements: list[ElementData] = field(default_factory=list)
+    selection_mode: MeshSelectionMode = MeshSelectionMode.NONE
     size:dict[str, float] = field(default_factory=lambda: {"width": 1.0, "height": 1.0})
 
     def update_size(self, width: float, height: float):
         self.size["width"] = width
         self.size["height"] = height
 
-    def update_spots_selection(self, indices: list[int]):
+    def update_selection(self, indices: list[int]):
+        if self.selection_mode == MeshSelectionMode.NODES:
+            self._update_spots_selection(indices)
+        elif self.selection_mode == MeshSelectionMode.ELEMENTS:
+            self._update_elements_selection(indices)
+
+    def _update_spots_selection(self, indices: list[int]):
         self.spots_selected = indices
 
-    def update_elements_selection(self, indices: list[int]):
+    def _update_elements_selection(self, indices: list[int]):
         self.elements_selected = indices
 
 @ft.observable
@@ -52,10 +71,18 @@ class RetangularSelectionData:
         min_y = px_to_data_y_func(np.max(self.points[:, 1]))
         max_y = px_to_data_y_func(np.min(self.points[:, 1]))
 
-        return [
-            s.id for s in chart.spots if s.id is not None and min_x <= s.x <= max_x and min_y <= s.y <= max_y
-        ]
-    
+        if chart.selection_mode == MeshSelectionMode.NODES:
+            return [
+                s.id for s in chart.spots if s.id is not None and min_x <= s.x <= max_x and min_y <= s.y <= max_y
+            ]
+        elif chart.selection_mode == MeshSelectionMode.ELEMENTS:
+            cg_vertices = [elem.get_centroid() for elem in chart.elements]
+            
+            return [
+                elem.id for elem, cg in zip(chart.elements, cg_vertices) 
+                if (elem.id is not None and min_x <= cg[0] <= max_x and min_y <= cg[1] <= max_y)
+            ]
+
     def get_shapes(self, color:str):
         if self.points is None:
             return []
@@ -105,13 +132,19 @@ class LassoSelectionData:
 
         from matplotlib.path import Path
 
-        spots_points = np.array([[s.x, s.y] for s in chart.spots])
-        lasso_points = np.array([[px_to_data_x_func(p[0]), px_to_data_y_func(p[1])] for p in self.points])
-        
-        path = Path(lasso_points)
-        inside = path.contains_points(spots_points)
+        if chart.selection_mode == MeshSelectionMode.NODES:
+            chart_points = np.array([[s.x, s.y] for s in chart.spots])
+        elif chart.selection_mode == MeshSelectionMode.ELEMENTS:
+            chart_points = np.array([elem.get_centroid() for elem in chart.elements])
 
-        return [s.id for s, is_inside in zip(chart.spots, inside) if (s.id is not None and is_inside)]
+        lasso_points = np.array([[px_to_data_x_func(p[0]), px_to_data_y_func(p[1])] for p in self.points])
+
+        path = Path(lasso_points)
+        inside = path.contains_points(chart_points)
+        if chart.selection_mode == MeshSelectionMode.NODES:
+            return [s.id for s, is_inside in zip(chart.spots, inside) if (s.id is not None and is_inside)]
+        elif chart.selection_mode == MeshSelectionMode.ELEMENTS:
+            return [e.id for e, is_inside in zip(chart.elements, inside) if (e.id is not None and is_inside)]
 
     def get_shapes(self, color:str):
         if self.points is None:

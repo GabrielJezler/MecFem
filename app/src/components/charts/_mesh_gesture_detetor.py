@@ -13,15 +13,14 @@ def MeshGestureDetector(
     max_x: float = 1.0, 
     min_y: float = 0.0, 
     max_y: float = 1.0,
-    _pad: dict[str, float] = {"left": 0.0, "right": 0.0, "top": 0.0, "bottom": 0.0},
 ):
     def _px_to_data_x(px: np.ndarray | float) -> np.ndarray | float:
-        w = (chart.size["width"] or 1.0) - _pad["left"] - _pad["right"]
-        return min_x + ((px - _pad["left"]) / w) * (max_x - min_x)
+        w = (chart.size["width"] or 1.0)
+        return min_x + ((px) / w) * (max_x - min_x)
 
     def _px_to_data_y(py: np.ndarray | float) -> np.ndarray | float:
-        h = (chart.size["height"] or 1.0) - _pad["top"] - _pad["bottom"]
-        return min_y + (1.0 - (py - _pad["top"]) / h) * (max_y - min_y)
+        h = (chart.size["height"] or 1.0)
+        return min_y + (1.0 - (py) / h) * (max_y - min_y)
 
     def _on_tap_down(e: ft.TapEvent):
         if selection_data is None:
@@ -45,19 +44,18 @@ def MeshGestureDetector(
 
     def _on_pan_end(e: ft.DragUpdateEvent):
         if e.local_position is None or selection_data is None:
-            return       
+            return
 
         selected_indices = selection_data.get_selected_indices(
             chart=chart, 
             px_to_data_x_func=lambda p: _px_to_data_x(p), 
             px_to_data_y_func=lambda p: _px_to_data_y(p)
         )
-
-        chart.update_spots_selection(selected_indices)
+        chart.update_selection(selected_indices)
 
         set_selection_shapes([])
         selection_data.reset()
-    
+
     theme = ft.use_context(ThemeContext)
     selection_data = ft.use_context(SelectionDataContext)
 

@@ -1,16 +1,14 @@
 import flet as ft
 import flet_charts as fch
+import flet.canvas as cv
 
-from structures.contexts import ThemeContext
 from structures.chart import ChartData
 
 @ ft.component
 def mesh_lines_chart(chart: ChartData, min_x: float, max_x: float, min_y: float, max_y: float):
     def _on_chart_resize(e):
         chart.update_size(width=e.width, height=e.height)
-
-    theme = ft.use_context(ThemeContext)
-
+    
     return fch.LineChart(
         aspect_ratio=1.0,
         expand=True,
@@ -26,13 +24,13 @@ def mesh_lines_chart(chart: ChartData, min_x: float, max_x: float, min_y: float,
         bottom_axis = fch.ChartAxis(show_labels=False, label_size=0),
         data_series=[
             fch.LineChartData(
-                color=theme.colors["text"],
+                color=elem.selected_color if elem.id in chart.elements_selected else elem.color,
                 stroke_width=1,
                 points=[
                     fch.LineChartDataPoint(
                         x=coords[0],
                         y=coords[1],
-                    ) for coords in elem
+                    ) for coords in elem.vertices
                 ]
             ) for elem in chart.elements
         ],

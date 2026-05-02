@@ -10,7 +10,7 @@ def mesh_nodes_chart(chart: ChartData, min_x: float, max_x: float, min_y: float,
         chart.update_size(width=e.width, height=e.height)
     
     theme = ft.use_context(ThemeContext)
-
+    
     return fch.ScatterChart(
         aspect_ratio=1.0,
         expand=True,

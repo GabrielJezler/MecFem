@@ -5,48 +5,16 @@ import numpy as np
 import MecFEM as mf
 
 from structures.contexts import ThemeContext, SimulationContext
-from structures.chart import ChartData, SpotData
+from structures.chart import ChartData, SpotData, ElementData
+from structures.enums import MeshSelectionMode
 
 from ._mesh_lines import MeshLinesChart
 from ._mesh_nodes import MeshNodesChart
-from ._mesh_gesture_detetor import MeshGestureDetector, GestureSelectionMode
+from ._mesh_gesture_detetor import MeshGestureDetector
+from ._utils import get_data_bounding_box
 
 @ft.component
 def MeshBoundaryElementsChart() -> ft.Control:
-    def get_data_bounding_box():
-        X = [s.x for s in chart.spots]
-        Y = [s.y for s in chart.spots]
-        offset = 0.1
-        _min_x = float(np.min(X))
-        _max_x = float(np.max(X))
-        _min_y = float(np.min(Y))
-        _max_y = float(np.max(Y))
-
-        _min_x -= offset * abs(_max_x - _min_x)
-        _max_x += offset * abs(_max_x - _min_x)
-        _min_y -= offset * abs(_max_y - _min_y)
-        _max_y += offset * abs(_max_y - _min_y)
-
-        if (_max_x - _min_x) < (_max_y - _min_y):
-            max_y = _max_y
-            min_y = _min_y
-            center_x = 0.5 * (_min_x + _max_x)
-            min_x = center_x - 0.5 * (_max_y - _min_y)
-            max_x = center_x + 0.5 * (_max_y - _min_y)
-        elif (_max_x - _min_x) > (_max_y - _min_y):
-            max_x = _max_x
-            min_x = _min_x
-            center_y = 0.5 * (_min_y + _max_y)
-            min_y = center_y - 0.5 * (_max_x - _min_x)
-            max_y = center_y + 0.5 * (_max_x - _min_x)
-        else:
-            max_x = _max_x
-            min_x = _min_x
-            max_y = _max_y
-            min_y = _min_y
-
-        return min_x, max_x, min_y, max_y
-
     def get_chart_data():
         nodes_coords = simulation.state.mesh.get_nodes_coordinates()[:, :2]
 
@@ -67,15 +35,32 @@ def MeshBoundaryElementsChart() -> ft.Control:
         ]
 
         elements = [
-            [
-                [
-                    nodes_coords[elem.nodes][node_id, 0], 
-                    nodes_coords[elem.nodes][node_id, 1]
-                ] for node_id in simulation.state.mesh.get_vertices_ids(elem)
-            ] for elem in simulation.state.mesh.elems[simulation.state.mesh.dim - 1]
+            ElementData(
+                # vertices=np.array(
+                #     [
+                #         [
+                #             nodes_coords[elem.nodes][node_id, 0], 
+                #             nodes_coords[elem.nodes][node_id, 1]
+                #         ] for node_id in simulation.state.mesh.get_vertices_ids(elem)
+                #     ]
+                # ),
+                vertices=[
+                    (
+                        nodes_coords[elem.nodes][node_id, 0], 
+                        nodes_coords[elem.nodes][node_id, 1]
+                    ) for node_id in simulation.state.mesh.get_vertices_ids(elem)
+                ],
+                color=theme.colors["text"],
+                selected_color=theme.colors["primary"],
+                id=elem.id
+            ) for elem in simulation.state.mesh.elems[simulation.state.mesh.dim - 1]
         ]
 
-        return ChartData(spots=spots, elements=elements, spots_selected=[])
+        return ChartData(
+            spots=spots, 
+            elements=elements, 
+            selection_mode=MeshSelectionMode.NODES
+        )
     
     theme = ft.use_context(ThemeContext)
     simulation = ft.use_context(SimulationContext)
@@ -87,18 +72,12 @@ def MeshBoundaryElementsChart() -> ft.Control:
 
     ft.use_effect(lambda: set_chart(get_chart_data()), [chart])
 
-    min_x, max_x, min_y, max_y = get_data_bounding_box()
-
     return ft.Stack(
         expand=True,
         aspect_ratio=1.0,
         controls=[
-            MeshLinesChart(chart, *get_data_bounding_box()),
-            MeshNodesChart(chart, *get_data_bounding_box()),
-            MeshGestureDetector(
-                chart=chart,
-                min_x=min_x, max_x=max_x, min_y=min_y, max_y=max_y
-            )
+            MeshLinesChart(chart, *get_data_bounding_box(chart)),
+            MeshNodesChart(chart, *get_data_bounding_box(chart)),
+            MeshGestureDetector(chart, *get_data_bounding_box(chart))
         ]
     )
-

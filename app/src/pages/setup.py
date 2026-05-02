@@ -2,6 +2,7 @@ import flet as ft
 import inspect
 import pkgutil
 import importlib
+import asyncio
 
 import MecFEM as mf
 
@@ -64,8 +65,11 @@ def SetupContent() -> ft.Control:
 
     def update_selection_mode(e: ft.ControlEvent):
         new_mode = GestureSelectionMode(e.data[0])
+        current_tab = e.control.parent.parent.parent.parent.selected_index
         if new_mode != selection_mode:
             set_selection_mode(new_mode)
+            set_tab_index(current_tab)
+        
 
     def get_selection_data(mode: GestureSelectionMode):
         if mode == GestureSelectionMode.RECTANGLE:
@@ -88,13 +92,9 @@ def SetupContent() -> ft.Control:
 
     model_name_text, set_model_name_text = ft.use_state(model_name_str())
     selection_mode, set_selection_mode = ft.use_state(GestureSelectionMode.NONE)
+    tab_index, set_tab_index = ft.use_state(0)
 
     model_dropdown_ref = ft.Ref[ft.Dropdown]()
-
-    selection_mode_value = ft.use_memo(
-        lambda: selection_mode,
-        dependencies=[selection_mode],
-    )
 
     selection_data_value = ft.use_memo(
         lambda: get_selection_data(selection_mode),
@@ -182,7 +182,7 @@ def SetupContent() -> ft.Control:
                     padding=8,
                     content=ft.Tabs(
                         length=2,
-                        selected_index=0,
+                        selected_index=tab_index,
                         expand=True,
                         content=ft.Column(
                             expand=True,
@@ -252,23 +252,24 @@ def SetupContent() -> ft.Control:
                                             controls=[
                                                 ft.SegmentedButton(
                                                     allow_multiple_selection=False,
-                                                    selected=["none"],
+                                                    selected=[selection_mode],
                                                     segments=[
                                                         ft.Segment(
-                                                            value="none",
-                                                            label=ft.Text("None"),
+                                                            value=GestureSelectionMode.NONE,
+                                                            label=ft.Text(GestureSelectionMode.NONE),
                                                         ),
                                                         ft.Segment(
-                                                            value="rectangular",
-                                                            label=ft.Text("Rectangular"),
+                                                            value=GestureSelectionMode.RECTANGLE,
+                                                            label=ft.Text(GestureSelectionMode.RECTANGLE),
                                                             icon=ft.Icon(ft.CupertinoIcons.RECTANGLE),
                                                         ),
                                                         ft.Segment(
-                                                            value="lasso",
-                                                            label=ft.Text("Lasso"),
+                                                            value=GestureSelectionMode.LASSO,
+                                                            label=ft.Text(GestureSelectionMode.LASSO),
                                                             icon=ft.Icon(ft.CupertinoIcons.LASSO),
                                                         ),
                                                     ],
+                                                    on_change=lambda e: update_selection_mode(e),
                                                     show_selected_icon=False,
                                                     style=ft.ButtonStyle(
                                                         color={
