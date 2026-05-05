@@ -1,3 +1,2 @@
-from .mesh_boundary_elements import MeshBoundaryElementsChart
-from .mesh_volume_elements import MeshVolumeElementsChart
+from .mesh_selector import MeshSelectorChart
 from .mesh import MeshChart

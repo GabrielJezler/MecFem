@@ -3,7 +3,7 @@ import flet as ft
 import flet.canvas as cv
 import numpy as np
 
-from .enums import MeshSelectionMode
+from .enums import MeshSelectionObject, MeshSelectionZone
 
 @dataclass(frozen=True)
 class SpotData:
@@ -31,28 +31,35 @@ class ChartData:
     spots: list[SpotData] = field(default_factory=list)
     elements_selected: list[int] = field(default_factory=list)
     elements: list[ElementData] = field(default_factory=list)
-    selection_mode: MeshSelectionMode = MeshSelectionMode.NONE
+    selection_object: MeshSelectionObject = MeshSelectionObject.NODES
+    selection_zone: MeshSelectionZone = MeshSelectionZone.BOUNDARY
     size:dict[str, float] = field(default_factory=lambda: {"width": 1.0, "height": 1.0})
 
     def update_size(self, width: float, height: float):
         self.size["width"] = width
         self.size["height"] = height
 
-    def update_selection(self, indices: list[int]):
-        if self.selection_mode == MeshSelectionMode.NODES:
-            self._update_spots_selection(indices)
-        elif self.selection_mode == MeshSelectionMode.ELEMENTS:
-            self._update_elements_selection(indices)
+    def update_selection(self, indices: list[int], extend_selection: bool = False):
+        if self.selection_object == MeshSelectionObject.NODES:
+            self._update_spots_selection(indices, extend_selection)
+        elif self.selection_object == MeshSelectionObject.ELEMENTS:
+            self._update_elements_selection(indices, extend_selection)
 
-    def _update_spots_selection(self, indices: list[int]):
-        self.spots_selected = indices
+    def _update_spots_selection(self, indices: list[int], extend_selection: bool):
+        if extend_selection:
+            self.spots_selected.extend(indices)
+        else:
+            self.spots_selected = indices
 
-    def _update_elements_selection(self, indices: list[int]):
-        self.elements_selected = indices
+    def _update_elements_selection(self, indices: list[int], extend_selection: bool):
+        if extend_selection:
+            self.elements_selected.extend(indices)
+        else:
+            self.elements_selected = indices
 
 @ft.observable
 @dataclass
-class RetangularSelectionData:
+class RetangularSelectorMode:
     points: np.ndarray | None = None
 
     def set_initial_position(self, x: float, y: float):
@@ -71,11 +78,11 @@ class RetangularSelectionData:
         min_y = px_to_data_y_func(np.max(self.points[:, 1]))
         max_y = px_to_data_y_func(np.min(self.points[:, 1]))
 
-        if chart.selection_mode == MeshSelectionMode.NODES:
+        if chart.selection_object == MeshSelectionObject.NODES:
             return [
                 s.id for s in chart.spots if s.id is not None and min_x <= s.x <= max_x and min_y <= s.y <= max_y
             ]
-        elif chart.selection_mode == MeshSelectionMode.ELEMENTS:
+        elif chart.selection_object == MeshSelectionObject.ELEMENTS:
             cg_vertices = [elem.get_centroid() for elem in chart.elements]
             
             return [
@@ -115,7 +122,7 @@ class RetangularSelectionData:
 
 @ft.observable
 @dataclass
-class LassoSelectionData:
+class LassoSelectorMode:
     points: np.ndarray | None = None
 
     def set_initial_position(self, x: float, y: float):
@@ -132,18 +139,18 @@ class LassoSelectionData:
 
         from matplotlib.path import Path
 
-        if chart.selection_mode == MeshSelectionMode.NODES:
+        if chart.selection_object == MeshSelectionObject.NODES:
             chart_points = np.array([[s.x, s.y] for s in chart.spots])
-        elif chart.selection_mode == MeshSelectionMode.ELEMENTS:
+        elif chart.selection_object == MeshSelectionObject.ELEMENTS:
             chart_points = np.array([elem.get_centroid() for elem in chart.elements])
 
         lasso_points = np.array([[px_to_data_x_func(p[0]), px_to_data_y_func(p[1])] for p in self.points])
 
         path = Path(lasso_points)
         inside = path.contains_points(chart_points)
-        if chart.selection_mode == MeshSelectionMode.NODES:
+        if chart.selection_object == MeshSelectionObject.NODES:
             return [s.id for s, is_inside in zip(chart.spots, inside) if (s.id is not None and is_inside)]
-        elif chart.selection_mode == MeshSelectionMode.ELEMENTS:
+        elif chart.selection_object == MeshSelectionObject.ELEMENTS:
             return [e.id for e, is_inside in zip(chart.elements, inside) if (e.id is not None and is_inside)]
 
     def get_shapes(self, color:str):
@@ -178,6 +185,7 @@ class LassoSelectionData:
 
 @ft.observable
 @dataclass
-class SelectionData:
-    method: RetangularSelectionData | LassoSelectionData | None = None
-
+class Selector:
+    mode: RetangularSelectorMode | LassoSelectorMode | None = None
+    zone: MeshSelectionZone = MeshSelectionZone.BOUNDARY
+    object: MeshSelectionObject = MeshSelectionObject.NODES

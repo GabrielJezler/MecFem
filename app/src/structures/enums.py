@@ -1,6 +1,6 @@
 from enum import Enum
 
-class GestureSelectionMode(Enum):
+class MeshSelectionShape(Enum):
     """
     Enumerator for different selection modes in the mesh chart.
     """
@@ -8,10 +8,16 @@ class GestureSelectionMode(Enum):
     RECTANGLE = "Rectangle"
     LASSO = "Lasso"
 
-class MeshSelectionMode(Enum):
+class MeshSelectionObject(Enum):
     """
     Enumerator for different selection modes in the mesh chart.
     """
-    NONE = "None"
     NODES = "Nodes"
     ELEMENTS = "Elements"
+
+class MeshSelectionZone(Enum):
+    """
+    Enumerator for different selection modes in the mesh chart.
+    """
+    BOUNDARY = "Boundary"
+    VOLUME = "Volume"

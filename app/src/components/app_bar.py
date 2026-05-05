@@ -1,19 +1,18 @@
 import flet as ft
 
-from structures.states import AppState
 from structures.contexts import ThemeContext
 
 from .simulation_status import SimulationStatus
 from .buttons import LoadSimulationButton, SaveSimulationButton, ThemeButton
 
 @ft.component
-def AppBar(app: AppState) -> ft.Control:
+def AppBar() -> ft.Control:
     theme = ft.use_context(ThemeContext)
 
     return ft.Container(
         content=ft.Row(
             controls=[
-                SimulationStatus(app),
+                SimulationStatus(),
                 ft.Row(
                     spacing=8,
                     controls=[

@@ -1,14 +1,10 @@
 import flet as ft
 import flet_charts as fch
-import flet.canvas as cv
 
 from structures.chart import ChartData
 
 @ ft.component
 def mesh_lines_chart(chart: ChartData, min_x: float, max_x: float, min_y: float, max_y: float):
-    def _on_chart_resize(e):
-        chart.update_size(width=e.width, height=e.height)
-    
     return fch.LineChart(
         aspect_ratio=1.0,
         expand=True,
@@ -34,7 +30,6 @@ def mesh_lines_chart(chart: ChartData, min_x: float, max_x: float, min_y: float,
                 ]
             ) for elem in chart.elements
         ],
-        on_size_change=_on_chart_resize,
     )
 
 MeshLinesChart = ft.memo(mesh_lines_chart)

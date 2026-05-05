@@ -1,7 +1,4 @@
 import flet as ft
-import numpy as np
-
-import MecFEM as mf
 
 from structures.contexts import ThemeContext, SimulationContext
 from structures.chart import ChartData, SpotData, ElementData
@@ -27,14 +24,6 @@ def MeshChart() -> ft.Control:
         ]
         elements = [
             ElementData(
-                # vertices=np.array(
-                #     [
-                #         [
-                #             nodes_coords[elem.nodes][node_id, 0], 
-                #             nodes_coords[elem.nodes][node_id, 1]
-                #         ] for node_id in simulation.state.mesh.get_vertices_ids(elem)
-                #     ]
-                # ),
                 vertices=[
                     (
                         nodes_coords[elem.nodes][node_id, 0], 
@@ -57,7 +46,7 @@ def MeshChart() -> ft.Control:
 
     chart, set_chart = ft.use_state(get_chart_data())
  
-    ft.use_effect(lambda: set_chart(get_chart_data()), [simulation.state.mesh])
+    ft.use_effect(lambda: set_chart(get_chart_data()), [simulation.state.mesh, theme])
 
     return ft.Stack(
         expand=True,

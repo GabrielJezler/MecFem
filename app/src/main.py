@@ -1,5 +1,4 @@
 import flet as ft
-import asyncio
 
 import themes
 import pages
@@ -12,8 +11,6 @@ from structures.states import AppState, PageState, SimulationState
 def Content(app:AppState):
     orientation = ft.use_context(OrientationContext)
     colors = ft.use_context(ThemeContext).colors
-
-    # ft.context.page.appbar = AppBar(app=app)
 
     if orientation == ft.Orientation.LANDSCAPE:
         ft.context.page.navigation_bar = None
@@ -32,8 +29,9 @@ def Content(app:AppState):
                     padding=8,
                     margin=0,
                     content=ft.Column(
+                        expand=True,
                         controls=[
-                            AppBar(app=app),
+                            AppBar(),
                             app.build_page()
                         ],
                         spacing=8,
@@ -52,8 +50,10 @@ def Content(app:AppState):
             padding=8,
             margin=0,
             content=ft.Column(
+                expand=True,
+                scroll=ft.ScrollMode.AUTO,
                 controls=[
-                    AppBar(app=app),
+                    AppBar(),
                     app.build_page()
                 ],
                 spacing=8,

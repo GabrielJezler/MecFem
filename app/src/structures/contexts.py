@@ -6,8 +6,7 @@ from typing import Dict
 from structures.states import SimulationState
 from utils import tomltools
 
-from .enums import GestureSelectionMode
-from .chart import SelectionData
+from .chart import Selector
 
 @dataclass(frozen=True)
 class ThemeContextValue:
@@ -35,4 +34,4 @@ SimulationContext = ft.create_context(SimulationContextValue(SimulationState()))
 
 OrientationContext = ft.create_context(ft.Orientation.LANDSCAPE)
 
-SelectionDataContext = ft.create_context(SelectionData())
+SelectorContext = ft.create_context(Selector())

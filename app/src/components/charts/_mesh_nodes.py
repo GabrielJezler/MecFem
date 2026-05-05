@@ -6,9 +6,6 @@ from structures.chart import ChartData
 
 @ ft.component
 def mesh_nodes_chart(chart: ChartData, min_x: float, max_x: float, min_y: float, max_y: float):
-    def _on_chart_resize(e):
-        chart.update_size(width=e.width, height=e.height)
-    
     theme = ft.use_context(ThemeContext)
     
     return fch.ScatterChart(
@@ -32,7 +29,6 @@ def mesh_nodes_chart(chart: ChartData, min_x: float, max_x: float, min_y: float,
                 tooltip=f"id:{spot.id}" if spot.id is not None else None,
             ) for spot in chart.spots
         ],
-        on_size_change=_on_chart_resize,
     )
 
 MeshNodesChart = ft.memo(mesh_nodes_chart)

@@ -1,10 +1,11 @@
 import flet as ft
 import flet.canvas as cv
 import numpy as np
+import asyncio
 
-from structures.contexts import ThemeContext, SelectionDataContext
-from structures.enums import GestureSelectionMode
-from structures.chart import ChartData, RetangularSelectionData, LassoSelectionData
+from components import Tooltip
+from structures.contexts import ThemeContext, SelectorContext
+from structures.chart import ChartData
 
 @ft.component
 def MeshGestureDetector(
@@ -23,53 +24,120 @@ def MeshGestureDetector(
         return min_y + (1.0 - (py) / h) * (max_y - min_y)
 
     def _on_tap_down(e: ft.TapEvent):
-        if selection_data is None:
+        if selector.mode is None:
             return
 
         x0 = e.local_position.x if e.local_position else 0.0
         y0 = e.local_position.y if e.local_position else 0.0
 
-        selection_data.set_initial_position(x=x0, y=y0)
+        selector.mode.set_initial_position(x=x0, y=y0)
 
     def _on_pan_update(e: ft.DragUpdateEvent):
-        if e.local_position is None or selection_data is None:
+        if e.local_position is None or selector.mode is None:
             return
         
-        selection_data.update_final_position(
+        selector.mode.update_final_position(
             dx=e.local_delta.x if e.local_delta else 0.0, 
             dy=e.local_delta.y if e.local_delta else 0.0
         )
 
-        set_selection_shapes(selection_data.get_shapes(color=theme.colors["success"]))
+        set_selection_shapes(selector.mode.get_shapes(color=theme.colors["success"]))
 
     def _on_pan_end(e: ft.DragUpdateEvent):
-        if e.local_position is None or selection_data is None:
+        if e.local_position is None or selector.mode is None:
             return
 
-        selected_indices = selection_data.get_selected_indices(
+        selected_indices = selector.mode.get_selected_indices(
             chart=chart, 
             px_to_data_x_func=lambda p: _px_to_data_x(p), 
             px_to_data_y_func=lambda p: _px_to_data_y(p)
         )
-        chart.update_selection(selected_indices)
+        chart.update_selection(selected_indices, extend_selection=ctrl_hold)
 
         set_selection_shapes([])
-        selection_data.reset()
+        selector.mode.reset()
+
+    def handle_reset(e: ft.ControlEvent):
+        chart.update_selection([], extend_selection=False)
+        set_selection_shapes([])
+        selector.mode.reset()
+
+    async def on_ctrl_event_down(e: ft.ControlEvent):
+        if e.key.lower().startswith("control"):
+            set_ctrl_hold(True)
+    
+    async def on_ctrl_event_up(e: ft.ControlEvent):
+        if e.key.lower().startswith("control"):
+            set_ctrl_hold(False)
 
     theme = ft.use_context(ThemeContext)
-    selection_data = ft.use_context(SelectionDataContext)
+    selector = ft.use_context(SelectorContext)
 
     selection_shapes, set_selection_shapes = ft.use_state([])
+    ctrl_hold, set_ctrl_hold = ft.use_state(False)
 
+    # keyboard_listener = 
+
+    # ft.use_effect(lambda: asyncio.create_task(keyboard_listener.focus()), [selector])
+
+    # Fix ctrl hold
     return ft.GestureDetector(
+        expand=True,
         aspect_ratio=1.0,
-        content=cv.Canvas(
-            shapes=selection_shapes, 
+        content=ft.KeyboardListener(
             expand=True,
-            aspect_ratio=1.0,
+            autofocus=True,
+            content=ft.Stack(
+                expand=True,
+                aspect_ratio=1.0,
+                controls=[
+                    cv.Canvas(
+                        shapes=selection_shapes,
+                        expand=True,
+                        aspect_ratio=1.0,
+                    ),
+                    ft.Row(
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                        controls=[
+                            ft.FloatingActionButton(
+                                icon=ft.Icon(
+                                    ft.CupertinoIcons.CLEAR_CIRCLED,
+                                    color=theme.colors["text"],
+                                ),
+                                bgcolor=theme.colors["bg_01"],
+                                margin=4,
+                                mini=True,
+                                shape=ft.RoundedRectangleBorder(radius=16),
+                                tooltip=Tooltip(
+                                    message="Clear selection",
+                                    wait_duration=ft.Duration(seconds=1),
+                                ),
+                                on_click=lambda e: handle_reset(e),
+                            ),
+                            ft.FloatingActionButton(
+                                icon=ft.Icon(
+                                    ft.CupertinoIcons.ADD_CIRCLED,
+                                    color=theme.colors["text"],
+                                ),
+                                bgcolor=theme.colors["bg_01"],
+                                margin=4,
+                                mini=True,
+                                shape=ft.RoundedRectangleBorder(radius=16),
+                                tooltip=Tooltip(
+                                    message="Add boundary condition",
+                                    wait_duration=ft.Duration(seconds=1),
+                                ),
+                                # on_click=lambda e: handle_reset(e),
+                            ),
+                        ]
+                    )
+                ]
+            ),
+            on_key_down=lambda e: asyncio.create_task(on_ctrl_event_down(e)),
+            on_key_up=lambda e: asyncio.create_task(on_ctrl_event_up(e)),
         ),
         on_tap_down=_on_tap_down,
         on_pan_update=_on_pan_update,
         on_pan_end=_on_pan_end,
-        expand=True,
+        on_enter=lambda e: asyncio.create_task(e.control.content.focus()),
     )
