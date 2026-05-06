@@ -117,6 +117,20 @@ class NeoHookean(NonLinearIsotropic):
         return S
 
     def material_elastic_tangent(self, grad0_u):
+        """
+        Compute the material elastic tangent tensor given the displacement gradient tensor.
+
+        Parameters
+        ----------
+        grad0_u : ndarray
+            Displacement gradient tensor.
+
+        Returns
+        -------
+        dSdE : ndarray
+            Material elastic tangent tensor.
+
+        """
         F = self.transformation_gradient(grad0_u)
 
         C = self.cauchy_green_right(F)
@@ -124,7 +138,7 @@ class NeoHookean(NonLinearIsotropic):
 
         J = np.linalg.det(F)
 
-        dSdC = (1 / 2) * np.einsum('n, nNJgh->nNJgh', (self._mu - self._lambda * np.log(J)), (np.einsum('nNg, nJh->nNJgh', C_inv, C_inv) + np.einsum('nNh, nJg->nNJgh', C_inv, C_inv)))
-        dSdC = dSdC + (1 /2) * self._lambda * np.einsum('ngh, nNJ->nNJgh', C_inv, C_inv)
+        dSdE = np.einsum('n, nNJgh->nNJgh', (self._mu - self._lambda * np.log(J)), (np.einsum('nNg, nJh->nNJgh', C_inv, C_inv) + np.einsum('nNh, nJg->nNJgh', C_inv, C_inv)))
+        dSdE = dSdE + self._lambda * np.einsum('ngh, nNJ->nNJgh', C_inv, C_inv)
    
-        return 2 *dSdC
+        return dSdE

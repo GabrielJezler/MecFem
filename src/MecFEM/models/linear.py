@@ -13,24 +13,28 @@ class Linear(Base):
     """
     Data structure for linear FE model
     
-    Attributes:
+    Parameters
+    ----------
+    mesh : Mesh
+        Mesh object defining the geometry and discretization of the problem.
+    material : Material
+        Material object defining the constitutive behavior.
+
+    Attributes
+    ----------
         - material: Material object defining the constitutive behavior
         - mesh: Mesh object defining the geometry and discretization of the problem
         - dim: mesh dimension
         - n_nodes: number of nodes
         - connect: table of connectivity (list of lists)
+            - Example:
 
-            Example: 
-            
-                connect=[
-                    [node1_elem1, node2_elem1, ..., nodeN_elem1],
-
-                    [node1_elem2, node2_elem2, ..., nodeN_elem2],
-                    
-                    ...
-                    
-                    [node1_elemM, node2_elemM, ..., nodeN_elemM]
-                ]
+            >>> connect=[
+            ...     [node1_elem1, node2_elem1, ..., nodeN_elem1],
+            ...     [node1_elem2, node2_elem2, ..., nodeN_elem2],
+            ...     ...
+            ...     [node1_elemM, node2_elemM, ..., nodeN_elemM]
+            >>> ]
 
         - n_dofs: number of degrees of freedom (n_nodes * dim)
         - free_dofs: array of free degrees of freedom

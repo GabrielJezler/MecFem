@@ -5,6 +5,19 @@ import numpy as np
 
 
 class SingleLassoSelector:
+    """
+    Structure for selecting data points within a lasso path on a matplotlib scatter plot. 
+    It allows users to draw a freeform lasso around points to select them, and optionally
+    displays a table with selection information. It works for a single selection at a 
+    time, and each new selection replaces the previous one.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes on which the lasso selector will operate.
+    add_table : bool, optional
+        Whether to add a table showing selection information, by default True.
+    """
     COLORS_ID = 0
     COLORS = [
         "orangered",
@@ -202,6 +215,20 @@ class SingleLassoSelector:
 
 
 class LassoSelector(SingleLassoSelector):
+    """
+    Structure for selecting data points within a lasso path on a matplotlib scatter plot. 
+    It allows users to draw a freeform lasso around points to select them, and optionally
+    displays a table with selection information. It works for multiple selections at a 
+    time, with the option to hold the control key to add to the current selection instead
+    of replacing it.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes on which the lasso selector will operate.
+    add_table : bool, optional
+        Whether to add a table showing selection information, by default True.
+    """
     COLORS_ID = 0
     COLORS = [
         "orangered",

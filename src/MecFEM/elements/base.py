@@ -197,7 +197,7 @@ class BaseFiniteElement:
         nodes_coords = self.get_nodes_coordinates()
 
         for dofs, step in self._displacement_steps:
-            U_bc[np.ix_(dofs)] = step.interp(t)(nodes_coords[dofs // self.dim, :])
+            U_bc[np.ix_(dofs)] = step._interp(t)(nodes_coords[dofs // self.dim, :])
         
         return U_bc
 

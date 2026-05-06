@@ -8,6 +8,13 @@ class LinearIsotropic:
     and methods that are common to all isotropic material models. To define a specific
     isotropic material model, you should inherit from this class and implement the 
     necessary methods.
+
+    Parameters
+    ----------
+    E : float
+        Young's modulus.
+    nu : float
+        Poisson's ratio.
     """
     def __init__(self, E, nu):
         """

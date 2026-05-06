@@ -111,6 +111,23 @@ class StVenantKirchhoffElasticity(NonLinearIsotropic):
         return S
 
     def material_elastic_tangent(self, grad0_u):
-        I3 = tensor.identity3(grad0_u.shape[1])
-        return self._lambda * np.einsum('nNJ, ngh->nNJgh', I3, I3) + self._mu * (np.einsum('nNg, nJh->nNJgh', I3, I3) + np.einsum('nNh, nJg->nNJgh', I3, I3))
+        """
+        Compute the material elastic tangent tensor given the displacement gradient tensor.
 
+        Parameters
+        ----------
+        grad0_u : ndarray
+            Displacement gradient tensor.
+
+        Returns
+        -------
+        dSdE : ndarray
+            Material elastic tangent tensor.
+
+        """
+        I3 = tensor.identity3(grad0_u.shape[1])
+
+        dSdE = self._lambda * np.einsum('nNJ, ngh->nNJgh', I3, I3) + \
+            self._mu * (np.einsum('nNg, nJh->nNJgh', I3, I3) + np.einsum('nNh, nJg->nNJgh', I3, I3))
+
+        return dSdE

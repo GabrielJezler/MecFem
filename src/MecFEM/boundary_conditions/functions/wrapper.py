@@ -1,6 +1,19 @@
 from functools import wraps, partial
 
 def partializable(*partial_params):
+    """
+    Decorator to create a partial function with fixed keyword arguments.
+
+    Example
+    -------
+
+    >>> @partializable('a', 'b')
+    ... def my_function(a, b, c):
+    ...     return a + b + c
+    >>> my_partial = my_function(a=1, b=2)
+    >>> my_partial(c=3)
+    6
+    """
     def decorator(func):
         @wraps(func)
         def wrapper(**fixed_kwargs):

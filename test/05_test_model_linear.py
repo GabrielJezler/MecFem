@@ -34,7 +34,7 @@ def test():
     x_disp_step = mf.boundary_conditions.functions.displacement.Displacement1Dof(mag=0.001)
 
     # Fix X and Y displacements at the left edge
-    model.add_displacement_bc(
+    model.add_displacement(
         np.concatenate((left_nodes * 2, left_nodes * 2 + 1)),
         mf.boundary_conditions.BCStep(
             times=[0.0, 1.0],
@@ -43,7 +43,7 @@ def test():
     )
 
     # Fix Y displacements at the right edge
-    model.add_displacement_bc(
+    model.add_displacement(
         right_nodes * 2 + 1,
         mf.boundary_conditions.BCStep(
             times=[0.0, 1.0],
@@ -52,7 +52,7 @@ def test():
     )
 
     # Impose X displacements at the right edge
-    model.add_displacement_bc(
+    model.add_displacement(
         right_nodes * 2,
         mf.boundary_conditions.BCStep(
             times=[0.0, 1.0],

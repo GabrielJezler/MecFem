@@ -10,32 +10,38 @@ from ..utils import classification as cl
 
 class Base:
     """
-    Data structure for non linear FE model
+    Data structure for base FE model
     
-    Attributes:
+    Parameters
+    ----------
+    mesh : Mesh
+        Mesh object defining the geometry and discretization of the problem.
+    material : Material
+        Material object defining the constitutive behavior.
+    element_type : LinearFiniteElement | NonLinearFiniteElement
+        Type of finite element to use. Must be either LinearFiniteElement or NonLinearFiniteElement.
+
+    Attributes
+    ----------
         - material: Material object defining the constitutive behavior
         - mesh: Mesh object defining the geometry and discretization of the problem
         - dim: mesh dimension
         - n_nodes: number of nodes
         - connect: table of connectivity (list of lists)
+            - Example:
 
-            Example: 
-            
-                connect=[
-                    [node1_elem1, node2_elem1, ..., nodeN_elem1],
-
-                    [node1_elem2, node2_elem2, ..., nodeN_elem2],
-                    
-                    ...
-                    
-                    [node1_elemM, node2_elemM, ..., nodeN_elemM]
-                ]
+            >>> connect=[
+            ...     [node1_elem1, node2_elem1, ..., nodeN_elem1],
+            ...     [node1_elem2, node2_elem2, ..., nodeN_elem2],
+            ...     ...
+            ...     [node1_elemM, node2_elemM, ..., nodeN_elemM]
+            >>> ]
 
         - n_dofs: number of degrees of freedom (n_nodes * dim)
         - free_dofs: array of free degrees of freedom
         - fixed_dofs: array of fixed degrees of freedom
-        - elems: list of NonLinearFiniteElement objects representing the elements in the mesh
-        - boundary_elems: list of NonLinearFiniteElement objects representing the boundary elements in the mesh
+        - elems: list of NonLinearFiniteElement or LinearFiniteElement objects representing the elements in the mesh
+        - boundary_elems: list of NonLinearFiniteElement or LinearFiniteElement objects representing the boundary elements in the mesh
         - U: array of nodal displacements at each time step (shape: (n_time_steps, n_nodes, dim))
         - T: array of time steps corresponding to the nodal displacements (shape: (n_time_steps,))
     """
@@ -46,8 +52,8 @@ class Base:
         if not isinstance(mesh, Mesh):
             raise TypeError(f"mesh must be an instance of Mesh, got {type(mesh)}")
 
-        self.material = material
         self.mesh = mesh
+        self.material = material
 
         self.dim: int = mesh.dim
         self.n_nodes: int = mesh.n_nodes
@@ -124,7 +130,7 @@ class Base:
 
         return x_nodes
     
-    def add_displacement_bc(self, dofs: np.ndarray, step: BCStep) -> None:
+    def add_displacement(self, dofs: np.ndarray, step: BCStep) -> None:
         """
         Add displacement boundary conditions to the model.
 
@@ -208,51 +214,6 @@ class Base:
             raise TypeError("step must be an instance of BCStep")
         
         return None
- 
-    def plot_bc(self, ax: plt.Axes=None, time:float=1.0) -> None:
-        if ax is None:
-            fig, ax = plt.subplots()
-
-        X_nodes = self.get_nodes_coordinates()
-        c = 1
-        for dofs, step in self._displacement_steps:
-            nodes_id = np.unique(dofs // self.dim)
-            axis = np.unique(dofs % self.dim)
-            
-            label = f"Displacement {c} "
-            U = np.zeros(len(nodes_id))
-            V = np.zeros(len(nodes_id))
-            for a in axis:
-                if a not in [0, 1, 2]:
-                    raise ValueError("Invalid axis value. Axis must be 0, 1 or 2.")
-                
-                if a == 0:
-                    U = U + step.interp(time)(X_nodes[nodes_id, :])
-                elif a == 1:
-                    V = V +  step.interp(time)(X_nodes[nodes_id, :])
-
-            ax.scatter(X_nodes[nodes_id, 0], X_nodes[nodes_id, 1], c=f"C{c-1}", label=label, s=20, zorder=0)
-
-            ax.quiver(X_nodes[nodes_id, 0], X_nodes[nodes_id, 1], U, V, color=f"C{c-1}",zorder=-20)
-
-            c += 1
-
-        c = 1
-        for elems_id, step in self._volumetric_force_steps:
-            label = f"Volumetric Force {c}"
-            X_cg = np.zeros((len(elems_id), self.dim))
-            F = np.zeros((len(elems_id), self.dim))
-            for i, elem_id in enumerate(elems_id):
-                elem = self.mesh.get_element_by_id(elem_id)
-                X_cg[i, :] = np.mean(self.mesh.get_nodes_coordinates_by_element(elem_id)[:, :self.dim], axis=0)
-                F[i, :] = step.interp(time)._field(X_cg[i, :][np.newaxis, :])[0, :]
-
-            ax.scatter(X_cg[:, 0], X_cg[:, 1], c=f"C{c-1}", marker="x", label=label, s=40, zorder=0)
-            ax.quiver(X_cg[:, 0], X_cg[:, 1], F[:, 0], F[:, 1], color=f"C{c-1}", zorder=-20)
-            c += 1
-
-        ax.set_title(f"Boundary conditions at t = {time:.4f}")
-        return None
 
     def extract(self, U: np.ndarray, elem_id: int) -> np.ndarray:
         """
@@ -321,9 +282,34 @@ class Base:
         
         return None
 
+    def apply_displacement(self, U: np.ndarray, t: float=0.0) -> np.ndarray:
+        """
+        Apply displacement boundary conditions to the nodal displacement field U.
+
+        Parameters
+        ----------
+        U : ndarray
+            Nodal displacement field. This is an array of shape (n_dofs).
+        t : float
+            Current time.
+
+        Returns
+        -------
+        U_bc : ndarray
+            Nodal displacement field with boundary conditions applied. This is an array of shape (n_dofs,).
+
+        """
+        U_bc = copy.deepcopy(U)
+        nodes_coords = self.get_nodes_coordinates()
+
+        for dofs, step in self._displacement_steps:
+            U_bc[np.ix_(dofs)] = step._interp(t)(nodes_coords[dofs // self.dim, :])
+        
+        return U_bc
+
     def get_volumetric_forces_steps(self, elem_id: int):
         """
-        Get the Volumetric forces steps for a certain element
+        Get the volumetric forces steps for a certain element
 
         Parameters:
         -----------
@@ -362,11 +348,27 @@ class Base:
             if steps == []:
                 continue
 
-            volumetric_forces_elem = np.sum([step.interp(t)(elem.x_nodes[:, 0:elem.dim], elem.fshape()) for step in steps], axis=0)
+            volumetric_forces_elem = np.sum([step._interp(t)(elem.x_nodes[:, 0:elem.dim], elem.fshape()) for step in steps], axis=0)
 
             self.assemble(i, elem.volumetric_force(volumetric_forces_elem), Fvol)
 
         return Fvol
+
+    def get_external_forces_steps(self, elem_id: int):
+        """
+        Get the external forces steps for a certain element
+
+        Parameters:
+        -----------
+        elem_id : int
+            Element id from mesh.
+        """
+        steps = []
+        for ids, step in self._external_forces_steps:
+            if elem_id in ids:
+                steps.append(step)
+
+        return steps
     
     def external_forces(self, t: float=0.0) -> np.ndarray:
         """
@@ -385,40 +387,19 @@ class Base:
         """
         Fext = np.zeros((self.n_nodes, self.dim))
 
-        if self._external_forces_steps == []:
+        if len(self._external_forces_steps) == 0:
             return Fext
 
         for i, elem in enumerate(self.elems):
-            external_forces_elem = np.sum(np.array([f(elem.x_nodes[:, 0:elem.dim], elem.fshape) for f in self._external_forces_steps]), axis=0)
+            steps = self.get_external_forces_steps(elem.id)
+            if steps == []:
+                continue
+
+            external_forces_elem = np.sum([step._interp(t)(elem.x_nodes[:, 0:elem.dim], elem.fshape()) for step in steps], axis=0)
 
             self.assemble(i, elem.external_force(external_forces_elem), Fext)
 
         return Fext
-    
-    def apply_displacement(self, U: np.ndarray, t: float=0.0) -> np.ndarray:
-        """
-        Apply displacement boundary conditions to the nodal displacement field U.
-
-        Parameters
-        ----------
-        U : ndarray
-            Nodal displacement field. This is an array of shape (n_dofs).
-        t : float
-            Current time.
-
-        Returns
-        -------
-        U_bc : ndarray
-            Nodal displacement field with boundary conditions applied. This is an array of shape (n_dofs,).
-
-        """
-        U_bc = copy.deepcopy(U)
-        nodes_coords = self.get_nodes_coordinates()
-
-        for dofs, step in self._displacement_steps:
-            U_bc[np.ix_(dofs)] = step.interp(t)(nodes_coords[dofs // self.dim, :])
-        
-        return U_bc
 
     def sigma(self, averaged=True) -> np.ndarray:
         """
@@ -452,6 +433,75 @@ class Base:
 
         return sigma
     
+    def plot_bc(self, ax: plt.Axes=None, time:float=1.0) -> None:
+        """
+        Plot the boundary conditions at a given time step.
+
+        Parameters
+        ----------
+        ax : plt.Axes, optional
+            Matplotlib Axes object to plot on. If None, a new figure and axes will be created. The default is None.
+        time : float, optional
+            Time step at which to plot the boundary conditions. The default is 1.0.
+        """
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        X_nodes = self.get_nodes_coordinates()
+        c = 1
+        for dofs, step in self._displacement_steps:
+            nodes_id = np.unique(dofs // self.dim)
+            axis = np.unique(dofs % self.dim)
+            
+            label = f"Displacement {c} "
+            U = np.zeros(len(nodes_id))
+            V = np.zeros(len(nodes_id))
+            for a in axis:
+                if a not in [0, 1, 2]:
+                    raise ValueError("Invalid axis value. Axis must be 0, 1 or 2.")
+                
+                if a == 0:
+                    U = U + step._interp(time)(X_nodes[nodes_id, :])
+                elif a == 1:
+                    V = V +  step._interp(time)(X_nodes[nodes_id, :])
+            
+            # Avoid zero-length arrows in quiver plot
+            eps = np.finfo(U.dtype).eps
+            if np.all(U == 0.):
+                U += eps
+            if np.all(V == 0.):
+                V += eps
+
+            ax.scatter(X_nodes[nodes_id, 0], X_nodes[nodes_id, 1], c=f"C{c-1}", label=label, s=20, zorder=0)
+
+            ax.quiver(X_nodes[nodes_id, 0], X_nodes[nodes_id, 1], U, V, color=f"C{c-1}",zorder=-20)
+
+            c += 1
+
+        c = 1
+        for elems_id, step in self._volumetric_force_steps:
+            label = f"Volumetric Force {c}"
+            X_cg = np.zeros((len(elems_id), self.dim))
+            F = np.zeros((len(elems_id), self.dim))
+            for i, elem_id in enumerate(elems_id):
+                elem = self.mesh.get_element_by_id(elem_id)
+                X_cg[i, :] = np.mean(self.mesh.get_nodes_coordinates_by_element(elem_id)[:, :self.dim], axis=0)
+                F[i, :] = step._interp(time)._field(X_cg[i, :][np.newaxis, :])[0, :]
+
+            # Avoid zero-length arrows in quiver plot
+            eps = np.finfo(F.dtype).eps
+            if np.all(F[:, 0] == 0.):
+                F[:, 0] += eps
+            if np.all(F[:, 1] == 0.):
+                F[:, 1] += eps
+
+            ax.scatter(X_cg[:, 0], X_cg[:, 1], c=f"C{c-1}", marker="x", label=label, s=40, zorder=0)
+            ax.quiver(X_cg[:, 0], X_cg[:, 1], F[:, 0], F[:, 1], color=f"C{c-1}", zorder=-20)
+            c += 1
+
+        ax.set_title(f"Boundary conditions at t = {time:.4f}")
+        return None
+
     def load_gmsh_results(self, filename: str, U_values_name: str) -> None:
         """
         Load results from a Gmsh .pos file.

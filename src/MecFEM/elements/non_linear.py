@@ -27,7 +27,7 @@ class NonLinearFiniteElement(BaseFiniteElement):
         super().__init__(elem, x_nodes)
         self._solver = cl.SolverClassification.NON_LINEAR
 
-    def update(self, material, u_nodes: np.ndarray, *args, **kwargs) -> np.ndarray:
+    def update(self, material, u_nodes: np.ndarray, *args, **kwargs):
         """
         Update element state based on nodal displacements and material properties.
 
@@ -40,16 +40,20 @@ class NonLinearFiniteElement(BaseFiniteElement):
 
         Returns
         -------
-        pk1 : ndarray
-            First Piola-Kirchhoff stress tensor at integration points.
+        None
 
         """
+        self.u_nodes = u_nodes
         self.grad0_u = self.gradient(u_nodes)
 
-        self.pk1 = material.pk1(self.grad0_u)
-        self.mixed_elastic_tangent = material.mixed_elastic_tangent(self.grad0_u)
+        # self.pk1 = material.pk1(self.grad0_u)
+        # self.mixed_elastic_tangent = material.mixed_elastic_tangent(self.grad0_u)
 
-        return self.mixed_elastic_tangent, self.pk1, self.grad0_u
+        # return self.mixed_elastic_tangent, self.pk1, self.grad0_u
+
+        self.F = material.transformation_gradient(self.grad0_u)
+        self.pk2 = material.pk2(self.grad0_u)
+        self.material_elastic_tangent = material.material_elastic_tangent(self.grad0_u)
 
     def internal_force(self) -> np.ndarray:
         """
@@ -61,7 +65,9 @@ class NonLinearFiniteElement(BaseFiniteElement):
             Internal force vector. This is an array of shape (n_nodes, dim).
 
         """
-        fint = self.integrate(tensor.dot3(self.dfshape(), self.pk1))
+        # fint = self.integrate(tensor.dot3(self.dfshape(), self.pk1))
+
+        fint = self.integrate(np.einsum('nak,nki,nij->naj', self.dfshape(), self.F, self.pk2))
         return fint
     
     def volumetric_force(self, f_int_pts: np.ndarray) -> np.ndarray:
@@ -81,7 +87,7 @@ class NonLinearFiniteElement(BaseFiniteElement):
         """
         f_vol = self.integrate(np.einsum('ik,ij->ijk', f_int_pts, self.fshape()[:,:,0]))
         return f_vol
-    
+
     def external_force(self, f_int_pts: np.ndarray) -> np.ndarray:
         """
         Compute the external force vector for the element.
@@ -109,6 +115,15 @@ class NonLinearFiniteElement(BaseFiniteElement):
         Kint : 4-entry tensor
             internal tangent matrix of the element. This is an array of shape (n_nodes, dim, n_nodes, dim).
         """
-        Kint = self.integrate(np.einsum('nai,nijkl,nbk->najbl', self.dfshape(), self.mixed_elastic_tangent, self.dfshape()))
+        # Kint = self.integrate(np.einsum('nai,nijkl,nbk->najbl', self.dfshape(), self.mixed_elastic_tangent, self.dfshape()))
+        Kint_1 = self.integrate(
+            np.einsum('nak,nij,nbk->najbi', self.dfshape(), self.pk2, self.dfshape())
+        )
+
+        Kint_2 = self.integrate(
+            np.einsum('nam, nmi,nijkl,nok, nbo->najbl', self.dfshape(), self.F, self.material_elastic_tangent, self.F, self.dfshape())
+        )
+
+        Kint = Kint_1 + Kint_2
 
         return Kint

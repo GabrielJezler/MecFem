@@ -2,11 +2,11 @@ import numpy as np
 
 class Displacement:
     """
-    Data structure for displacement field applied to the FE model.
-    
-    Attributes
+    Data structure for displacement field boundary conditions applied to the FE model.
+
+    Parameters
     ----------
-    field : Function
+    field : Callable
         Function that defines the displacement field as a function of spatial coordinates x.
     """
     def __init__(self, field) -> None:

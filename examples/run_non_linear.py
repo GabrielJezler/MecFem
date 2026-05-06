@@ -91,7 +91,7 @@ if __name__ == "__main__":
     ry_disp_step = mf.boundary_conditions.Displacement(lambda X: ry_disp(X, dr=1e-5))
 
     # Fix X displacements at the left edge
-    model.add_displacement_bc(
+    model.add_displacement(
         2 * left_nodes,
         mf.boundary_conditions.BCStep(
             times=[0.0, 1.0],
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     )
 
     # Fix Y displacements at the right edge
-    model.add_displacement_bc(
+    model.add_displacement(
         2 * down_nodes + 1,
         mf.boundary_conditions.BCStep(
             times=[0.0, 1.0],
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
     # Impose radial displacements at the arc out edge
     # At x dofs
-    model.add_displacement_bc(
+    model.add_displacement(
         2 * arc_in,
         mf.boundary_conditions.BCStep(
             times=[0.0, 1.0],
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     )
 
     # At y dofs
-    model.add_displacement_bc(
+    model.add_displacement(
         2 * arc_in + 1,
         mf.boundary_conditions.BCStep(
             times=[0.0, 1.0],

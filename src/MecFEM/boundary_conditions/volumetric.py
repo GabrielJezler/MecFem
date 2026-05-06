@@ -2,7 +2,7 @@ import numpy as np
 
 class VolumetricForce:
     """
-    Data structure for volumetric force field applied to the FE model.
+    Data structure for volumetric force field boundary conditions applied to the FE model.
     
     Attributes
     ----------

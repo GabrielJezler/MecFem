@@ -4,6 +4,23 @@ from .volumetric import VolumetricForce
 from .displacement import Displacement
 
 class BCStep():
+    """
+    Data structure for time-dependent boundary conditions applied to the FE model. It
+    computes the linearly interpolated boundary condition value at a given time.
+    
+    Parameters
+    ----------
+    values : list[VolumetricForce | Displacement] | None
+        List of boundary condition values.
+    times : list[float] | None
+        List of times at which the boundary condition values are applied.
+
+    Methods
+    -------
+    add_step(value: VolumetricForce | Displacement, time: float) -> None
+        Add a new time-value pair to the BCStep.
+    
+    """
     def __init__(self, values:list[VolumetricForce | Displacement] | None=None, times:list[float] | None=None) -> None:
         if values is not None and times is not None:
             if len(values) != len(times):
@@ -35,7 +52,7 @@ class BCStep():
         self.times.append(time)
         self.values.append(value)
 
-    def interp(self, t: float) -> VolumetricForce:
+    def _interp(self, t: float) -> VolumetricForce:
         """
         Interpolates the boundary condition value at time t.
 

@@ -16,24 +16,28 @@ class NonLinear(Base):
     """
     Data structure for non linear FE model
     
-    Attributes:
+    Parameters
+    ----------
+    mesh : Mesh
+        Mesh object defining the geometry and discretization of the problem.
+    material : Material
+        Material object defining the constitutive behavior.
+
+    Attributes
+    ----------
         - material: Material object defining the constitutive behavior
         - mesh: Mesh object defining the geometry and discretization of the problem
         - dim: mesh dimension
         - n_nodes: number of nodes
         - connect: table of connectivity (list of lists)
+            - Example:
 
-            Example: 
-            
-                connect=[
-                    [node1_elem1, node2_elem1, ..., nodeN_elem1],
-
-                    [node1_elem2, node2_elem2, ..., nodeN_elem2],
-                    
-                    ...
-                    
-                    [node1_elemM, node2_elemM, ..., nodeN_elemM]
-                ]
+            >>> connect=[
+            ...     [node1_elem1, node2_elem1, ..., nodeN_elem1],
+            ...     [node1_elem2, node2_elem2, ..., nodeN_elem2],
+            ...     ...
+            ...     [node1_elemM, node2_elemM, ..., nodeN_elemM]
+            >>> ]
 
         - n_dofs: number of degrees of freedom (n_nodes * dim)
         - free_dofs: array of free degrees of freedom
@@ -42,6 +46,7 @@ class NonLinear(Base):
         - boundary_elems: list of NonLinearFiniteElement objects representing the boundary elements in the mesh
         - U: array of nodal displacements at each time step (shape: (n_time_steps, n_nodes, dim))
         - T: array of time steps corresponding to the nodal displacements (shape: (n_time_steps,))
+        - R: array of nodal residuals at each time step (shape: (n_time_steps, n_nodes, dim))
     """
     def __init__(self, mesh: Mesh, material) -> None:
         super().__init__(mesh, material, NonLinearFiniteElement)
@@ -87,7 +92,7 @@ class NonLinear(Base):
         """
         self.update_elements(U)
 
-        R = self.internal_forces(U) - (self.volumetric_forces(t) + self.external_forces(t))
+        R = self.internal_forces(U) - ( self.volumetric_forces(t) + self.external_forces(t) )
         return R
     
     def tangent_matrix(self, U: np.ndarray, t: float=0.0) -> np.ndarray:
@@ -153,7 +158,7 @@ class NonLinear(Base):
             Un = copy.deepcopy(Un_1)
             Un = self.apply_displacement(Un, time)
             
-            R = self.residual(Un.reshape((self.n_nodes, self.dim)), time).reshape((self.n_dofs))
+            R = self.residual(Un.reshape((self.n_nodes, self.dim)), time).reshape((self.n_dofs)) # Wrong !!!
             norm_R0 = np.linalg.norm(R[np.ix_(self.free_dofs)])
             norm_R = 1.0
 

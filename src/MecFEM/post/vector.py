@@ -33,6 +33,12 @@ def plot_2d_arrows(model, F_nodes: np.ndarray, ax=None, scale:float | None=None,
     x_nodes = model.get_nodes_coordinates()
     Z = np.linalg.norm(F_nodes, axis=1)
 
+    eps = np.finfo(F_nodes.dtype).eps
+    if np.all(F_nodes[:, 0] == 0.):
+        F_nodes[:, 0] += eps
+    if np.all(F_nodes[:, 1] == 0.):
+        F_nodes[:, 1] += eps
+
     if color is None:
         qv = ax.quiver(
             x_nodes[:, 0],
