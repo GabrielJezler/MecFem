@@ -9,8 +9,8 @@ def test():
     material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=200.0, nu=0.3)
 
     mesh = mf.mesh.Mesh("mesh/rect.msh", dim=2)
-    element = mesh.get_element_by_id(100, 2)
-    x_nodes = mesh.get_nodes_coordinates_by_element(100, 2)
+    element = mesh.get_element_by_id(40, 2)
+    x_nodes = mesh.get_nodes_coordinates_by_element(40, 2)
 
     int_pts = ref.ReferenceElements().get_by_type(element.type).integration_points
     dim = element.dim
@@ -20,13 +20,16 @@ def test():
         x_nodes,
     )
 
-    stiffness, pk1_mat, grad0_u = fe.update(
+    fe.update(
         material,
         np.array([[0.05, 0.1], [0.1, 0.2], [0.15, 0.25], [0.2, 0.3]])
     )
+    grad0_u = fe.grad0_u
+    pk2_mat = fe.pk2
+
     sigma_mat = material.sigma(grad0_u)
     tau_mat = material.tau(grad0_u)
-    pk2_mat = material.pk2(grad0_u)
+    pk1_mat = material.pk1(grad0_u)
 
     F_mat = material.transformation_gradient(grad0_u)
 
@@ -60,13 +63,13 @@ def test():
     assert pk1_tau.shape == (int_pts.N, dim, dim)
     assert pk2_tau.shape == (int_pts.N, dim, dim)
 
-    assert sigma_pk1.shape == (int_pts.N, dim, dim)
-    assert tau_pk1.shape == (int_pts.N, dim, dim)
-    assert pk2_pk1.shape == (int_pts.N, dim, dim)
-
     assert sigma_pk2.shape == (int_pts.N, dim, dim)
     assert tau_pk2.shape == (int_pts.N, dim, dim)
     assert pk1_pk2.shape == (int_pts.N, dim, dim)
+
+    assert sigma_pk1.shape == (int_pts.N, dim, dim)
+    assert tau_pk1.shape == (int_pts.N, dim, dim)
+    assert pk2_pk1.shape == (int_pts.N, dim, dim)
 
     # Verify consistency
     assert np.allclose(pk1_mat, pk1_sigma)
