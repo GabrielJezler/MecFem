@@ -4,7 +4,8 @@ import copy
 import gmsh
 
 from ..mesh import Mesh
-from ..elements import NonLinearFiniteElement, LinearFiniteElement
+from ..materials import Material
+from ..elements import NonLinearFiniteElement, LinearFiniteElement, FiniteElement
 from ..boundary_conditions import BCStep
 from ..utils import classification as cl
 
@@ -18,34 +19,36 @@ class Base:
         Mesh object defining the geometry and discretization of the problem.
     material : Material
         Material object defining the constitutive behavior.
-    element_type : LinearFiniteElement | NonLinearFiniteElement
+    element_type : FiniteElement
         Type of finite element to use. Must be either LinearFiniteElement or NonLinearFiniteElement.
 
     Attributes
     ----------
-        - material: Material object defining the constitutive behavior
-        - mesh: Mesh object defining the geometry and discretization of the problem
-        - dim: mesh dimension
-        - n_nodes: number of nodes
-        - connect: table of connectivity (list of lists)
-            - Example:
+    - material: Material object defining the constitutive behavior
+    - mesh: Mesh object defining the geometry and discretization of the problem
+    - dim: mesh dimension
+    - n_nodes: number of nodes
+    - connect: table of connectivity
+        - Example:
 
-            >>> connect=[
-            ...     [node1_elem1, node2_elem1, ..., nodeN_elem1],
-            ...     [node1_elem2, node2_elem2, ..., nodeN_elem2],
-            ...     ...
-            ...     [node1_elemM, node2_elemM, ..., nodeN_elemM]
-            >>> ]
+        ```
+        >>> connect=[
+        ...     [node1_elem1, node2_elem1, ..., nodeN_elem1],
+        ...     [node1_elem2, node2_elem2, ..., nodeN_elem2],
+        ...     ...
+        ...     [node1_elemM, node2_elemM, ..., nodeN_elemM]
+        >>> ]
+        ```
 
-        - n_dofs: number of degrees of freedom (n_nodes * dim)
-        - free_dofs: array of free degrees of freedom
-        - fixed_dofs: array of fixed degrees of freedom
-        - elems: list of NonLinearFiniteElement or LinearFiniteElement objects representing the elements in the mesh
-        - boundary_elems: list of NonLinearFiniteElement or LinearFiniteElement objects representing the boundary elements in the mesh
-        - U: array of nodal displacements at each time step (shape: (n_time_steps, n_nodes, dim))
-        - T: array of time steps corresponding to the nodal displacements (shape: (n_time_steps,))
+    - n_dofs: number of degrees of freedom (n_nodes * dim)
+    - free_dofs: array of free degrees of freedom
+    - fixed_dofs: array of fixed degrees of freedom
+    - elems: list of FiniteElement objects representing the elements in the mesh
+    - boundary_elems: list of FiniteElement objects representing the boundary elements in the mesh
+    - U: array of nodal displacements at each time step (shape: (n_time_steps, n_nodes, dim))
+    - T: array of time steps corresponding to the nodal displacements (shape: (n_time_steps,))
     """
-    def __init__(self, mesh: Mesh, material, element_type) -> None:
+    def __init__(self, mesh: Mesh, material: Material, element_type: FiniteElement) -> None:
         if element_type not in [LinearFiniteElement, NonLinearFiniteElement]:
             raise ValueError(f"element_type must be either LinearFiniteElement or NonLinearFiniteElement, got {element_type}")
 
@@ -63,8 +66,8 @@ class Base:
         self.free_dofs = np.arange(self.n_dofs).astype(int)
         self.fixed_dofs = np.array([], dtype=int)
 
-        self.elems: list[LinearFiniteElement | NonLinearFiniteElement] = []
-        self.boundary_elems: list[LinearFiniteElement | NonLinearFiniteElement] = []
+        self.elems: list[FiniteElement] = []
+        self.boundary_elems: list[FiniteElement] = []
 
         for elem in mesh.elems[self.dim]:
             x_nodes = mesh.get_nodes_coordinates_by_element(elem.id, self.dim)
@@ -78,26 +81,26 @@ class Base:
         self._external_forces_steps: list[(np.ndarray, BCStep)] = []
         self._displacement_steps: list[(np.ndarray, BCStep)] = []
 
-        self.U:np.ndarray | None = None # Displacement
-        self.T:np.ndarray | None = None # Time steps
+        self.U:np.ndarray | None = None
+        self.T:np.ndarray | None = None
 
         self._solver = cl.SolverClassification.NONE
 
     def __repr__(self):
         return f"{self.__class__.__name__}(mesh={self.mesh}, material: {self.material})"
-    
+
     def __eq__(self, value):
         if isinstance(value, self.__class__):
             if self.mesh == value.mesh and self.material == value.material:
                 return True
 
         return False
-    
+
     @property
     def n_elements(self):
         """Get number of elements"""
         return len(self.elems)
-    
+
     def check_compatibility(self) -> bool:
         """
         Check compatibility between model and material.
@@ -112,7 +115,7 @@ class Base:
             raise TypeError(f"Incompatible solver types: model = {self._solver}, material = {self.material._solver}")
         
         return True
-    
+
     def get_nodes_coordinates(self) -> np.ndarray:
         """
         Get coordinates of all nodes in the mesh.
@@ -129,7 +132,7 @@ class Base:
                 x_nodes[node_id, :] = elem.x_nodes[i, 0:elem.dim]
 
         return x_nodes
-    
+
     def add_displacement(self, dofs: np.ndarray, step: BCStep) -> None:
         """
         Add displacement boundary conditions to the model.
@@ -188,7 +191,7 @@ class Base:
             raise TypeError("step must be an instance of BCStep")
         
         return None
-    
+
     def add_external_force(self, elems_id: np.ndarray, step: BCStep) -> None:
         """
         Add external force to the model.
@@ -369,7 +372,7 @@ class Base:
                 steps.append(step)
 
         return steps
-    
+
     def external_forces(self, t: float=0.0) -> np.ndarray:
         """
         Compute global external force vector.
@@ -401,38 +404,6 @@ class Base:
 
         return Fext
 
-    def sigma(self, averaged=True) -> np.ndarray:
-        """
-        Get Cauchy stress for each element.
-
-        Parameters
-        ----------
-        averaged : bool, optional
-            If True, return averaged stress at nodes. If False, return stress at integration points. The default is True.
-
-        Returns
-        -------
-        sigma : ndarray
-            Cauchy stress at element. This is an array of shape (n_elems, dim, dim).
-
-        """
-        if self.U is None or self.T is None:
-            raise ValueError("No solution found. Please run the solver first.")
-        
-        if not averaged:
-            raise ValueError("Non averaged values are not yet available.")
-        
-        sigma = np.zeros((self.T.shape[0], len(self.elems), self.dim, self.dim))
-
-        for step in range(self.T.shape[0]):
-            for e, elem in enumerate(self.elems):
-                u_nodes = self.extract(self.U[step, :], e)
-                sigma_elem = elem.sigma(u_nodes, self.material)
-
-                sigma[step, e, :, :] = np.mean(sigma_elem, axis=0)
-
-        return sigma
-    
     def plot_bc(self, ax: plt.Axes=None, time:float=1.0) -> None:
         """
         Plot the boundary conditions at a given time step.
@@ -501,6 +472,38 @@ class Base:
 
         ax.set_title(f"Boundary conditions at t = {time:.4f}")
         return None
+
+    def sigma(self, averaged=True) -> np.ndarray:
+        """
+        Get Cauchy stress for each element.
+
+        Parameters
+        ----------
+        averaged : bool, optional
+            If True, return averaged stress at nodes. If False, return stress at integration points. The default is True.
+
+        Returns
+        -------
+        sigma : ndarray
+            Cauchy stress at element. This is an array of shape (n_elems, dim, dim).
+
+        """
+        if self.U is None or self.T is None:
+            raise ValueError("No solution found. Please run the solver first.")
+        
+        if not averaged:
+            raise ValueError("Non averaged values are not yet available.")
+        
+        sigma = np.zeros((self.T.shape[0], len(self.elems), self.dim, self.dim))
+
+        for step in range(self.T.shape[0]):
+            for e, elem in enumerate(self.elems):
+                u_nodes = self.extract(self.U[step, :], e)
+                sigma_elem = elem.sigma(u_nodes, self.material)
+
+                sigma[step, e, :, :] = np.mean(sigma_elem, axis=0)
+
+        return sigma
 
     def load_gmsh_results(self, filename: str, U_values_name: str) -> None:
         """

@@ -1,6 +1,3 @@
-from fileinput import filename
-
-import matplotlib.pyplot as plt
 import numpy as np
 import copy
 import datetime
@@ -25,36 +22,38 @@ class NonLinear(Base):
 
     Attributes
     ----------
-        - material: Material object defining the constitutive behavior
-        - mesh: Mesh object defining the geometry and discretization of the problem
-        - dim: mesh dimension
-        - n_nodes: number of nodes
-        - connect: table of connectivity (list of lists)
-            - Example:
+    - material: Material object defining the constitutive behavior
+    - mesh: Mesh object defining the geometry and discretization of the problem
+    - dim: mesh dimension
+    - n_nodes: number of nodes
+    - connect: table of connectivity
+        - Example:
 
-            >>> connect=[
-            ...     [node1_elem1, node2_elem1, ..., nodeN_elem1],
-            ...     [node1_elem2, node2_elem2, ..., nodeN_elem2],
-            ...     ...
-            ...     [node1_elemM, node2_elemM, ..., nodeN_elemM]
-            >>> ]
+        ```
+        >>> connect=[
+        ...     [node1_elem1, node2_elem1, ..., nodeN_elem1],
+        ...     [node1_elem2, node2_elem2, ..., nodeN_elem2],
+        ...     ...
+        ...     [node1_elemM, node2_elemM, ..., nodeN_elemM]
+        >>> ]
+        ```
 
-        - n_dofs: number of degrees of freedom (n_nodes * dim)
-        - free_dofs: array of free degrees of freedom
-        - fixed_dofs: array of fixed degrees of freedom
-        - elems: list of NonLinearFiniteElement objects representing the elements in the mesh
-        - boundary_elems: list of NonLinearFiniteElement objects representing the boundary elements in the mesh
-        - U: array of nodal displacements at each time step (shape: (n_time_steps, n_nodes, dim))
-        - T: array of time steps corresponding to the nodal displacements (shape: (n_time_steps,))
-        - R: array of nodal residuals at each time step (shape: (n_time_steps, n_nodes, dim))
+    - n_dofs: number of degrees of freedom (n_nodes * dim)
+    - free_dofs: array of free degrees of freedom
+    - fixed_dofs: array of fixed degrees of freedom
+    - elems: list of NonLinearFiniteElement objects representing the elements in the mesh
+    - boundary_elems: list of NonLinearFiniteElement objects representing the boundary elements in the mesh
+    - U: array of nodal displacements at each time step (shape: (n_time_steps, n_nodes, dim))
+    - T: array of time steps corresponding to the nodal displacements (shape: (n_time_steps,))
+    - R: array of nodal residuals at each time step (shape: (n_time_steps, n_nodes, dim))
     """
     def __init__(self, mesh: Mesh, material) -> None:
         super().__init__(mesh, material, NonLinearFiniteElement)
         self._solver = cl.SolverClassification.NON_LINEAR
         self.check_compatibility()
 
-        self.R:np.ndarray | None = None # Residual
-    
+        self.R:np.ndarray | None = None
+
     def internal_forces(self, U) -> np.ndarray:
         """
         Compute global internal force vector.
@@ -94,7 +93,7 @@ class NonLinear(Base):
 
         R = self.internal_forces(U) - ( self.volumetric_forces(t) + self.external_forces(t) )
         return R
-    
+
     def tangent_matrix(self, U: np.ndarray, t: float=0.0) -> np.ndarray:
         K = np.zeros((self.n_nodes, self.dim, self.n_nodes, self.dim))
 
@@ -165,7 +164,7 @@ class NonLinear(Base):
             stagnation = False
             iter = 1
             if FULL_VERBOSE:
-                print(f'------------------------ Time = {time:.6f} ------------------------')
+                print(f'---------------------------- Time = {time:.6f} ----------------------------')
                 print(f'Newton-Raphson iteration {iter:>2} | ||r||: {norm_R:.3e}')
             
             while norm_R > TOLERANCE and norm_R > PRECISION:
@@ -176,8 +175,9 @@ class NonLinear(Base):
                 norm_dU = np.linalg.norm(dU)
                 if (norm_dU < PRECISION):
                     if not stagnation:
-                        print(f"\nERROR - CONVERGENCE: dU stagnation started at t = {time:.4f}\n")
-                        messages.append(f"ERROR - CONVERGENCE: dU stagnation started at t = {time:.4f}")
+                        _text = f"WARNING - STAGNATION: dU stagnation started at t = {time:.4f} >>> Skipping to next time step."
+                        print(f"\n{_text}")
+                        messages.append(_text)
                         stagnation = True
                     break
 
@@ -188,11 +188,12 @@ class NonLinear(Base):
 
                 iter += 1
                 if FULL_VERBOSE:
-                    print(f'Newton-Raphson iteration {iter:>2} | ||r||: {norm_R:.4e} | ||dU||: {np.linalg.norm(dU):.3e}')
+                    print(f'Newton-Raphson iteration {iter:>2} | ||r|| / ||r0||: {norm_R:.4e} | ||dU||: {np.linalg.norm(dU):.3e}')
 
                 if iter >= MAX_ITER:
-                    print(f"\nERROR - CONVERGENCE: max iteration reached at t = {time:.4f} | ||r||: {norm_R:.3e} | iteration = {iter}") 
-                    messages.append(f"ERROR - CONVERGENCE: max iteration reached at t = {time:.4f} | ||r||: {norm_R:.3e}")
+                    _text = f"ERROR - CONVERGENCE: max iteration reached at t = {time:.4f} | ||r||: {norm_R:.3e} | iteration = {iter}"
+                    print(f"\n{_text}") 
+                    messages.append(_text)
                     break
 
             if FULL_VERBOSE:
@@ -200,8 +201,9 @@ class NonLinear(Base):
                     print(f"SUCCESFULL ITERATION AT TIME t = {time:.4e}: norm = {norm_R:.3e}")
             
             if (np.isnan(Un).any() or np.isinf(Un).any()):
-                print(f"--------------- Simulation Stopped ---------------")
-                print(f"NaN or Inf values found in solution at time {time:.2f}")
+                _text = f"ERROR - SIMULATION STOPPED: NaN or Inf values found in solution at time {time:.4f}"
+                print(f"\n{_text}")
+                messages.append(_text)
                 break
 
             if (n_step % F_VERBOSE == 0 or time > t_end - dt):
@@ -225,7 +227,7 @@ class NonLinear(Base):
         self.messages = messages
 
         return None
-    
+
     def reactions(self) -> np.ndarray:
         """
         Compute global reaction force vector.
@@ -236,7 +238,7 @@ class NonLinear(Base):
             Global reaction force vector. This is an array of shape (n_times, n_nodes, dim).
         """
         return self.R
-    
+
     @wraps(Base.load_gmsh_results)
     def load_gmsh_results(self, filename, U_values_name):
         super().load_gmsh_results(filename, U_values_name)
@@ -245,4 +247,3 @@ class NonLinear(Base):
         for t, U in zip(self.T, self.U):
             self.update_elements(U)
             self.R.append(self.residual(U, t))
-        

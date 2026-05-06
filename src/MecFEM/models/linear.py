@@ -22,27 +22,29 @@ class Linear(Base):
 
     Attributes
     ----------
-        - material: Material object defining the constitutive behavior
-        - mesh: Mesh object defining the geometry and discretization of the problem
-        - dim: mesh dimension
-        - n_nodes: number of nodes
-        - connect: table of connectivity (list of lists)
-            - Example:
+    - material: Material object defining the constitutive behavior
+    - mesh: Mesh object defining the geometry and discretization of the problem
+    - dim: mesh dimension
+    - n_nodes: number of nodes
+    - connect: table of connectivity
+        - Example:
 
-            >>> connect=[
-            ...     [node1_elem1, node2_elem1, ..., nodeN_elem1],
-            ...     [node1_elem2, node2_elem2, ..., nodeN_elem2],
-            ...     ...
-            ...     [node1_elemM, node2_elemM, ..., nodeN_elemM]
-            >>> ]
+        ```
+        >>> connect=[
+        ...     [node1_elem1, node2_elem1, ..., nodeN_elem1],
+        ...     [node1_elem2, node2_elem2, ..., nodeN_elem2],
+        ...     ...
+        ...     [node1_elemM, node2_elemM, ..., nodeN_elemM]
+        >>> ]
+        ```
 
-        - n_dofs: number of degrees of freedom (n_nodes * dim)
-        - free_dofs: array of free degrees of freedom
-        - fixed_dofs: array of fixed degrees of freedom
-        - elems: list of LinearFiniteElement objects representing the elements in the mesh
-        - boundary_elems: list of LinearFiniteElement objects representing the boundary elements in the mesh
-        - U: array of nodal displacements at each time step (shape: (n_time_steps, n_nodes, dim))
-        - T: array of time steps corresponding to the nodal displacements (shape: (n_time_steps,))
+    - n_dofs: number of degrees of freedom (n_nodes * dim)
+    - free_dofs: array of free degrees of freedom
+    - fixed_dofs: array of fixed degrees of freedom
+    - elems: list of LinearFiniteElement objects representing the elements in the mesh
+    - boundary_elems: list of LinearFiniteElement objects representing the boundary elements in the mesh
+    - U: array of nodal displacements at each time step (shape: (n_time_steps, n_nodes, dim))
+    - T: array of time steps corresponding to the nodal displacements (shape: (n_time_steps,))
     """
     def __init__(self, mesh: Mesh, material) -> None:
         super().__init__(mesh, material, LinearFiniteElement)
@@ -59,7 +61,7 @@ class Linear(Base):
             self.assemble(i, elem.stiffness_matrix(), K)
 
         return K
-    
+
     def solve(
             self,
             dt: float=0.1, 
@@ -128,7 +130,7 @@ class Linear(Base):
         self.messages = messages
 
         return None
-    
+
     def reactions(self) -> np.ndarray:
         """
         Compute the reaction forces at the fixed degrees of freedom.
