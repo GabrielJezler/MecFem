@@ -59,7 +59,6 @@
 \lhead{\reportTitle}
 \rhead{\authorName \textbf{ - \the\year{}}}
 
-
 \cfoot{\thepage}
 
 % \renewcommand\headrulewidth{0.4pt}
@@ -119,11 +118,20 @@
 
 \newcommand{\J}[0]{\mathrm{J}}
 
+\newcommand{\Fdot}[0]{\dot{\tensorTwo{\mathrm{F}}}}
+\newcommand{\Cdot}[0]{\dot{\tensorTwo{\mathrm{C}}}}
+\newcommand{\Edot}[0]{\dot{\tensorTwo{\mathrm{E}}}}
+
+\newcommand{\lll}[0]{\tensorTwo{\ell}}
+\newcommand{\ddd}[0]{\tensorTwo{d}}
+
 % Stress
 \newcommand{\cauchy}[0]{\tensorTwo{\sigma}}
 \newcommand{\kirchhoff}[0]{\tensorTwo{\scalerel*{\tau}{X}}}
 \newcommand{\pkOne}[0]{\tensorTwo{\mathrm{P}}}
 \newcommand{\pkTwo}[0]{\tensorTwo{\mathrm{S}}}
+
+\newcommand{\Celastic}{\tensorFour{\mathcal{C}}}
 
 % Potential
 \newcommand{\potential}[0]{\Psi}
@@ -132,10 +140,16 @@
 \nomenclature{$\X$}{Position vector at the initial configuration}
 \nomenclature{$\vec{\phi}$}{Transformation function}
 \nomenclature{$\x$}{Position vector at the deformed configuration}
+\nomenclature{$\vec{u}$}{Displacement vector}
 \nomenclature{$\F$}{Transformation gradient tensor}
 \nomenclature{$\J$}{Jacobian of the transformation}
 \nomenclature{$\C$}{Cauchy-Green right tensor}
 \nomenclature{$\E$}{Green-Lagrange tensor}
+\nomenclature{$\vec{v}$}{Velocity of the transformation}
+\nomenclature{$\Fdot$}{Material velocity gradient}
+\nomenclature{$\Edot$}{Material deformation rate tensor}
+\nomenclature{$\lll$}{Spatial velocity gradient}
+\nomenclature{$\ddd$}{Deformation rate tensor}
 \nomenclature{$\cauchy$}{Cauchy stress tensor}
 \nomenclature{$\kirchhoff$}{Kirchhoff stress tensor}
 \nomenclature{$\pkOne$}{First Piola-Kirchhoff stress tensor}

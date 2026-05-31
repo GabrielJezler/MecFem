@@ -1,14 +1,4 @@
-\chapter{Linear Solution}
-
-This chapter is dedicated to the solution of the linear system of equations obtained from the finite element formulation. This approach is used to the linear materials presented in Section \ref{sec:lin_mat}. The final system of equations has the form given by Equation \ref{eq:linear-form}.
-
-\begin{equation} \label{eq:linear-form}
-    \left[K \right] \cdot \left\{U \right\} = \left\{F \right\}
-\end{equation}
-
-In this case, $\tensorTwo{K}$ is the stiffness matrix, $\vec{U}$ nodal displacement vector - unknown - and $\vec{F}$ is the vector of external forces. In order to obtain this system, the Equation \ref{eq:assembled_eq} will serve as a starting point. The residual of the internal virtual work ($\vec{R}_{int, a}^{(e)}$) will be used to generate the $\tensorTwo{K} \cdot \vec{U}$ term, while the residual of the external virtual work ($\vec{R}_{ext, a}^{(e)}$) will be used to generate the $\vec{F}$ term.
-
-To obtain the stiffness matrix, we need to separate the nodal displacements from the rest of the terms in order to obtain the $\tensorTwo{K}$ and $\vec{U}$ vector. In order to do this, the linearity of the material along with the hypothesis of small displacements (Equation \ref{eq:small_disp}) are used. We will, first, developthe stress - strain relation:
+Flacements (Equation \ref{eq:small_disp}) are used. We will, first, developthe stress - strain relation:
 
 \begin{equation*}
     \cauchy = \tensorFour{\mathcal{C}} : \tensorTwo{\varepsilon} \Longrightarrow \cauchy_{ij} = \mathcal{C}_{ijkl} \cdot \varepsilon_{kl}

@@ -22,86 +22,83 @@ As we expand this formulation, it is possible to solve for a general $f$ that ca
 
 For this case, the definition of a directional derivative is needed. This can be defined as:
 
-\begin{equation} \label{eq:directiona-der}
-    D f \left( \vec{x} \right) \, \left[\vec{u} \right] = \frac{d}{d \epsilon} \Bigr \rvert_{\epsilon = 0} f \left(\vec{x} + \epsilon \vec{u} \right)
+\begin{equation} \label{eq:directional-der}
+    \mathrm{D} f \left( \vec{x} \right) \, \left[\vec{u} \right] = \frac{d}{d \epsilon} \Bigr \rvert_{\epsilon = 0} f \left(\vec{x} + \epsilon \vec{u} \right)
 \end{equation}
 
 Therefore, the next guess for the solution is given by:
 
 \begin{equation} \label{eq:newton-raphson}
-    x^{k+1} = x^k + \Delta x^k \qquad \text{where} \qquad D f \left( \vec{x}^k \right) \, \left[\Delta \vec{x}^k \right] = -f \left(\vec{x}^k \right)
+    x^{k+1} = x^k + \Delta x^k \qquad \text{where} \qquad \mathrm{D} f \left( \vec{x}^k \right) \, \left[\Delta \vec{x}^k \right] = -f \left(\vec{x}^k \right)
 \end{equation}
 
 \section{Application to Finite Elements}
 
-In order to apply the Newton-Raphson method to the finite element method, the equation to be solved is stated in \ref{eq:wf_pk1}. This means that the function to be solved is the virtual work of the system, and hence, the firts step is to compute the directional derivative of the virtual work with respect to a displacement increment $\Delta \vec{u}$:
+In order to apply the Newton-Raphson method to the finite element method, the equation to be solved is stated in \ref{eq:wf_pk2}. This means that the function to be solved is the virtual work of the system, and hence, the firts step is to compute the directional derivative of the virtual work with respect to a displacement increment $\Delta \vec{u}$:
 
 \begin{equation} \label{eq:dir-der-W}
     \begin{split}
-        D \delta \mathcal{W} &\left( \vec{\phi}, \, \delta \vec{u} \right) \, \left[\Delta \vec{u} \right] = \\\\
-        &= \underbrace{\int_V D \pkOne \, [\Delta \vec{u}] : \tensorTwoGradO{\delta \vec{u}} \dV}_{D \delta \mathcal{W}^{int} \, \left[\Delta \vec{u} \right]} - \underbrace{\left(\int_V D \vec{f_0} \, [\Delta \vec{u}] \cdot \delta \vec{u} \dV + \int_S D \vec{t_0} \, [\Delta \vec{u}] \cdot \delta \vec{u} \dS \right)}_{D \delta \mathcal{W}^{ext} \, \left[\Delta \vec{u} \right]} = 0 \quad \forall \, \delta \vec{u} 
+        &\mathrm{D} \delta \mathcal{W} \left( \vec{\phi}, \, \delta \vec{u} \right) \, \left[\Delta \vec{u} \right] = \\\\
+        &= \underbrace{\int_V \delta \Edot : \mathrm{D} \pkTwo [\Delta \vec{u}] \dV + \int_V \pkTwo : \mathrm{D} \delta \Edot [\Delta \vec{u}] \dV}_{\mathrm{D} \delta \mathcal{W}^{int} \, \left[\Delta \vec{u} \right]} - \underbrace{\left(\int_V \mathrm{D} \vec{f_0} \, [\Delta \vec{u}] \cdot \delta \vec{v} \dV + \int_S \mathrm{D} \vec{t_0} \, [\Delta \vec{u}] \cdot \delta \vec{v} \dS \right)}_{\mathrm{D} \delta \mathcal{W}^{ext} \, \left[\Delta \vec{u} \right]} 
     \end{split}
 \end{equation}
 
-To solve for the next step, the virtual work of the system is composed of the sum of the internal virtual work and the external virtual work. Then, the directional derivative of each of them is computed separately. However, the directional derivative of the virtual work has the following form:
+To solve for the next step, the virtual work of the system is composed of the sum of the internal virtual work and the external virtual work. Then, the directional derivative of each of them is computed separately. However, the directional derivative of the virtual work has the following form \footnote{Note that in this section the vectors $\delta \vec{v}_a$ and $\Delta \vec{U}_b$ are writen with eachs of their components : $\delta \vec{v}_a = \delta v_{aj} \cdot \hat{e}_j$ and $\Delta \vec{U}_b = \Delta U_{bl} \cdot \hat{e}_l$.}:
 
 \begin{equation*}
-    D \delta \mathcal{W} \, \left[\Delta \vec{u} \right] = \delta U_{aj} \cdot K_{ajbl} \cdot \Delta U_{bl}
+    D \delta \mathcal{W} \, \left[\Delta \vec{u} \right] = \delta V_{aj} \cdot K_{ajbl} \cdot \Delta U_{bl}
 \end{equation*}
 
 The goal with this section is to find the tangent tensor $K_{ajbl}$ for each combination of nodes $a$ and $b$ for both internal and external virtual work contributions. Once this is done, the next step is to solve for the increment of displacement $\Delta \vec{U}$ by solving the following system of equations:
 
 \begin{equation*}
-    D \delta \mathcal{W} \, \left[\Delta \vec{u} \right] = - \delta \mathcal{W} \qquad \Longrightarrow \qquad \delta U_{aj} \cdot K_{ajbl} \cdot \Delta U_{bl} = \left[-R_{aj} \right] \cdot \delta U_{aj} \qquad \forall \, \delta U_{aj} \Longrightarrow
+    D \delta \mathcal{W} \, \left[\Delta \vec{u} \right] = - \delta \mathcal{W} \qquad \Longrightarrow \qquad \delta V_{aj} \cdot K_{ajbl} \cdot \Delta U_{bl} = \left[-R_{aj} \right] \cdot \delta V_{aj} \qquad \forall \, \delta V_{aj} \qquad \Longrightarrow
 \end{equation*}
 \begin{equation}
-    \qquad \underbrace{\left[K_{ajbl} \cdot \Delta U_{bl} + R_{aj} \right]}_{0} \cdot \delta U_{aj} = 0 \qquad \forall \, \delta U_{aj}
+    \qquad \underbrace{\left[K_{ajbl} \cdot \Delta U_{bl} + R_{aj} \right]}_{0} \cdot \delta V_{aj} = 0 \qquad \forall \, \delta V_{aj}
 \end{equation}
 
 \subsection{Internal virtual work}
 
-The goal of this section is to compute the directional derivative of the internal virtual work. For that, the directional derivative of $\tensorTwo{P}$ is initially evaluated. This is done by using the chain rule of differentiation:
+The goal of this section is to compute the directional derivative of the internal virtual work. To achieve this, it is first necesary to compute the directional derivative of the second Piola-Kirchhoff stress tensor $\pkTwo$ and the virtual deformation rate tensor $\delta \Edot$. For the case of $\delta \Edot$, it is possible to use the definition of the deformation rate tensor and the directional derivative to obtain:
+
+\begin{equation} \label{eq:der-dir-Edot}
+    D \delta \Edot \, [\Delta \vec{u}] = D \left( \frac{1}{2} \left( \delta \Fdot^T \cdot \F + \F^{T} \cdot \delta \Fdot  \right) \right) [\Delta \vec{u}] = \frac{1}{2} \left( \delta \Fdot^T \cdot \tensorTwoGradO{\left( \Delta \vec{u} \right)} + \tensorTwoGradO{\left( \Delta \vec{u} \right)}^{T} \cdot \delta \Fdot  \right)
+\end{equation}
+
+
+Additionally, the same can be done for the directional derivative of $\pkTwo$:
+
+\begin{equation} \label{eq:der-dir-pk2}
+    \mathrm{D} \pkTwo \, [\Delta \vec{u}] = \Celastic : \mathrm{D} \E \, [\Delta \vec{u}] = \Celastic : \frac{1}{2} \left( \F^T \cdot \tensorTwoGradO{\left( \Delta \vec{u} \right)} + \tensorTwoGradO{\left( \Delta \vec{u} \right)}^{T} \cdot \F  \right)
+\end{equation}
+
+Then, using that into Equation \ref{eq:dir-der-W} and the symmetries of $\pkTwo$ and $\Celastic$, the following expression is obtained for the directional derivative of the internal virtual work:
 
 \begin{equation}
-    D \pkOne \, [\Delta \vec{u}] = \pderiv{\pkOne}{\tensorTwo{F}} : D \F \, [\Delta \vec{u}] = \pderiv{\pkOne}{\F} : \tensorTwoGradO{\Delta \vec{u}}
+    D \delta \mathcal{W}^{int} \, \left[\Delta \vec{u} \right] = \int_V \left( \tensorTwoGradO{\delta \vec{v}} \cdot \F \right) : \Celastic : \left( \F \cdot \tensorTwoGradO{\left( \Delta \vec{u} \right)} \right) \dV + \int_V \pkTwo : \left( \tensorTwoGradO{\left( \Delta \vec{u} \right)}^{T} \cdot \tensorTwoGradO{\delta \vec{v}} \right) \dV
 \end{equation}
 
-Then, using that into Equation \ref{eq:dir-der-W}, the following expression is obtained for the directional derivative of the internal virtual work:
+With this expression it is possible to isolate the tangent tensor $\tensorFour{K}^{int}$. This is done by using the definition of the finite element discretization of the displacement field. The final expression for the tangent tensor $\tensorFour{K}^{int}$ is given by:
 
+\begin{align*}
+    D \delta \mathcal{W}^{int} \, \left[\Delta \vec{u} \right] &= \int_V \left( \tensorTwoGradO{\delta \vec{v}} \cdot \F \right) : \Celastic : \left( \F \cdot \tensorTwoGradO{\left( \Delta \vec{u} \right)} \right) \dV + \int_V \pkTwo : \left( \tensorTwoGradO{\left( \Delta \vec{u} \right)}^{T} \cdot \tensorTwoGradO{\delta \vec{v}} \right) \dV \\
+    &= \int_V \left[ \left(\vectorGradO{N_a} \otimes \delta \vec{V}_{a} \right) \cdot \F \right] : \Celastic : \left[ \F \cdot \left(\vectorGradO{N_b} \otimes \Delta \vec{U}_{b} \right) \right] \dV + \\
+    & \qquad + \int_V \pkTwo : \left[ \left( \Delta \vec{U}_{b} \otimes \vectorGradO{N_b} \right) \cdot \left(\vectorGradO{N_a} \otimes \delta \vec{V}_{a} \right) \right] \dV \\
+\end{align*}
 \begin{equation}
-    D \delta \mathcal{W}^{int} \, \left[\Delta \vec{u} \right] = \int_V D \pkOne \, [\Delta \vec{u}] : \tensorTwoGradO{\delta \vec{u}} \dV = \int_V \tensorTwoGradO{\delta \vec{u}} : \pderiv{\pkOne}{\F} : \tensorTwoGradO{\Delta \vec{u}} \dV
+    \begin{split}
+        D \delta \mathcal{W}^{int} \, \left[\Delta \vec{u} \right] &= \delta V_{aj} \cdot \Bigg[ \underbrace{\int_V (\nabla_0 N)_{ai} \cdot F_{jk} \cdot \mathcal{C}_{ikml} \cdot F_{mn} \cdot (\nabla_0 N)_{bn} \dV}_{K_{ajbl}^{int, 1}} + \\
+        & \qquad + \underbrace{\int_V (\nabla_0 N)_{ak}\cdot \mathrm{S}_{jl} \cdot (\nabla_0 N)_{bk} \dV}_{K_{ajbl}^{int, 2}} \Bigg] \cdot \Delta U_{bl}
+    \end{split}
 \end{equation}
 
-With this expression it is possible to isolate the tangent tensor $\tensorFour{K}$. This is done by using the definition of the finite element discretization of the displacement field. The final expression for the tangent tensor $\tensorFour{K}$ is given by:
-
-\begin{equation*}
-    D \delta \mathcal{W}^{int} \, \left[\Delta \vec{u} \right] = \int_V \tensorTwoGradO{\delta \vec{u}} : \pderiv{\pkOne}{\F} : \tensorTwoGradO{\Delta \vec{u}} \dV = \int_V \left( \vectorGradO{N_a} \otimes \delta \vec{U}_{a} \right) : \pderiv{\pkOne}{\F} : \left( \vectorGradO{N_b} \otimes \Delta \vec{U}_{b} \right) \dV \Longrightarrow
-\end{equation*}
-\begin{equation*}
-    D \delta \mathcal{W}^{int} \, \left[\Delta \vec{u} \right] = \delta U_{aj} \cdot \underbrace{\left[\int_V \nabla_0 N_{ai} \cdot \pderiv{\mathrm{P}_{ij}}{\mathrm{F}_{kl}} \cdot \nabla_0 N_{bk} \dV \right]}_{K_{ajbl}} \cdot \Delta U_{bl} = \delta U_{aj} \cdot K_{ajbl} \cdot \Delta U_{bl}
-\end{equation*}
-
-The derivative of $\pkOne$ with respect to $\F$, called the mixed elasticity tangent tensor, is expressed as a function of the material model used. The chain rule of differentiation is then used to express it as a function of the material tangent tensor $\tensorFour{\mathcal{C}}$:
-
-\begin{equation} \label{eq:dPdF}
-    \pderiv{\pkOne}{\F} = \pderiv{\left(\F \cdot \pkTwo \right)}{\F} = \pderiv{\F}{\F} \cdot \pkTwo + \F \cdot \pderiv{\pkTwo}{\F} = \pderiv{\F}{\F} \cdot \pkTwo + \F \cdot \underbrace{\pderiv{\pkTwo}{\E}}_{\tensorFour{\mathcal{C}}} \cdot \pderiv{\E}{\F}
-\end{equation}
-
-Two of the unknown terms ($\pderiv{\F}{\F}$ and $\pderiv{\E}{\F}$) are purely kinematic and can be evaluated generally for any material model:
-
-\begin{equation} \label{eq:dFdF}
-    \pderiv{\F}{\F}  \rightarrow \pderiv{\mathrm{F}_{ij}}{\mathrm{F}_{kl}}= \delta_{ik} \cdot \delta_{jl}
-\end{equation}
-\begin{equation}
-    \pderiv{\E}{\F} = \pderiv{\left(\frac{1}{2} \left(\F^T \cdot \F - \tensorTwo{I} \right) \right)}{\F} = \frac{1}{2} \left( \pderiv{\F^T}{\F} \cdot \F + \F^T \cdot \pderiv{\F}{\F}  \right) \rightarrow \pderiv{\mathrm{E}_{ij}}{\mathrm{F}_{kl}} = \frac{1}{2} \left( \delta_{il} \cdot \mathrm{F}_{kj} +  \delta_{jl} \cdot \mathrm{F}_{ki}  \right)
-\end{equation}
-
-However, the tensor $\tensorFour{\mathcal{C}}$ is the material tangent tensor, which is a function of the material model used. This is the information used in the code that each non linear material needs to provide. For that reason, the expression of $\tensorFour{\mathcal{C}}$ for each non linear material model is described below:
+However, the tensor $\Celastic$ is the material tangent tensor, which is a function of the material model used. This is the information used in the code that each non linear material needs to provide. For that reason, the expression of $\Celastic$ for each non linear material model is described below:
 
 \paragraph{Saint Venant - Kirchhoff:}
 
 \begin{equation*}
-    \tensorFour{\mathcal{C}} = \pderiv{\pkTwo}{\E} = \pderiv{\left( \lambda \, tr(\E) \tensorTwo{\mathrm{I}} + 2\mu \,\E \right)}{\E} \Longrightarrow
+    \Celastic = \pderiv{\pkTwo}{\E} = \pderiv{\left( \lambda \, tr(\E) \tensorTwo{\mathrm{I}} + 2\mu \,\E \right)}{\E} \Longrightarrow
 \end{equation*}
 \begin{equation} \label{eq:C_stk}
     \mathcal{C}_{ijkl} = \lambda \, \delta_{ij}\delta_{kl} + \mu \left( \delta_{ik}\delta_{jl} + \delta_{il}\delta_{jk} \right)
@@ -110,7 +107,7 @@ However, the tensor $\tensorFour{\mathcal{C}}$ is the material tangent tensor, w
 \paragraph{Compressible Neo-Hookean:}
 
 \begin{equation*}
-    \tensorFour{\mathcal{C}} = \pderiv{\pkTwo}{\E} = \pderiv{\left( \mu \, \left(\tensorTwo{\mathrm{I}} - \C^{-1} \right) - \lambda \, \ln{\J} \, \C^{-1} \right)}{\E} \Longrightarrow
+    \Celastic = \pderiv{\pkTwo}{\E} = \pderiv{\left( \mu \, \left(\tensorTwo{\mathrm{I}} - \C^{-1} \right) - \lambda \, \ln{\J} \, \C^{-1} \right)}{\E} \Longrightarrow
 \end{equation*}
 \begin{equation} \label{eq:C_nhk}
     \mathcal{C}_{ijkl} = \left( \mu - \lambda \, \ln{\J} \right) \cdot \left( \mathrm{C}_{ik}^{-1} \cdot \mathrm{C}_{jl}^{-1} + \mathrm{C}_{il}^{-1} \cdot \mathrm{C}_{jk}^{-1} \right) + \lambda \cdot \mathrm{C}_{ij}^{-1} \cdot \mathrm{C}_{kl}^{-1}
