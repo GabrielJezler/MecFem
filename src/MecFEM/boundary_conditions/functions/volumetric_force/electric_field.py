@@ -1,7 +1,7 @@
 import numpy as np
 
 from ..wrapper import partializable
-from ...volumetric import VolumetricForce
+from ...volumetric_force import VolumetricForce
 
 @partializable("E", "rho_e")
 def constant_electric_field(X: np.ndarray, E: np.ndarray, rho_e: float) -> np.ndarray:
@@ -37,6 +37,8 @@ class ConstantElectricField(VolumetricForce):
     rho_e : float
         Electric charge density.
     """
+    NAME = "Constant Electric Field"
+    DESCRIPTION = "Applies a spatially constant electric field for each time step."
     def __init__(self, E: np.ndarray, rho_e: float) -> None:
         if not isinstance(E, np.ndarray):
             raise TypeError("E must be a numpy array")

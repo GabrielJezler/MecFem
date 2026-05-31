@@ -1,5 +1,7 @@
 import numpy as np
 
+from ..utils.classification import BoundaryConditionClassification
+
 class Displacement:
     """
     Data structure for displacement field boundary conditions applied to the FE model.
@@ -9,11 +11,19 @@ class Displacement:
     field : Callable
         Function that defines the displacement field as a function of spatial coordinates x.
     """
+    NAME = "Displacement"
+    DESCRIPTION = "Applies a displacement field to the model. The field is defined as a function of spatial coordinates x."
     def __init__(self, field) -> None:
         if not callable(field):
             raise TypeError("field must be a callable function")
 
         self._field = field
+
+        self._classification = BoundaryConditionClassification.DISPLACEMENT
+    
+    @property
+    def classification(self):
+        return self._classification
 
     def __call__(self, x_nodes: np.ndarray | None=None) -> np.ndarray:
         """

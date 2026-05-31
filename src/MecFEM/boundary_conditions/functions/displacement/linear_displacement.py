@@ -26,12 +26,14 @@ def disp_1dof(X:np.ndarray, mag: float) -> np.ndarray:
 
 class Displacement1Dof(Displacement):
     """
-    Displacement function representing a linear displacement in one degree of freedom.
+    Displacement function representing a constant displacement in one degree of freedom.
 
     Parameters
     ----------
     mag : float
         Magnitude of the displacement.
     """
+    NAME = "Constant Displacement"
+    DESCRIPTION = "Applies a constant displacement for each time step."
     def __init__(self, mag: float) -> None:
         super().__init__(field=disp_1dof(mag=mag))

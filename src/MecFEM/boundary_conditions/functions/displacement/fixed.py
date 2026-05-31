@@ -27,5 +27,7 @@ class Fixed1Dof(Displacement):
     ----------
     None
     """
+    NAME = "Fixed Displacement"
+    DESCRIPTION = "Applies a fixed displacement (zero) for each time step."
     def __init__(self) -> None:
         super().__init__(field=fixed)

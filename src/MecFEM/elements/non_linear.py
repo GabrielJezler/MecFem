@@ -121,7 +121,7 @@ class NonLinearFiniteElement(BaseFiniteElement):
         )
 
         Kint_2 = self.integrate(
-            np.einsum('nam, nmi,nijkl,nok, nbo->najbl', self.dfshape(), self.F, self.material_elastic_tangent, self.F, self.dfshape())
+            np.einsum('nam, nmi,nijkl,nok,nbo->najbl', self.dfshape(), self.F, self.material_elastic_tangent, self.F, self.dfshape())
         )
 
         Kint = Kint_1 + Kint_2

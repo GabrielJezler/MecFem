@@ -60,7 +60,7 @@ def test():
         )
     )
 
-    f = mf.boundary_conditions.functions.volumetric.Gravity(g=np.array([0.0, -9.81 * 1e4]), rho=1e3)
+    f = mf.boundary_conditions.functions.volumetric_force.Gravity(g=np.array([0.0, -9.81 * 1e4]), rho=1e3)
 
     model.add_volumetric_force(
         step=mf.boundary_conditions.BCStep(

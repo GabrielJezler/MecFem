@@ -1,5 +1,7 @@
 import numpy as np
 
+from ..utils.classification import BoundaryConditionClassification
+
 class VolumetricForce:
     """
     Data structure for volumetric force field boundary conditions applied to the FE model.
@@ -9,11 +11,19 @@ class VolumetricForce:
     field : Function
         Function that defines the volumetric force field as a function of spatial coordinates x.
     """
+    NAME = "Volumetric Force"
+    DESCRIPTION = "Volumetric force field applied to the volume of the domain. The field is defined as a function of spatial coordinates x."
     def __init__(self, field) -> None:
         if not callable(field):
             raise TypeError("field must be a callable function")
 
         self._field = field
+
+        self._classification = BoundaryConditionClassification.VOLUMETRIC_FORCE
+    
+    @property
+    def classification(self):
+        return self._classification
 
     def __call__(self, x_nodes: np.ndarray, f_shape: np.ndarray) -> np.ndarray:
         """

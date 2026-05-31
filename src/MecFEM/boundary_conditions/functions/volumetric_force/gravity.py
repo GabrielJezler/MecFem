@@ -1,7 +1,7 @@
 import numpy as np
 
 from ..wrapper import partializable
-from ...volumetric import VolumetricForce
+from ...volumetric_force import VolumetricForce
 
 @partializable("g", "rho")
 def gravity(X: np.ndarray, g: np.ndarray | float | int, rho: float) -> np.ndarray:
@@ -44,6 +44,8 @@ class Gravity(VolumetricForce):
     rho : float
         Material density.
     """
+    NAME = "Gravity"
+    DESCRIPTION = "Applies a spatially constant gravity field for each time step."
     def __init__(self, g: np.ndarray | float | int, rho: float) -> None:
         if not isinstance(g, np.ndarray):
             raise TypeError("g must be a numpy array")

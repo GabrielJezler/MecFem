@@ -1,9 +1,9 @@
 import numpy as np
 
-from .volumetric import VolumetricForce
+from .volumetric_force import VolumetricForce
 from .displacement import Displacement
 
-class BCStep():
+class BCStep:
     """
     Data structure for time-dependent boundary conditions applied to the FE model. It
     computes the linearly interpolated boundary condition value at a given time.
