@@ -78,3 +78,25 @@ class LinearIsotropic:
     def lame2(self):
         """Lame's second parameter (mu)"""
         return self._mu
+    
+    def stiffness(self, dim: int):
+        """
+        Compute the stiffness tensor for the linear isotropic material.
+        """
+        raise NotImplementedError("This method should be implemented in the derived class.")
+
+    def sigma(self, grad0_u):
+        """
+        Compute the Cauchy stress tensor for the linear isotropic material.
+
+        Parameters
+        ----------
+        grad0_u : ndarray
+            The gradient of the displacement field. This is an array of shape (n_int_pts, dim, dim).
+
+        Returns
+        -------
+        sigma : ndarray
+            The Cauchy stress tensor at integration points. This is an array of shape (n_int_pts, dim, dim).
+        """
+        raise NotImplementedError("This method should be implemented in the derived class.")

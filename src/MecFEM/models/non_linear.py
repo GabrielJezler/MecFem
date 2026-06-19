@@ -241,6 +241,16 @@ class NonLinear(Base):
 
     @wraps(Base.load_gmsh_results)
     def load_gmsh_results(self, filename, U_values_name):
+        """
+        Loads nodal displacement results from a Gmsh .msh file and computes the corresponding residuals for each time step.
+
+        Parameters
+        ----------
+        filename : str
+            Path to the Gmsh .msh file containing the nodal displacement results.
+        U_values_name : str
+            Name of the nodal displacement field in the Gmsh .msh file.
+        """
         super().load_gmsh_results(filename, U_values_name)
 
         self.R = []

@@ -191,28 +191,3 @@ class NonLinearIsotropic(LinearIsotropic):
             Material elastic tangent tensor. This is an array of shape (n_int_pts, dim, dim, dim, dim).
         """
         raise NotImplementedError("This method should be implemented in the derived class.")
-
-    # def mixed_elastic_tangent(self, grad0_u):
-    #     """
-    #     Compute the mixed elastic tangent tensor.
-
-    #     Parameters
-    #     ----------
-    #     grad0_u : ndarray
-    #         Displacement gradient tensor. This is an array of shape (n_int_pts, dim, dim).
-
-    #     Returns
-    #     -------
-    #     dP/dF : ndarray
-    #         Mixed elastic tangent tensor. This is an array of shape (n_int_pts, dim, dim, dim, dim).
-    #     """
-    #     F = self.transformation_gradient(grad0_u)
-    #     I2 = np.eye(F.shape[1])
-
-    #     dEdF = 1/2 * (np.einsum('gL,nkh->nghkL', I2, F) + np.einsum('hL,nkg->nghkL', I2, F))
-
-    #     t1 = np.einsum('ik,nJL->niJkL', I2, self.pk2(grad0_u))
-    #     t2 = np.einsum('niN, nNJgh, nghkL->niJkL', F, self.material_elastic_tangent(grad0_u), dEdF)
-
-    #     return t1 + t2
-

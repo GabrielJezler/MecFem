@@ -90,4 +90,3 @@ def generate_rectangle_mesh(a, b, nx, ny, filename="mesh\\rectangle.msh"):
     gmsh.finalize()
 
     return filename
-

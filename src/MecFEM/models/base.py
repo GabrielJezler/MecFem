@@ -219,24 +219,37 @@ class Base:
         return None
 
     def _clear_displacements(self) -> None:
+        """
+        Clear all displacement boundary conditions from the model.
+        """
         self.fixed_dofs = np.array([], dtype=int)
         self.free_dofs = np.arange(self.n_dofs).astype(int)
         self._displacement_steps = []
     
     def _clear_volumetric_forces(self) -> None:
+        """
+        Clear all volumetric forces from the model.
+        """
         self._volumetric_force_steps = []
     
     def _clear_external_forces(self) -> None:
+        """
+        Clear all external forces from the model.
+        """
         self._external_forces_steps = []
     
     def clear_boundary_conditions(self) -> None:
+        """
+        Clear all boundary conditions (displacements, volumetric forces and external
+        forces) from the model.
+        """
         self._clear_displacements()
         self._clear_volumetric_forces()
         self._clear_external_forces()
 
     def extract(self, U: np.ndarray, elem_id: int) -> np.ndarray:
         """
-        extract nodal values of field U for element e
+        Extract nodal values of field U for element e
 
         Parameters
         ----------
