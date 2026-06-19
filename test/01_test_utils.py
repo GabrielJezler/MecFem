@@ -1,7 +1,6 @@
 import numpy as np
 
 import MecFEM.utils.stress as stress
-import MecFEM.utils.kinematics as kinematics
 import MecFEM.geometry.isoparametric_elements as ref
 import MecFEM as mf
 
@@ -9,8 +8,8 @@ def test():
     material = mf.materials.non_linear.StVenantKirchhoffElasticity(E=200.0, nu=0.3)
 
     mesh = mf.mesh.Mesh("mesh/rect.msh", dim=2)
-    element = mesh.get_element_by_id(40, 2)
-    x_nodes = mesh.get_nodes_coordinates_by_element(40, 2)
+    element = mesh.get_element_by_id(50, 2)
+    x_nodes = mesh.get_nodes_coordinates_by_element(50, 2)
 
     int_pts = ref.ReferenceElements().get_by_type(element.type).integration_points
     dim = element.dim
